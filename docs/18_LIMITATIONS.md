@@ -19,6 +19,36 @@ delegated authority to the agent" is a convenient sentence and a slightly false
 one. The accurate sentence is: *the human made a bounded capability surface exist
 for a while, and the server enforces its bounds on every call that arrives.*
 
+## "Apply is a human action" is a convention, not an enforcement
+
+The tool surface genuinely has no apply. `POST /api/tools/apply` does not exist,
+no compiled descriptor is named apply, and `scripts/verify-live.mjs` checks both
+on the deployed origin. That part is real.
+
+What it is not is proof that a human pressed the button. The human path and the
+agent path are separated **by route, not by identity**. `POST /api/changes/apply`
+is an ordinary endpoint, and a browser-driving agent — Claude for Chrome,
+ChatGPT's agent mode, a Codex-style runner — has exactly the access to it that a
+person sitting at the keyboard does. It can click the button. It can call the
+route. `event.isTrusted` does not help: those agents dispatch real input through
+the browser, so their clicks are trusted clicks. **A page cannot distinguish a
+synthetic click from a human one.**
+
+So the accurate statement is:
+
+- **the mandate is the boundary.** Apply can only ever commit changes staged
+  inside a live, in-scope mandate, so the worst an agent achieves by pressing
+  the button is committing work it was already authorised to stage;
+- **the human-only apply is defence in depth**, and a statement of intent about
+  where the product thinks the decision belongs. It is not a control.
+
+This is not a bug that could be fixed inside the page. Only the browser, or the
+agent host, knows which input it synthesised — so only host chrome can tell the
+two apart. That is the sharpest argument for the missing primitive named in
+`docs/20_WEBMCP_FIELD_NOTES.md` §7: **a grant and a confirmation rendered by the
+host, from scope descriptors the page supplies.** Everything Mandate draws for
+itself, it draws because that primitive does not exist yet.
+
 ## What the schema does and does not do
 
 A narrowed tool schema is communication. It tells a well-behaved caller what it
