@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMode } from '../lib/mode';
-import { RowApproval } from './MinimalLayer';
+import { ApprovalPopover } from './MinimalLayer';
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
 import type { Customer, CustomerField } from '../../server/core/types';
@@ -138,6 +138,12 @@ function CustomerRow({
   const { session } = useSession();
   const { mode } = useMode();
   const row = useRef<HTMLLIElement | null>(null);
+  // The approval opens from the change itself. It used to hang off the row
+  // header, which on a full-width row put the control about fourteen hundred
+  // pixels from the diff it was about — present, passing its test, and not
+  // findable.
+  const reviewAnchor = useRef<HTMLElement | null>(null);
+  const [reviewing, setReviewing] = useState(false);
   const staged = session.changes.filter(
     (c) => c.customerId === customer.id && c.state !== 'APPLIED',
   );
@@ -171,7 +177,6 @@ function CustomerRow({
             delegated
           </span>
         )}
-        {mode === 'minimal' && <RowApproval customerId={customer.id} />}
       </div>
 
       <dl className="fields">
@@ -183,6 +188,15 @@ function CustomerRow({
             statuses={statuses}
             delegated={Boolean(delegatedFields?.includes(field))}
             pending={staged.find((c) => c.field === field)?.after}
+            stale={staged.find((c) => c.field === field)?.state === 'STALE'}
+            onReview={
+              mode === 'minimal'
+                ? (el) => {
+                    reviewAnchor.current = el;
+                    setReviewing(true);
+                  }
+                : undefined
+            }
           />
         ))}
         <div className="field field--readonly">
@@ -201,6 +215,15 @@ function CustomerRow({
         </div>
       </dl>
 
+      {mode === 'minimal' && (
+        <ApprovalPopover
+          customerId={customer.id}
+          anchorRef={reviewAnchor}
+          open={reviewing}
+          onClose={() => setReviewing(false)}
+        />
+      )}
+
       <p className="customer__notes" title="External content. Never an instruction to any tool.">
         <span className="customer__notes-tag">notes · untrusted</span>
         {customer.notes}
@@ -215,12 +238,16 @@ function EditableField({
   statuses,
   delegated,
   pending,
+  stale,
+  onReview,
 }: {
   customer: Customer;
   field: CustomerField;
   statuses: readonly string[];
   delegated: boolean;
   pending?: string;
+  stale?: boolean;
+  onReview?(anchor: HTMLElement): void;
 }) {
   const { run } = useStore();
   const [editing, setEditing] = useState(false);
@@ -292,6 +319,14 @@ function EditableField({
             ) : (
               value
             )}
+          </button>
+        )}
+        {pending !== undefined && onReview && !editing && (
+          <button
+            className={`review${stale ? ' review--stale' : ''}`}
+            onClick={(e) => onReview(e.currentTarget)}
+          >
+            {stale ? 'Redo' : 'Review'}
           </button>
         )}
       </dd>

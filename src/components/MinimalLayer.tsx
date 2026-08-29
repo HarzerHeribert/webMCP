@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type RefObject } from 'react';
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
 import { AuthorityPanel } from './AuthorityPanel';
@@ -61,13 +61,19 @@ export function MinimalLayer() {
  * while the decision is made — which a modal cannot promise and a sidebar only
  * manages by permanently spending the space.
  */
-export function RowApproval({ customerId }: { customerId: string }) {
+export function ApprovalPopover({
+  customerId,
+  anchorRef,
+  open,
+  onClose,
+}: {
+  customerId: string;
+  anchorRef: RefObject<HTMLElement | null>;
+  open: boolean;
+  onClose(): void;
+}) {
   const { session } = useSession();
   const { run, lastError } = useStore();
-  const [open, setOpen] = useState(false);
-  // Anchored to the control, not to the record: the row spans the workbench, so
-  // anchoring to it puts the card wherever the row happens to end.
-  const btn = useRef<HTMLButtonElement | null>(null);
 
   const mine = session.changes.filter((c) => c.customerId === customerId && c.state !== 'APPLIED');
   if (mine.length === 0) return null;
@@ -77,16 +83,7 @@ export function RowApproval({ customerId }: { customerId: string }) {
 
   return (
     <>
-      <button
-        ref={btn}
-        className={`review${stale ? ' review--stale' : ''}`}
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-      >
-        {mine.length} change{mine.length === 1 ? '' : 's'} to review
-      </button>
-
-      <Popover anchorRef={btn} open={open} onClose={() => setOpen(false)} label="Review staged changes" side="top">
+      <Popover anchorRef={anchorRef} open={open} onClose={onClose} label="Review staged changes" side="top">
         <div className="approve">
           <p className="approve__lead">
             {byAgent ? 'The agent staged this' : 'You staged this'}
@@ -138,7 +135,7 @@ export function RowApproval({ customerId }: { customerId: string }) {
                   );
                   if (blocked) return checked;
                   const done = await api.apply(session.revision);
-                  setOpen(false);
+                  onClose();
                   return done;
                 })
               }

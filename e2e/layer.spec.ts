@@ -191,7 +191,9 @@ test('the approval appears on the record, reads as a sentence, and commits in on
 
   await page.getByRole('button', { name: 'Product', exact: true }).click();
 
-  const review = row.getByRole('button', { name: /to review/ });
+  // The control sits on the change itself, not at the far end of the row.
+  const field = row.locator('.field').filter({ hasText: 'Next action' });
+  const review = field.getByRole('button', { name: 'Review', exact: true });
   await expect(review).toBeVisible();
   await review.click();
 
@@ -206,7 +208,7 @@ test('the approval appears on the record, reads as a sentence, and commits in on
 
   // The popover put itself away, the record carries the value, and there is
   // nothing left to review — one press, no separate validate step.
-  await expect(row.getByRole('button', { name: /to review/ })).toBeHidden();
+  await expect(row.getByRole('button', { name: 'Review', exact: true })).toBeHidden();
   await expect(pop).toBeHidden();
   await expect(row.locator('.fields').getByText('Book the exec sync')).toBeVisible();
 });
@@ -227,9 +229,16 @@ test('a stale approval refuses to commit and says why', async ({ page }) => {
   await page.getByRole('button', { name: 'Simulate external update' }).click();
   await page.getByRole('button', { name: 'Product', exact: true }).click();
 
-  await row.getByRole('button', { name: /to review/ }).click();
+  // Nothing is stale yet: staleness is what validation *discovers*, so the
+  // control still offers a review and the discovery happens on pressing Apply.
+  const field = row.locator('.field').filter({ hasText: 'Status' });
+  await field.getByRole('button', { name: 'Review', exact: true }).click();
   const pop = page.getByRole('dialog', { name: 'Review staged changes' });
   await pop.getByRole('button', { name: 'Apply', exact: true }).click();
   await expect(pop.getByText(/record changed underneath|blocked/i)).toBeVisible();
+
+  // And now it asks to be redone rather than reviewed again.
+  await page.keyboard.press('Escape');
+  await expect(field.getByRole('button', { name: 'Redo', exact: true })).toBeVisible();
 });
 

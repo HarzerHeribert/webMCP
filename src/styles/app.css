@@ -788,8 +788,12 @@ h1, h2, h3, p { margin: 0; }
 .review {
   border: 1px solid var(--primary-edge); background: var(--primary-wash);
   color: var(--primary); border-radius: var(--r-pill); cursor: pointer;
-  font: 650 var(--t-xs)/1 var(--sans); padding: 5px 11px; white-space: nowrap;
+  font: 650 var(--t-xs)/1 var(--sans); padding: 4px 10px; white-space: nowrap;
+  margin-left: var(--s2); vertical-align: middle;
 }
+/* The field's value and its approval sit on one line, so the diff and the
+   control that acts on it are never more than a few pixels apart. */
+.field__value { display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
 .review:hover { background: #dceafb; }
 .review:focus-visible { outline: none; box-shadow: var(--focus); }
 .review--stale { border-color: var(--authority-edge); background: var(--authority-wash); color: var(--authority); }
