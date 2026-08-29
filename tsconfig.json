@@ -18,5 +18,5 @@
     "skipLibCheck": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src", "server", "tests", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]
+  "include": ["src", "server", "api", "tests", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"]
 }
