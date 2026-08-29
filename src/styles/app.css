@@ -737,3 +737,80 @@ h1, h2, h3, p { margin: 0; }
   background: none; border: 0; padding: 0;
 }
 .change__field--plain::before { content: '· '; color: var(--text-3); }
+
+/* ══ MINIMAL FORM ═══════════════════════════════════════════════════════════
+   Mandate with no panel: a pill that cannot be hidden, and a popover anchored
+   to whatever the moment is about. See `src/components/MinimalLayer.tsx`. */
+
+.workbench--minimal { grid-template-columns: minmax(0, 1fr); }
+
+.pill {
+  position: fixed; right: var(--s5); bottom: var(--s5); z-index: 40;
+  display: inline-flex; align-items: center; gap: var(--s2);
+  background: var(--surface-1); border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill); padding: 9px 16px 9px 13px; cursor: pointer;
+  box-shadow: var(--shadow-raise); transition: var(--transition);
+  font: 600 var(--t-sm)/1 var(--sans); color: var(--text-2);
+}
+.pill:hover { border-color: var(--text-3); }
+.pill:focus-visible { outline: none; box-shadow: var(--focus); }
+.pill__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text-3);
+}
+.pill__name { color: var(--text); font-weight: 660; }
+.pill__state { color: var(--text-3); font-weight: 500; }
+
+/* Live authority is the one thing this interface will never let out of sight,
+   so the pill states it in the reserved colour rather than merely existing. */
+.pill--active {
+  background: var(--authority-wash); border-color: var(--authority-edge);
+  color: var(--authority);
+}
+.pill--active .pill__dot { background: var(--authority-fill); }
+.pill--active .pill__name { color: var(--authority); }
+.pill--active .pill__state { color: var(--authority-dim); }
+.pill__count {
+  background: var(--primary); color: var(--text-inverse); border-radius: var(--r-pill);
+  min-width: 18px; height: 18px; padding: 0 5px; display: grid; place-items: center;
+  font-size: var(--t-xs); font-weight: 700;
+}
+
+.pop {
+  position: fixed; z-index: 60; width: 380px; max-width: calc(100vw - 24px);
+  max-height: min(640px, calc(100vh - 24px)); overflow: auto;
+  background: var(--surface-1); border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg); box-shadow: 0 12px 40px rgba(16, 24, 40, .16);
+}
+/* The authority composer is a panel elsewhere; inside a popover it is the
+   whole surface, so it drops the panel's own frame. */
+.pop .panel { border: 0; box-shadow: none; border-radius: 0; }
+
+.review {
+  border: 1px solid var(--primary-edge); background: var(--primary-wash);
+  color: var(--primary); border-radius: var(--r-pill); cursor: pointer;
+  font: 650 var(--t-xs)/1 var(--sans); padding: 5px 11px; white-space: nowrap;
+}
+.review:hover { background: #dceafb; }
+.review:focus-visible { outline: none; box-shadow: var(--focus); }
+.review--stale { border-color: var(--authority-edge); background: var(--authority-wash); color: var(--authority); }
+.customer--awaiting { box-shadow: inset 3px 0 0 var(--primary); }
+
+.approve { padding: var(--s4); display: grid; gap: var(--s3); }
+.approve__lead { margin: 0; font-size: var(--t-base); color: var(--text); font-weight: 600; }
+.approve__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.approve__row {
+  display: grid; gap: 3px; padding: var(--s2) var(--s3);
+  background: var(--surface-2); border: 1px solid var(--line-hair); border-radius: var(--r);
+}
+.approve__field { font-size: var(--t-xs); color: var(--text-3); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.approve__warn {
+  margin: 0; font-size: var(--t-sm); color: var(--authority);
+  background: var(--authority-wash); border: 1px solid var(--authority-edge);
+  border-radius: var(--r); padding: var(--s2) var(--s3);
+}
+.approve__actions { display: flex; gap: var(--s2); justify-content: flex-end; }
+.approve__foot { margin: 0; font-size: var(--t-xs); color: var(--text-3); text-align: right; }
+.approve__code {
+  display: block; font: 700 var(--t-xs)/1 var(--mono); letter-spacing: .04em;
+  margin-bottom: 4px;
+}

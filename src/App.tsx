@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { AuthorityPanel } from './components/AuthorityPanel';
 import { CustomerTable } from './components/CustomerTable';
 import { Header } from './components/Header';
@@ -8,6 +9,7 @@ import { Timeline } from './components/Timeline';
 import { AgentConsole } from './components/AgentConsole';
 import { DemoGuide } from './components/DemoGuide';
 import { MandateLayer } from './components/MandateLayer';
+import { MinimalLayer } from './components/MinimalLayer';
 import { ModeProvider, useMode } from './lib/mode';
 import { useStore } from './lib/store';
 import { WebMcpProvider } from './webmcp/provider';
@@ -31,31 +33,13 @@ import { WebMcpProvider } from './webmcp/provider';
  * simulated caller sits directly above the staged changes it produces, so
  * running a tool and watching the result land are one glance apart.
  */
-/**
- * What the layer contains depends on who is being addressed — see
- * `src/lib/mode.tsx`. In `user` mode the three instrumentation panels are gone
- * and what is left is the shipping shape: the grant, the work it produced, and
- * the human commit. The pending values were always rendered inline on the
- * records themselves (`CustomerTable`), so nothing has to be rebuilt to show a
- * person what changed — the panels that go away were never for them.
- */
-function LayerContents() {
+/** In `minimal` there is no layer element in the workbench at all — the host
+ *  gets the whole width, and Mandate is a pill plus whatever popover is open. */
+function Layer() {
   const { mode } = useMode();
-
-  if (mode === 'user') {
-    return (
-      <div className="layer__grid layer__grid--user">
-        <div className="column column--fit">
-          <AuthorityPanel />
-          <ConflictPanel />
-          <StagedChanges />
-        </div>
-      </div>
-    );
-  }
-
+  if (mode === 'minimal') return <MinimalLayer />;
   return (
-    <>
+    <MandateLayer>
       <div className="layer__grid">
         <div className="column column--fit">
           <AuthorityPanel />
@@ -68,16 +52,23 @@ function LayerContents() {
         </div>
       </div>
       <Timeline />
-    </>
+    </MandateLayer>
   );
 }
 
-/** The guide narrates the reviewer's path — including beats that only exist in
- *  `technical` mode — so in `user` mode it would be telling you to use panels
- *  that are not on screen. */
+/** The guide narrates the reviewer's path through the instrument, so in the
+ *  product form it would be pointing at panels that are not on screen. */
 function Guide() {
   const { mode } = useMode();
   return mode === 'technical' ? <DemoGuide /> : null;
+}
+
+/** With no layer element in the workbench, the host gets the whole width. */
+function Workbench({ children }: { children: ReactNode }) {
+  const { mode } = useMode();
+  return (
+    <main className={`workbench${mode === 'minimal' ? ' workbench--minimal' : ''}`}>{children}</main>
+  );
 }
 
 export function App() {
@@ -117,7 +108,7 @@ export function App() {
       <div className="app">
         <Header />
         <Guide />
-        <main className="workbench">
+        <Workbench>
           <section className="host" aria-label="Relay CRM, the host application">
             <header className="host__chrome">
               <span className="host__mark" aria-hidden>
@@ -131,10 +122,8 @@ export function App() {
             </div>
           </section>
 
-          <MandateLayer>
-            <LayerContents />
-          </MandateLayer>
-        </main>
+          <Layer />
+        </Workbench>
       </div>
       </ModeProvider>
     </WebMcpProvider>
