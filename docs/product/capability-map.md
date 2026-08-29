@@ -160,8 +160,10 @@ Phase M6 — Human apply and audit
 
 Phase M7 — The demo, and the polish that carries it
 
-☐ Cover every UX state in `docs/02_UX_SPEC.md` with a designed, labelled appearance.
-☐ Pair every state colour with a text label; never rely on colour alone. (D-015)
+☑ Cover every UX state in `docs/02_UX_SPEC.md` with a designed, labelled appearance.
+    EVIDENCE: manual: NO_MANDATE, ACTIVE_MANDATE, DRAFT, VALIDATED, READY_FOR_APPLY, STALE, REVISION_CONFLICT, POLICY_CHANGED, APPLIED and WEBMCP_UNAVAILABLE each render distinctly; a mandate *ending* got its own state, because reverting silently to the composer was the one thing the interface failed to say.
+☑ Pair every state colour with a text label; never rely on colour alone. (D-015)
+    EVIDENCE: manual: every chip carries its label; the two rail colours are named in the customer legend; provenance uses three distinct marks, not three shades.
 ☑ Write the fixed eval script: the nine minimum cases from `docs/08_EVAL_AND_TEST_PLAN.md`.
     EVIDENCE: `tests/unit/service.test.ts` + `tests/integration/app.test.ts` — all nine `docs/08` cases as named deterministic tests, plus session isolation and expiry.
 ☐ Add browser tests for delegation, inspector narrowing, co-edit, conflict, rebase, apply, and reset.

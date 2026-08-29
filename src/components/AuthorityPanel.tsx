@@ -43,9 +43,44 @@ export function AuthorityPanel() {
       </div>
 
       <div className="panel__body">
-        {active ? <ActiveMandate /> : <Composer key={session.mandateVersion} statuses={schema.delegatableFields} />}
+        {active ? (
+          <ActiveMandate />
+        ) : (
+          <>
+            {mandate && <MandateEnded />}
+            <Composer key={session.mandateVersion} statuses={schema.delegatableFields} />
+          </>
+        )}
       </div>
     </section>
+  );
+}
+
+/**
+ * A mandate ending is an event, not the absence of one. Without this the panel
+ * would simply revert to the composer and the most important thing that just
+ * happened — the authority is gone and the tools went with it — would be the one
+ * thing the interface did not say.
+ */
+function MandateEnded() {
+  const { session } = useSession();
+  const mandate = session.mandate!;
+  const revoked = mandate.endedReason === 'REVOKED';
+  return (
+    <div className={`ended ended--${revoked ? 'revoked' : 'expired'}`}>
+      <span className="ended__head">
+        <span className="chip chip--settled">
+          <span className="chip__dot" />
+          {revoked ? 'revoked' : 'expired'}
+        </span>
+        Mandate v{mandate.version} {revoked ? 'was revoked' : 'expired'}
+      </span>
+      <p className="ended__body">
+        Its tools are withdrawn, and the server now refuses any call made against
+        it. Staged work is untouched — removing authority does not discard the
+        human's draft.
+      </p>
+    </div>
   );
 }
 

@@ -68,9 +68,12 @@ export function StagedChanges() {
         )}
       </div>
 
-      <div className="commit">
+      <div className={`commit${allValidated ? ' commit--ready' : ''}${anyStale ? ' commit--blocked' : ''}`}>
         <div className="commit__copy">
-          <span className="commit__title">Apply is a human action</span>
+          <span className="commit__title">
+            Apply is a human action
+            {allValidated && <span className="chip chip--ok commit__ready">ready</span>}
+          </span>
           <span className="commit__sub">
             {anyStale
               ? 'Stale work must be rebased before it can be applied.'

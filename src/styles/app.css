@@ -249,6 +249,13 @@ h1, h2, h3, p { margin: 0; }
   transition: background var(--transition);
 }
 .field__edit:hover { background: var(--surface-3); }
+/* A staged value must never be clipped: the whole point of showing it here is
+   that the record and the pending intent are readable together. The record goes
+   on top, struck through; the intent goes under it, with the arrow leading. */
+.field__edit--staged { white-space: normal; overflow: visible; }
+.field__edit--staged .delta { display: block; font-family: inherit; font-size: var(--t-sm); }
+.field__edit--staged .delta__before { display: block; line-height: 1.35; }
+.field__edit--staged .delta__arrow { margin-right: 4px; }
 .field--delegated .field__edit:hover { background: rgba(229,180,92,0.14); }
 .field__input {
   width: 100%; padding: 1px 4px; margin-left: -4px;
@@ -352,3 +359,27 @@ h1, h2, h3, p { margin: 0; }
 .commit__title { font-size: var(--t-sm); font-weight: 600; }
 .commit__sub { font-size: var(--t-xs); color: var(--text-3); }
 .commit .btn { margin-left: auto; }
+
+/* ── a mandate that has ended ─────────────────────────────────────────────── */
+.ended {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: var(--s3); margin-bottom: var(--s4);
+  border-radius: var(--r); border: 1px solid var(--line-strong);
+  background: var(--surface-sunk);
+  /* Deliberately not amber: this is authority that is gone. */
+  border-left: 3px solid var(--settled);
+}
+.ended--revoked { border-left-color: var(--danger); }
+.ended__head {
+  display: flex; align-items: center; gap: var(--s2);
+  font-size: var(--t-sm); font-weight: 560;
+}
+.ended__body { font-size: var(--t-xs); color: var(--text-3); line-height: 1.5; }
+
+/* ── READY_FOR_APPLY is a state, so it looks like one ─────────────────────── */
+.commit--ready {
+  border-top-color: var(--ok);
+  background: linear-gradient(180deg, var(--ok-wash), var(--surface-sunk) 60%);
+}
+.commit--blocked { border-top-color: var(--warn); }
+.commit__ready { margin-left: var(--s2); vertical-align: middle; }

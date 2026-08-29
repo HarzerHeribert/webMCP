@@ -217,7 +217,7 @@ function EditableField({
           )
         ) : (
           <button
-            className="field__edit"
+            className={`field__edit${pending !== undefined ? ' field__edit--staged' : ''}`}
             onClick={() => {
               setDraft(value);
               setEditing(true);
