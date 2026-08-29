@@ -35,7 +35,7 @@ export function CustomerTable() {
   };
 
   return (
-    <section className="panel panel--grow">
+    <section className="panel panel--fill">
       <div className="panel__head">
         <h2 className="panel__title">Relay CRM · Customers</h2>
         <span className="panel__count">{session.customers.length}</span>

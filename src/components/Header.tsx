@@ -39,9 +39,18 @@ export function Header() {
           label="webmcp"
           value={webmcp.status === 'registered' ? `${webmcp.toolNames.length} tools` : webmcp.statusLabel}
         />
-        <button className="btn btn--quiet" onClick={() => void run(() => api.reset())}>
-          Reset demo
-        </button>
+        <div className="header__instruments">
+          <button
+            className="btn btn--sm"
+            title="Deterministically simulate another user writing to this session. Advances the revision behind any staged work."
+            onClick={() => void run(() => api.simulateExternalUpdate())}
+          >
+            Simulate external update
+          </button>
+          <button className="btn btn--quiet btn--sm" onClick={() => void run(() => api.reset())}>
+            Reset demo
+          </button>
+        </div>
       </div>
     </header>
   );

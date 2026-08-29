@@ -86,3 +86,6 @@
 }
 .sim-strip__hint { font-size: var(--t-xs); color: var(--text-3); line-height: 1.4; flex: 1; min-width: 0; }
 .sim-strip__btn { flex: none; }
+
+/* In the rail header the legend is a trailing cluster, not a stacked block. */
+.panel__head .tl-legend { margin: 0; padding: 0; border: 0; gap: var(--s3); }

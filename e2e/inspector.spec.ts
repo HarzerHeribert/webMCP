@@ -98,6 +98,6 @@ test('no WebMCP flag is needed: the header reads unavailable, and the simulated 
   expect(await readout(page, 'webmcp')).toBe('unavailable');
 
   const inspector = panelByLabel(page, 'Capability inspector');
-  await expect(inspector.getByText('webmcp: unavailable')).toBeVisible();
+  await expect(inspector.getByText('WebMCP unavailable')).toBeVisible();
   await expect(inspector.getByText('WEBMCP_UNAVAILABLE')).toBeVisible();
 });

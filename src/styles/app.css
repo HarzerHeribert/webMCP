@@ -15,58 +15,81 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: none; padding: 0; }
 :focus-visible { outline: none; box-shadow: var(--focus); border-radius: var(--r-sm); }
 h1, h2, h3, p { margin: 0; }
-::selection { background: var(--authority-edge); color: var(--text); }
+::selection { background: var(--primary-wash); color: var(--text); }
 
 /* Scrollbars, quietly. */
-* { scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }
+* { scrollbar-width: thin; scrollbar-color: #c3ccd8 transparent; }
 *::-webkit-scrollbar { width: 9px; height: 9px; }
-*::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: var(--r-pill);
+*::-webkit-scrollbar-thumb { background: #c3ccd8; border-radius: var(--r-pill);
   border: 2px solid transparent; background-clip: content-box; }
 
 /* ── layout ───────────────────────────────────────────────────────────────── */
 .app {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   height: 100%;
-  max-width: 1720px;
+  max-width: 1920px;
   margin: 0 auto;
 }
 .workbench {
   display: grid;
-  grid-template-columns: minmax(390px, 1.06fr) minmax(370px, 0.96fr) minmax(400px, 1.08fr);
-  gap: var(--s3);
-  padding: var(--s3);
+  grid-template-columns: minmax(430px, 1.16fr) minmax(380px, 0.98fr) minmax(400px, 1.02fr);
+  gap: var(--s4);
+  padding: var(--s4) var(--s4) 0;
   min-height: 0;
 }
-.column { display: flex; flex-direction: column; gap: var(--s3); min-height: 0; }
-.column--scroll { overflow-y: auto; overflow-x: hidden; padding-right: 2px; }
+.column { display: flex; flex-direction: column; gap: var(--s4); min-height: 0; }
+
+/* The column is the height of the viewport and never scrolls itself. One panel
+   in each column absorbs the slack and scrolls internally instead.
+   Without this the Authority panel — the centrepiece — scrolls out of view the
+   moment the inspector grows, which is exactly when you most want to see it. */
+.column--fit { overflow-y: auto; overflow-x: hidden; }
+
+/* The timeline rail: full width, bounded, scrolling inside itself. Its rows are
+   sentences, and a sentence in a 400px column is three lines of wrap. */
+.panel--rail {
+  margin: 0 var(--s4) var(--s4);
+  max-height: 172px;
+}
+.panel--rail .panel__body { overflow-y: auto; }
+@media (max-width: 1180px) {
+  .panel--rail { max-height: 260px; }
+}
+.panel--fill { flex: 1 1 auto; min-height: 132px; }
+
 @media (max-width: 1180px) {
   .workbench { grid-template-columns: 1fr; }
-  .column--scroll { overflow: visible; }
+  .column--fit { overflow: visible; }
+  .panel--fill { flex: 0 0 auto; }
 }
 
 /* ── header ───────────────────────────────────────────────────────────────── */
 .header {
   display: flex; align-items: center; gap: var(--s4);
-  padding: 0 var(--s4); height: 52px;
+  padding: 0 var(--s5); height: 58px;
   border-bottom: 1px solid var(--line);
-  background: linear-gradient(180deg, var(--surface-1), var(--bg));
+  background: var(--surface-1);
 }
 .brand { display: flex; align-items: baseline; gap: var(--s2); }
 .brand__mark {
-  font-size: var(--t-lg); font-weight: 620; letter-spacing: -0.015em;
+  font-size: var(--t-lg); font-weight: 650; letter-spacing: -0.02em; color: var(--text);
 }
 .brand__host {
   font-size: var(--t-xs); color: var(--text-3);
   border-left: 1px solid var(--line-strong); padding-left: var(--s2);
 }
-.header__meta { display: flex; align-items: center; gap: var(--s4); margin-left: auto; }
+.header__meta { display: flex; align-items: center; gap: var(--s5); margin-left: auto; }
+.header__instruments {
+  display: flex; align-items: center; gap: var(--s2);
+  padding-left: var(--s4); border-left: 1px solid var(--line);
+}
 
 /* A readout: a small label above a monospace value. Used for anything the demo
    needs the audience to watch change — revision, session, mandate version. */
 .readout { display: flex; flex-direction: column; gap: 1px; line-height: 1.15; }
 .readout__label {
-  font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase;
+  font-size: var(--t-eyebrow); letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--text-3); font-weight: 600;
 }
 .readout__value { font: var(--t-sm)/1.2 var(--mono); color: var(--text); }
@@ -88,22 +111,25 @@ h1, h2, h3, p { margin: 0; }
 }
 /* Only in a column that has a definite height of its own. */
 .panel--grow { flex: 1 1 auto; }
-.panel--authority { border-color: var(--authority-edge); background:
-  linear-gradient(180deg, var(--authority-wash), transparent 90px), var(--surface-1); }
+.panel--authority {
+  border-color: var(--authority-edge);
+  box-shadow: var(--shadow-panel), inset 3px 0 0 var(--authority-fill);
+}
 .panel__head {
   display: flex; align-items: center; gap: var(--s2);
-  padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line-hair);
+  padding: var(--s4) var(--s5); border-bottom: 1px solid var(--line-hair);
+  flex-wrap: wrap;
 }
 .panel__title {
-  font-size: var(--t-xs); font-weight: 640; letter-spacing: 0.075em;
-  text-transform: uppercase; color: var(--text-2);
+  font-size: var(--t-eyebrow); font-weight: 650; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--text-2); white-space: nowrap;
 }
 .panel__count {
-  font: var(--t-xs)/1 var(--mono); color: var(--text-3);
-  background: var(--surface-3); padding: 3px 6px; border-radius: var(--r-sm);
+  font: var(--t-xs)/1 var(--mono); color: var(--text-2);
+  background: var(--surface-3); padding: 3px 7px; border-radius: var(--r-sm);
 }
 .panel__actions { margin-left: auto; display: flex; align-items: center; gap: var(--s2); }
-.panel__body { padding: var(--s3) var(--s4) var(--s4); min-height: 0; }
+.panel__body { padding: var(--s4) var(--s5) var(--s5); min-height: 0; }
 .panel__body--flush { padding: 0; }
 .panel__body--scroll { overflow-y: auto; }
 .panel__note {
@@ -113,43 +139,52 @@ h1, h2, h3, p { margin: 0; }
 /* ── buttons ──────────────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 6px 11px; border-radius: var(--r);
-  border: 1px solid var(--line-strong); background: var(--surface-2);
-  color: var(--text); font-size: var(--t-sm); font-weight: 520;
+  padding: 7px 13px; border-radius: var(--r);
+  border: 1px solid var(--line-strong); background: var(--surface-1);
+  color: var(--text); font-size: var(--t-sm); font-weight: 550;
+  box-shadow: 0 1px 1px rgba(16, 24, 40, 0.03);
   transition: background var(--transition), border-color var(--transition), opacity var(--transition);
   white-space: nowrap;
 }
-.btn:hover:not(:disabled) { background: var(--surface-3); border-color: #3d4757; }
-.btn:disabled { opacity: 0.38; cursor: not-allowed; }
-.btn--quiet { border-color: transparent; background: transparent; color: var(--text-2); }
+.btn:hover:not(:disabled) { background: var(--surface-2); border-color: #b6c2d2; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+.btn--quiet { border-color: transparent; background: transparent; color: var(--text-2); box-shadow: none; }
 .btn--quiet:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+/* Delegating grants authority, so its button is the only amber control. */
 .btn--authority {
-  background: var(--authority); border-color: var(--authority);
+  background: var(--authority-fill); border-color: #c2871a;
+  color: #3d2a00; font-weight: 620;
+}
+.btn--authority:hover:not(:disabled) { background: #e8ab33; border-color: #b87d14; }
+
+/* Applying is the product's primary act, and reads as one. */
+.btn--primary {
+  background: var(--primary); border-color: var(--primary);
   color: var(--text-inverse); font-weight: 600;
 }
-.btn--authority:hover:not(:disabled) { background: #f0c273; border-color: #f0c273; }
-.btn--danger { color: var(--danger); border-color: rgba(229,100,95,0.35); }
+.btn--primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn--danger { color: var(--danger); border-color: #f0c2bd; }
 .btn--danger:hover:not(:disabled) { background: var(--danger-wash); }
-.btn--sm { padding: 3px 8px; font-size: var(--t-xs); }
+.btn--sm { padding: 5px 10px; font-size: var(--t-xs); }
 .btn--block { width: 100%; }
 
 /* ── chips ────────────────────────────────────────────────────────────────── */
 .chip {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 2.5px 8px; border-radius: var(--r-pill);
+  padding: 3px 9px; border-radius: var(--r-pill);
   font-size: var(--t-xs); font-weight: 540; line-height: 1.4;
-  border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text-2);
+  border: 1px solid var(--line-strong); background: var(--surface-1); color: var(--text-2);
   white-space: nowrap;
 }
 .chip__dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex: none; }
-.chip--scope { border-color: var(--authority-edge); background: var(--authority-wash); color: var(--authority); }
+.chip--scope { border-color: var(--authority-edge); background: var(--authority-wash); color: var(--authority); font-weight: 600; }
 .chip--field { font-family: var(--mono); font-size: 10.5px; letter-spacing: -0.01em; }
-.chip--human { border-color: rgba(106,169,255,0.34); background: var(--human-wash); color: var(--human); }
-.chip--agent { border-color: rgba(177,139,245,0.34); background: var(--agent-wash); color: var(--agent); }
-.chip--ok { border-color: rgba(79,192,138,0.34); background: var(--ok-wash); color: var(--ok); }
-.chip--warn { border-color: rgba(226,146,74,0.34); background: var(--warn-wash); color: var(--warn); }
-.chip--danger { border-color: rgba(229,100,95,0.34); background: var(--danger-wash); color: var(--danger); }
-.chip--settled { border-color: rgba(127,141,160,0.3); background: var(--settled-wash); color: var(--settled); }
+.chip--human { border-color: var(--primary-edge); background: var(--human-wash); color: var(--human); }
+.chip--agent { border-color: #d5c6f5; background: var(--agent-wash); color: var(--agent); }
+.chip--ok { border-color: #a7e4c4; background: var(--ok-wash); color: var(--ok); }
+.chip--warn { border-color: #f5c0a6; background: var(--warn-wash); color: var(--warn); }
+.chip--danger { border-color: #f0c2bd; background: var(--danger-wash); color: var(--danger); }
+.chip--settled { border-color: #d6dbe3; background: var(--settled-wash); color: var(--settled); }
 .chip-row { display: flex; flex-wrap: wrap; gap: 5px; }
 
 /* ── empty / hint ─────────────────────────────────────────────────────────── */
@@ -162,18 +197,18 @@ h1, h2, h3, p { margin: 0; }
 .callout {
   display: flex; gap: var(--s3); padding: var(--s3);
   border-radius: var(--r); border: 1px solid var(--line);
-  background: var(--surface-sunk); font-size: var(--t-sm); line-height: 1.5;
+  background: var(--surface-2); font-size: var(--t-sm); line-height: 1.5;
   color: var(--text-2);
 }
-.callout--warn { border-color: rgba(226,146,74,0.34); background: var(--warn-wash); }
-.callout--danger { border-color: rgba(229,100,95,0.34); background: var(--danger-wash); }
+.callout--warn { border-color: #f5c0a6; background: var(--warn-wash); }
+.callout--danger { border-color: #f0c2bd; background: var(--danger-wash); }
 .callout__title { color: var(--text); font-weight: 600; display: block; margin-bottom: 3px; }
 .callout__body { min-width: 0; }
 .callout code { font-family: var(--mono); font-size: 11px; color: var(--text); }
 
 /* ── keyline: the visual grammar for "before → after" ─────────────────────── */
 .delta { display: flex; align-items: center; gap: var(--s2); font-family: var(--mono); font-size: var(--t-sm); min-width: 0; }
-.delta__before { color: var(--text-3); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.delta__before { color: var(--text-3); text-decoration: line-through; text-decoration-color: #b9c3d0; }
 .delta__arrow { color: var(--text-3); flex: none; }
 .delta__after { color: var(--text); font-weight: 550; }
 .delta--applied .delta__after { color: var(--settled); }
@@ -196,7 +231,7 @@ h1, h2, h3, p { margin: 0; }
 
 .customer {
   position: relative;
-  padding: var(--s3) var(--s4) var(--s3) calc(var(--s4) - 3px);
+  padding: var(--s4) var(--s5) var(--s4) calc(var(--s5) - 3px);
   border-bottom: 1px solid var(--line-hair);
   border-left: 3px solid transparent;
   transition: background var(--transition), border-color var(--transition);
@@ -204,51 +239,57 @@ h1, h2, h3, p { margin: 0; }
 .customer:last-child { border-bottom: none; }
 
 /* Selection: a cool rail. Proposes, never grants. */
-.customer--selected { border-left-color: var(--human); background: rgba(106,169,255,0.035); }
+.customer--selected { border-left-color: var(--primary); }
 
-/* Delegation: the amber authority ring. The only glow in the interface. */
+/* Delegation: the amber authority band. The only glow in the interface. */
 .customer--delegated {
-  background: var(--authority-wash);
-  box-shadow: inset 0 0 0 1px var(--authority-edge);
+  border-left-color: var(--authority-fill);
+  background: #fffcf2;
 }
-.customer--delegated.customer--selected { border-left-color: var(--authority); }
+.customer--delegated.customer--selected { border-left-color: var(--authority-fill); }
+.customer--selected:not(.customer--delegated) { background: var(--primary-wash); }
 
 .customer__head { display: flex; align-items: center; gap: var(--s3); margin-bottom: var(--s2); }
 .customer__pick { display: grid; place-items: center; }
 .customer__pick input {
   appearance: none; width: 15px; height: 15px; border-radius: 3px;
-  border: 1.5px solid var(--line-strong); background: var(--surface-sunk);
+  border: 1.5px solid var(--line-strong); background: var(--surface-1);
   cursor: pointer; transition: var(--transition);
 }
 .customer__pick input:checked {
-  background: var(--human); border-color: var(--human);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 4.8 8.5 9.5 3.8' stroke='%230a0c0f' stroke-width='1.9' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background: var(--primary); border-color: var(--primary);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 4.8 8.5 9.5 3.8' stroke='%23ffffff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-size: 12px; background-position: center; background-repeat: no-repeat;
 }
 .customer__ident { display: flex; align-items: baseline; gap: var(--s2); min-width: 0; }
-.customer__name { font-size: var(--t-md); font-weight: 570; letter-spacing: -0.006em; }
+.customer__name { font-size: var(--t-md); font-weight: 600; letter-spacing: -0.008em; }
 .customer__segment { font-size: var(--t-xs); color: var(--text-3); }
 .customer__head .chip { margin-left: auto; }
 
+ /* Two independent columns, not a two-column grid: a grid row is as tall as its
+   tallest cell, so one wrapping value left a dead gap beside it. Columns flow
+   on their own, so a long "next action" pushes nothing sideways. */
 .fields {
-  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px var(--s4); margin: 0 0 var(--s2) 27px;
+  column-count: 3; column-gap: var(--s4);
+  margin: 0 0 var(--s3) 29px;
 }
-.field { display: grid; grid-template-columns: 74px 1fr; align-items: baseline; gap: var(--s2); min-width: 0; }
+.field { break-inside: avoid; padding-bottom: var(--s2); }
+.field { min-width: 0; }
 .field__label {
-  font-size: var(--t-xs); color: var(--text-3); display: flex; align-items: center; gap: 4px;
+  font-size: var(--t-eyebrow); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3); font-weight: 600;
+  display: flex; align-items: center; gap: 4px; margin-bottom: 1px;
 }
 .field__scope {
-  width: 4px; height: 4px; border-radius: 50%; background: var(--authority); flex: none;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--authority-fill); flex: none;
 }
-.field__value { margin: 0; min-width: 0; font-size: var(--t-sm); }
+.field__value { margin: 0; min-width: 0; font-size: var(--t-sm); line-height: 1.4; }
 .field__edit {
-  display: block; width: 100%; text-align: left; padding: 1px 4px; margin-left: -4px;
-  border-radius: var(--r-sm); color: var(--text);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block; width: 100%; text-align: left; padding: 2px 5px; margin-left: -5px;
+  border-radius: var(--r-sm); color: var(--text); white-space: normal;
   transition: background var(--transition);
 }
-.field__edit:hover { background: var(--surface-3); }
+.field__edit:hover { background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line); }
 /* A staged value must never be clipped: the whole point of showing it here is
    that the record and the pending intent are readable together. The record goes
    on top, struck through; the intent goes under it, with the arrow leading. */
@@ -256,17 +297,19 @@ h1, h2, h3, p { margin: 0; }
 .field__edit--staged .delta { display: block; font-family: inherit; font-size: var(--t-sm); }
 .field__edit--staged .delta__before { display: block; line-height: 1.35; }
 .field__edit--staged .delta__arrow { margin-right: 4px; }
-.field--delegated .field__edit:hover { background: rgba(229,180,92,0.14); }
+.field--delegated .field__edit:hover { background: #fdf0cf; box-shadow: inset 0 0 0 1px var(--authority-edge); }
 .field__input {
-  width: 100%; padding: 1px 4px; margin-left: -4px;
-  background: var(--surface-sunk); border: 1px solid var(--human);
+  width: 100%; padding: 3px 6px; margin-left: -5px;
+  background: var(--surface-1); border: 1px solid var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-wash);
   border-radius: var(--r-sm); font-size: var(--t-sm);
 }
 .field--readonly .field__value { color: var(--text-3); }
 
 .customer__notes {
-  margin-left: 27px; font-size: var(--t-xs); line-height: 1.5; color: var(--text-3);
-  border-left: 2px solid var(--line); padding-left: var(--s2);
+  margin-left: 29px; font-size: var(--t-xs); line-height: 1.5; color: var(--text-3);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  border-left: 2px solid var(--line-strong); padding-left: var(--s3);
 }
 .customer__notes-tag {
   display: block; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase;
@@ -276,17 +319,18 @@ h1, h2, h3, p { margin: 0; }
 .customers__legend {
   display: flex; gap: var(--s4); padding: var(--s2) var(--s4);
   border-top: 1px solid var(--line-hair); font-size: var(--t-xs); color: var(--text-3);
+  background: var(--surface-2); border-radius: 0 0 var(--r-lg) var(--r-lg);
 }
 .legend__item { display: flex; align-items: center; gap: 6px; }
 .legend__swatch { width: 3px; height: 13px; border-radius: 2px; }
-.legend__swatch--selected { background: var(--human); }
-.legend__swatch--delegated { background: var(--authority); }
+.legend__swatch--selected { background: var(--primary); }
+.legend__swatch--delegated { background: var(--authority-fill); }
 
 /* ── authority ────────────────────────────────────────────────────────────── */
 .composer, .mandate { display: flex; flex-direction: column; gap: var(--s4); }
 .composer__step { display: flex; flex-direction: column; gap: 6px; }
 .composer__legend {
-  font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase;
+  font-size: var(--t-eyebrow); letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--text-3); font-weight: 600;
 }
 .composer__blank { font-size: var(--t-sm); color: var(--text-3); font-style: italic; }
@@ -298,9 +342,9 @@ h1, h2, h3, p { margin: 0; }
 
 .mandate__scope { display: flex; flex-direction: column; gap: 6px; }
 .mandate__meter { display: flex; align-items: center; gap: var(--s3); }
-.meter { flex: 1; height: 3px; background: var(--surface-3); border-radius: var(--r-pill); overflow: hidden; }
+.meter { flex: 1; height: 4px; background: var(--surface-3); border-radius: var(--r-pill); overflow: hidden; }
 .meter__fill {
-  height: 100%; background: var(--authority); border-radius: var(--r-pill);
+  height: 100%; background: var(--authority-fill); border-radius: var(--r-pill);
   transition: width 250ms linear;
 }
 .mandate__expiry { font-size: var(--t-xs); color: var(--authority); }
@@ -308,26 +352,28 @@ h1, h2, h3, p { margin: 0; }
 .narrow {
   display: flex; flex-direction: column; gap: var(--s2);
   padding: var(--s3); border: 1px dashed var(--line-strong); border-radius: var(--r);
-  background: var(--surface-sunk);
+  background: var(--surface-2);
 }
 
 /* ── staged changes ───────────────────────────────────────────────────────── */
 .changes { list-style: none; margin: 0; padding: 0; }
 .change {
-  padding: var(--s3) var(--s4);
+  padding: var(--s4) var(--s5);
   border-bottom: 1px solid var(--line-hair);
   border-left: 2px solid transparent;
 }
 .change--validated { border-left-color: var(--ok); }
 .change--stale { border-left-color: var(--warn); background: var(--warn-wash); }
-.change--applied { opacity: 0.62; }
+.change--draft { border-left-color: var(--line-strong); }
+.change--applied { background: var(--surface-2); }
+.change--applied .change__target { color: var(--text-2); }
 .change__top { display: flex; align-items: center; gap: var(--s2); margin-bottom: 5px; }
 .change__target {
   font-size: var(--t-sm); font-weight: 560; display: flex; align-items: baseline; gap: 6px;
 }
 .change__field {
-  font-size: 10.5px; color: var(--text-3); background: var(--surface-3);
-  padding: 1px 5px; border-radius: 3px;
+  font-size: 10.5px; color: var(--text-2); background: var(--surface-3);
+  padding: 2px 6px; border-radius: 4px;
 }
 .change__top .chip { margin-left: auto; }
 .change__meta {
@@ -339,8 +385,8 @@ h1, h2, h3, p { margin: 0; }
   margin-top: 6px; font-size: var(--t-xs); color: var(--warn); line-height: 1.45;
 }
 .changes__divider {
-  padding: var(--s2) var(--s4); font-size: 9.5px; letter-spacing: 0.09em;
-  text-transform: uppercase; color: var(--text-3); background: var(--surface-sunk);
+  padding: var(--s2) var(--s5); font-size: var(--t-eyebrow); letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-3); background: var(--surface-2);
   border-bottom: 1px solid var(--line-hair);
 }
 .prov { flex: none; }
@@ -350,10 +396,14 @@ h1, h2, h3, p { margin: 0; }
 /* Apply: its own bar, its own surface, its own rule. */
 .commit {
   display: flex; align-items: center; gap: var(--s4);
-  padding: var(--s3) var(--s4);
-  border-top: 1px solid var(--line-strong);
-  background: var(--surface-sunk);
+  padding: var(--s4) var(--s5);
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
   border-radius: 0 0 var(--r-lg) var(--r-lg);
+  /* Pinned to the foot of its column. Apply is the one irreversible act in the
+     product and the demo's last beat; it must never be the thing you have to
+     scroll to find. */
+  position: sticky; bottom: 0; z-index: 1;
 }
 .commit__copy { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .commit__title { font-size: var(--t-sm); font-weight: 600; }
@@ -364,8 +414,8 @@ h1, h2, h3, p { margin: 0; }
 .ended {
   display: flex; flex-direction: column; gap: 5px;
   padding: var(--s3); margin-bottom: var(--s4);
-  border-radius: var(--r); border: 1px solid var(--line-strong);
-  background: var(--surface-sunk);
+  border-radius: var(--r); border: 1px solid var(--line);
+  background: var(--surface-2);
   /* Deliberately not amber: this is authority that is gone. */
   border-left: 3px solid var(--settled);
 }
@@ -377,9 +427,7 @@ h1, h2, h3, p { margin: 0; }
 .ended__body { font-size: var(--t-xs); color: var(--text-3); line-height: 1.5; }
 
 /* ── READY_FOR_APPLY is a state, so it looks like one ─────────────────────── */
-.commit--ready {
-  border-top-color: var(--ok);
-  background: linear-gradient(180deg, var(--ok-wash), var(--surface-sunk) 60%);
-}
+.commit--ready { border-top-color: #a7e4c4; background: var(--ok-wash); }
+.commit--blocked { border-top-color: var(--warn); }
 .commit--blocked { border-top-color: var(--warn); }
 .commit__ready { margin-left: var(--s2); vertical-align: middle; }

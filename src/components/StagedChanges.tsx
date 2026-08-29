@@ -29,7 +29,7 @@ export function StagedChanges() {
   const anyStale = pending.some((c) => c.state === 'STALE');
 
   return (
-    <section className="panel">
+    <section className="panel panel--fill">
       <div className="panel__head">
         <h2 className="panel__title">Staged changes</h2>
         <span className="panel__count">{pending.length}</span>
@@ -85,7 +85,7 @@ export function StagedChanges() {
           </span>
         </div>
         <button
-          className="btn btn--authority"
+          className="btn btn--primary"
           disabled={!allValidated}
           onClick={() => void run(() => api.apply(session.revision))}
         >

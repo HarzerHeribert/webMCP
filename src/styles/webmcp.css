@@ -205,3 +205,81 @@
 .webmcp-console__result--ok pre {
   border: 1px solid var(--ok-wash);
 }
+
+/* ── never registered, folded ─────────────────────────────────────────────
+   The claim stays available and stays quiet. Open it when someone asks
+   "so what stops the agent applying?" — not before. */
+.webmcp-absent-fold { border-top: 1px solid var(--line-hair); padding-top: var(--s3); }
+.webmcp-absent-fold__summary {
+  display: flex; align-items: baseline; gap: var(--s2);
+  cursor: pointer; list-style: none; padding: 2px 0;
+  border-radius: var(--r-sm);
+}
+.webmcp-absent-fold__summary::-webkit-details-marker { display: none; }
+.webmcp-absent-fold__summary::before {
+  content: '▸'; color: var(--text-3); font-size: 9px; line-height: 1;
+  transition: transform var(--transition); flex: none;
+}
+.webmcp-absent-fold[open] > .webmcp-absent-fold__summary::before { transform: rotate(90deg); }
+.webmcp-absent-fold__summary:hover { background: var(--surface-2); }
+.webmcp-absent-fold__hint { font-size: var(--t-xs); }
+
+/* ── the simulated caller's tool picker ───────────────────────────────────
+   Five monospace names wrapped across a panel read as debug output. These are
+   the surface the human is about to exercise, so they get to be controls. */
+.webmcp-toolpick { display: flex; flex-wrap: wrap; gap: 6px; }
+.webmcp-toolpick .btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: -0.01em;
+  padding: 6px 10px; border-radius: var(--r-sm);
+}
+.webmcp-toolpick .btn[aria-pressed='true'] {
+  border-color: var(--authority-edge); background: var(--authority-wash);
+  color: var(--authority);
+}
+
+/* One line, not a boxed banner. It is a standing disclaimer, and a standing
+   disclaimer that takes eighty pixels every render is a design failure. */
+.webmcp-console__banner { margin-bottom: var(--s3); }
+.webmcp-console__banner-lead { color: var(--text-2); font-weight: 600; }
+
+/* ── the caller form ──────────────────────────────────────────────────────
+   Five stacked full-width fields turned a tool call into a page. Two-up, with
+   the value spanning, puts the whole call in three rows. */
+.webmcp-console__form {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2) var(--s3);
+  align-items: end;
+}
+.webmcp-console__field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.webmcp-console__field--wide { grid-column: 1 / -1; }
+.webmcp-console__label {
+  font-size: var(--t-eyebrow); letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-3); font-weight: 600;
+}
+.webmcp-console__input {
+  width: 100%; padding: 6px 9px;
+  background: var(--surface-1); border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm); font-size: var(--t-sm); font-family: var(--mono);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.webmcp-console__input:focus {
+  outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-wash);
+}
+.webmcp-console__input::placeholder { color: var(--text-3); font-family: var(--sans); }
+.webmcp-console__run { grid-column: 1 / -1; justify-self: start; margin-top: 2px; }
+.webmcp-console__hint { grid-column: 1 / -1; font-size: var(--t-sm); }
+
+/* ── tighter tool cards ───────────────────────────────────────────────────
+   In a 380px column the two availability chips were wrapping under the tool
+   name, which made every card two lines taller than it needed to be. */
+.webmcp-tool__head { flex-wrap: nowrap; gap: 6px; }
+.webmcp-tool__name { min-width: 0; overflow-wrap: anywhere; }
+.webmcp-tool__head .chip { flex: none; }
+
+/* ── the caller, compacted ────────────────────────────────────────────────
+   It sits above the staged changes it produces, so every pixel it takes is a
+   pixel of that list. Five tools fit two rows; the form fits three. */
+.webmcp-toolpick .btn { padding: 5px 8px; font-size: 10.5px; }
+.webmcp-console__form { gap: 6px var(--s3); }
+.webmcp-console__input { padding: 5px 8px; }
+.webmcp-inspector-panel .panel__body,
+.webmcp-console .panel__body { padding-top: var(--s3); }

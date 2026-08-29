@@ -73,15 +73,18 @@ export function AgentConsole() {
       <div className="panel__head">
         <span className="panel__title">Simulated caller</span>
         <span className="panel__count">{tools.length} callable</span>
+        <div className="panel__actions">
+          {/* The disclaimer is a standing fact about this panel, so it lives on
+              the panel, not as a paragraph re-read on every render. */}
+          <span
+            className="chip chip--settled"
+            title="This is a test harness. It runs a registered tool's real implementation with arguments a human types. There is no model and no agent anywhere in this application."
+          >
+            no model · no agent
+          </span>
+        </div>
       </div>
       <div className="panel__body webmcp-console">
-        <div className="callout webmcp-console__banner">
-          <div className="callout__body">
-            <span className="callout__title">Test harness — no model, no agent.</span>
-            Picks a currently registered tool and runs its real implementation directly. A
-            human chooses every argument; nothing here decides anything on its own.
-          </div>
-        </div>
 
         {tools.length === 0 ? (
           <p className="empty">
@@ -90,12 +93,13 @@ export function AgentConsole() {
           </p>
         ) : (
           <>
-            <div className="webmcp-console__picker">
+            <div className="webmcp-console__picker webmcp-toolpick">
               {tools.map((t) => (
                 <button
                   key={t.name}
                   type="button"
-                  className={`btn btn--sm ${selected === t.name ? '' : 'btn--quiet'}`}
+                  aria-pressed={selected === t.name}
+                  className="btn btn--sm"
                   onClick={() => selectTool(t.name)}
                 >
                   {t.name}
@@ -118,17 +122,23 @@ export function AgentConsole() {
                     const opts = Array.isArray(s.enum) ? s.enum.map(String) : [];
                     const listId = `${tool.name}-${key}-options`;
                     return (
-                      <label key={key} className="webmcp-console__field">
+                      <label
+                        key={key}
+                        className={`webmcp-console__field${
+                          key === 'value' ? ' webmcp-console__field--wide' : ''
+                        }`}
+                        title={s.description ?? undefined}
+                      >
                         <span className="webmcp-console__label">
                           {key}
-                          {required.has(key) ? ' *' : ''}
+                          {required.has(key) ? <span aria-hidden> *</span> : null}
                         </span>
                         <input
                           className="webmcp-console__input"
                           list={opts.length ? listId : undefined}
                           value={values[key] ?? ''}
                           onChange={(e) => setValues((v) => ({ ...v, [key]: e.target.value }))}
-                          placeholder={s.description ?? (opts.length ? opts.join(' | ') : key)}
+                          placeholder={opts.length ? opts.join(' · ') : required.has(key) ? 'required' : 'optional'}
                         />
                         {opts.length > 0 && (
                           <datalist id={listId}>
@@ -141,7 +151,7 @@ export function AgentConsole() {
                     );
                   })
                 )}
-                <button className="btn btn--sm" type="submit" disabled={running}>
+                <button className="btn btn--primary btn--sm webmcp-console__run" type="submit" disabled={running}>
                   {running ? 'Running…' : `Run ${tool.name}`}
                 </button>
               </form>

@@ -23,14 +23,14 @@ export function Inspector() {
   const liveNames = webmcp.status === 'registered' ? webmcp.toolNames : undefined;
 
   return (
-    <section className="panel webmcp-inspector-panel">
+    <section className="panel panel--fill webmcp-inspector-panel">
       <div className="panel__head">
         <span className="panel__title">Capability inspector</span>
         <span className="panel__count">{registered.length} registered</span>
         <div className="panel__actions">
           <span className={`chip ${webmcp.status === 'registered' ? 'chip--ok' : 'chip--settled'}`}>
             <span className="chip__dot" />
-            webmcp: {webmcp.status}
+            WebMCP {webmcp.status}
           </span>
         </div>
       </div>
@@ -68,14 +68,16 @@ export function Inspector() {
           badgeFor={() => ({ className: 'chip--settled', text: 'withheld' })}
         />
 
-        <div className="webmcp-group">
-          <h3 className="webmcp-group__title">
-            Never registered <span className="panel__count">{neverRegistered.length}</span>
-          </h3>
+        <details className="webmcp-group webmcp-absent-fold">
+          <summary className="webmcp-absent-fold__summary">
+            <span className="webmcp-group__title">
+              Never registered <span className="panel__count">{neverRegistered.length}</span>
+            </span>
+            <span className="dim webmcp-absent-fold__hint">structurally absent, at any mandate</span>
+          </summary>
           <p className="panel__note webmcp-note">
-            Structurally absent — no code path registers these, at any mandate. That there is
-            no apply, delete, mandate-administration, or raw-data tool is a claim this demo
-            makes out loud.
+            No code path registers these. That there is no apply, delete,
+            mandate-administration, or raw-data tool is a claim this demo makes out loud.
           </p>
           <ul className="webmcp-absent">
             {neverRegistered.map((t) => (
@@ -85,7 +87,7 @@ export function Inspector() {
               </li>
             ))}
           </ul>
-        </div>
+        </details>
       </div>
     </section>
   );

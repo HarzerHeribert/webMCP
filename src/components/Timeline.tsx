@@ -77,10 +77,21 @@ export function Timeline() {
   const events = useMemo(() => [...session.timeline].reverse(), [session.timeline]);
 
   return (
-    <section className="panel panel--grow">
+    <section className="panel panel--rail">
       <div className="panel__head">
         <h2 className="panel__title">Timeline</h2>
         <span className="panel__count">{session.timeline.length}</span>
+        <div className="tl-legend panel__actions">
+              <span className="tl-legend__item">
+                <ProvenanceMark actor="human" /> human
+              </span>
+              <span className="tl-legend__item">
+                <ProvenanceMark actor="agent" /> agent
+              </span>
+              <span className="tl-legend__item">
+                <ProvenanceMark actor="system" /> system
+              </span>
+            </div>
       </div>
 
       <div className="panel__body panel__body--flush panel__body--scroll">
@@ -92,17 +103,6 @@ export function Timeline() {
           </div>
         ) : (
           <>
-            <div className="tl-legend">
-              <span className="tl-legend__item">
-                <ProvenanceMark actor="human" /> human
-              </span>
-              <span className="tl-legend__item">
-                <ProvenanceMark actor="agent" /> agent
-              </span>
-              <span className="tl-legend__item">
-                <ProvenanceMark actor="system" /> system
-              </span>
-            </div>
             <ul className="tl-list">
               {events.map((event) => (
                 <TimelineRow key={event.id} event={event} start={session.createdAt} />

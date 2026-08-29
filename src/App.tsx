@@ -15,6 +15,16 @@ import { WebMcpProvider } from './webmcp/provider.tsx';
  * what the authority applies to, the authority itself and the tool surface it
  * compiles into, and the work that surface produced — ending in the one
  * human-only commit and the record of everything that led to it.
+ *
+ * The simulated caller sits directly above the staged changes it produces, so
+ * running a tool and watching the result land are one glance apart. Each column
+ * is exactly the viewport's height; the panels that can grow without bound are
+ * the ones that scroll, so nothing that matters ever leaves the screen.
+ *
+ * The timeline is a full-width rail beneath all three, because its rows are
+ * sentences. In a 400px column every one of them wrapped; across the whole
+ * workbench they read as a list of things that happened — which is what the
+ * demo closes on.
  */
 export function App() {
   const { view, loading } = useStore();
@@ -33,20 +43,20 @@ export function App() {
         <Header />
         <DemoGuide />
         <main className="workbench">
-          <div className="column column--scroll">
+          <div className="column column--fit">
             <CustomerTable />
           </div>
-          <div className="column column--scroll">
+          <div className="column column--fit">
             <AuthorityPanel />
             <Inspector />
-            <AgentConsole />
           </div>
-          <div className="column column--scroll">
+          <div className="column column--fit">
             <ConflictPanel />
+            <AgentConsole />
             <StagedChanges />
-            <Timeline />
           </div>
         </main>
+        <Timeline />
       </div>
     </WebMcpProvider>
   );

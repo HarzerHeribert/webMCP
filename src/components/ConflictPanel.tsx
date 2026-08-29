@@ -38,27 +38,12 @@ const WARN_CODES = new Set([
 export function ConflictPanel() {
   const { lastError, run } = useStore();
 
-  return (
-    <>
-      <div className="sim-strip">
-        <span className="sim-strip__label">Demo instrument</span>
-        <span className="sim-strip__hint">
-          Deterministically simulate an external write to this session — advances the revision
-          behind any staged work.
-        </span>
-        <button
-          className="btn btn--sm sim-strip__btn"
-          onClick={() => void run(() => api.simulateExternalUpdate())}
-        >
-          Simulate external update
-        </button>
-      </div>
-
-      {lastError && (
-        <ConflictContent error={lastError} onRebase={() => void run(() => api.rebase())} />
-      )}
-    </>
-  );
+  // The external-update instrument now lives in the header (`Header.tsx`): a
+  // presenter needs it reachable in every state, and a panel that renders
+  // nothing most of the time is the wrong home for a control that is always
+  // available. This panel is purely the refusal and its recovery.
+  if (!lastError) return null;
+  return <ConflictContent error={lastError} onRebase={() => void run(() => api.rebase())} />;
 }
 
 function ConflictContent({ error, onRebase }: { error: ErrorEnvelope; onRebase: () => void }) {
