@@ -59,10 +59,14 @@ test('record the demo', async ({ page }) => {
   expect(live, 'flagged Chrome must expose document.modelContext').toBe('object');
 
   await beat(page, 'host', line('host'), async () => {
+    // The app opens as the product: a CRM, and a pill. Show that first, then
+    // switch to the instrument for the rest of the explanation.
+    await point(page, page.getByRole('button', { name: 'Mandate — delegated authority' }));
+    await page.waitForTimeout(2000);
+    await click(page, page.getByRole('button', { name: 'Technical', exact: true }));
+    await page.waitForTimeout(700);
     const rail = page.getByRole('button', { name: 'Open the Mandate capability layer' });
-    await point(page, rail);
-    await page.waitForTimeout(2200);
-    await click(page, rail);
+    if (await rail.isVisible().catch(() => false)) await click(page, rail);
     await page.getByRole('heading', { name: 'Authority', exact: true }).waitFor();
   });
 

@@ -10,6 +10,7 @@ import { AgentConsole } from './components/AgentConsole';
 import { DemoGuide } from './components/DemoGuide';
 import { MandateLayer } from './components/MandateLayer';
 import { MinimalLayer } from './components/MinimalLayer';
+import { WebMcpBanner } from './components/WebMcpBanner';
 import { ModeProvider, useMode } from './lib/mode';
 import { useStore } from './lib/store';
 import { WebMcpProvider } from './webmcp/provider';
@@ -107,6 +108,7 @@ export function App() {
       <ModeProvider>
       <div className="app">
         <Header />
+        <WebMcpBanner />
         <Guide />
         <Workbench>
           <section className="host" aria-label="Relay CRM, the host application">

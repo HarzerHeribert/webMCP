@@ -14,10 +14,12 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
  * demands two-thirds of a screen forever, when the shipping form is a status
  * pill plus two moments — grant, and apply.
  *
- * `technical` is the default because a reviewer with three minutes needs the
- * mechanism visible; hiding the schema would hide the entire claim.
+ * `minimal` is the default, because it is the product and opening the app
+ * should show the product. `technical` is one click away and is what a reviewer
+ * needs: hiding the compiled schema would hide the entire claim, so it is never
+ * more than a click away, but it is not what anybody is handed first.
  *
- * `minimal` is the product. There is no panel: authority is a pill that cannot
+ * `minimal` in detail. There is no panel: authority is a pill that cannot
  * be hidden, scope is the ring on the records themselves, pending work is the
  * value already rendered inline on the field it would change — and the two
  * moments that genuinely need a surface get a popover anchored to what they
@@ -28,14 +30,23 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
  */
 export type Mode = 'technical' | 'minimal';
 
-const ModeContext = createContext<{ mode: Mode; setMode(m: Mode): void }>({
-  mode: 'technical',
+interface UiState {
+  mode: Mode;
+  setMode(m: Mode): void;
+}
+
+const ModeContext = createContext<UiState>({
+  mode: 'minimal',
   setMode: () => {},
 });
 
 export function ModeProvider({ children }: { children: ReactNode }) {
-  const [mode, setMode] = useState<Mode>('technical');
-  return <ModeContext.Provider value={{ mode, setMode }}>{children}</ModeContext.Provider>;
+  const [mode, setMode] = useState<Mode>('minimal');
+  return (
+    <ModeContext.Provider value={{ mode, setMode }}>
+      {children}
+    </ModeContext.Provider>
+  );
 }
 
 export const useMode = () => useContext(ModeContext);

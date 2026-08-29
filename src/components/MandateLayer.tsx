@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { useSession, useStore } from '../lib/store';
 import { detectHost } from '../webmcp/host';
 import type { WebMcpProbe } from '../webmcp/adapter';
-import { useWebMcp } from '../webmcp/provider';
 
 /**
  * The layer, what gates it, and the fact that it can be closed.
@@ -10,12 +9,14 @@ import { useWebMcp } from '../webmcp/provider';
  * Mandate is a **WebMCP** capability layer installed into a host application.
  * Two consequences the interface has to honour:
  *
- * 1. **Without WebMCP there is nothing for it to be.** In a browser with no
- *    `document.modelContext` the layer does not present itself as live — it
- *    explains what is missing and why *in terms of the host it is actually
- *    running in* (see `GateReason`), and offers the simulated caller as a
- *    deliberate, labelled override. Hiding the dependency would overstate the
- *    product; hiding the demo behind a browser flag would make it unjudgeable.
+ * 1. **Without WebMCP nothing is registered with an agent**, and that is said
+ *    plainly by `WebMcpBanner` — once, at the top, for the whole session, with
+ *    the host-specific remedy behind a disclosure (`GateReason`, still here
+ *    because this is where the copy lives). It used to be a gate that made the
+ *    visitor take a labelled override first. That charged a click and a
+ *    decision to somebody who often cannot satisfy the dependency at all, to
+ *    reach a demo that was always going to run the same implementations. The
+ *    honesty was never in the blocking.
  * 2. **It is not part of the host.** Shut it and Relay CRM carries on being an
  *    ordinary CRM, which is the clearest statement of `docs/12_DECISIONS.md`
  *    D-002 available to a picture.
@@ -28,21 +29,14 @@ import { useWebMcp } from '../webmcp/provider';
 export function MandateLayer({ children }: { children: ReactNode }) {
   const { session } = useSession();
   const { lastError } = useStore();
-  const webmcp = useWebMcp();
   const [open, setOpen] = useState(false);
-  const [override, setOverride] = useState(false);
 
   const mandate = session.mandate;
   const active = mandate?.status === 'ACTIVE' ? mandate : null;
   const selected = session.selectedCustomerIds.length;
   const staged = session.changes.filter((c) => c.state !== 'APPLIED').length;
 
-  // `idle` is "not asked yet", not "absent" — gating on it would flash the
-  // unavailable state on every load before the adapter has looked.
-  const gated = webmcp.status === 'unavailable' && !override;
-
-  // Only rising edges open it, so closing it stays closed. Gated, nothing
-  // auto-opens: there is no capability surface to reveal.
+  // Only rising edges open it, so closing it stays closed.
   // Stacked on a narrow viewport the layer opens *below* the account list, so
   // opening it looks like nothing happened until you scroll. Bring it into view.
   const panel = useRef<HTMLElement | null>(null);
@@ -61,13 +55,13 @@ export function MandateLayer({ children }: { children: ReactNode }) {
       (now.staged > 0 && prev.current.staged === 0) ||
       (now.error && !prev.current.error);
     prev.current = now;
-    if (rose && !gated) setOpen(true);
-  }, [selected, active, staged, lastError, gated]);
+    if (rose) setOpen(true);
+  }, [selected, active, staged, lastError]);
 
   if (!open) {
     return (
       <button
-        className={`layer-rail${active ? ' layer-rail--active' : ''}${gated ? ' layer-rail--gated' : ''}`}
+        className={`layer-rail${active ? ' layer-rail--active' : ''}`}
         onClick={() => setOpen(true)}
         aria-expanded={false}
         aria-label="Open the Mandate capability layer"
@@ -77,46 +71,11 @@ export function MandateLayer({ children }: { children: ReactNode }) {
         <span className="layer-rail__status">
           {active
             ? `active · v${active.version}`
-            : gated
-              ? 'WebMCP required'
-              : selected > 0
-                ? `${selected} selected`
-                : 'not in use'}
+            : selected > 0
+              ? `${selected} selected`
+              : 'not in use'}
         </span>
       </button>
-    );
-  }
-
-  if (gated) {
-    return (
-      <section ref={panel} className="layer layer--gated" aria-label="Mandate requires WebMCP">
-        <header className="layer__chrome">
-          <span className="layer__name">Mandate</span>
-          <span className="layer__kind layer__kind--muted">WebMCP capability layer</span>
-          <button
-            className="btn btn--quiet btn--sm layer__close"
-            onClick={() => setOpen(false)}
-            aria-label="Close the Mandate capability layer"
-          >
-            Close
-          </button>
-        </header>
-
-        <div className="gate">
-          <span className="chip chip--warn gate__code">
-            <span className="chip__dot" />
-            WEBMCP_UNAVAILABLE
-          </span>
-          <GateReason probe={webmcp.probe} />
-          <button className="btn btn--primary gate__go" onClick={() => setOverride(true)}>
-            Run the demo with the simulated caller
-          </button>
-          <p className="gate__foot">
-            Nothing else changes: the server enforces the same mandate on every call
-            either way.
-          </p>
-        </div>
-      </section>
     );
   }
 
@@ -148,17 +107,18 @@ export function MandateLayer({ children }: { children: ReactNode }) {
 }
 
 /**
- * Why the layer will not claim to be live, said in terms the reader can act on.
+ * What is missing, said in terms the reader can act on.
  *
- * The gate is the screen a judge sees when something is wrong, so it is the one
- * place in the product where vague copy costs the most. WebMCP is reached two
+ * Rendered inside `WebMcpBanner`'s disclosure rather than as a gate, but the
+ * copy is the part that matters and it is the one place in the product where
+ * vagueness costs the most. WebMCP is reached two
  * ways and the remedy differs completely: in Chrome it is a flag the visitor
  * turns on; in the ChatGPT desktop app it is a shipped feature called *site
  * tools*, gated on the app version, a permission, and the model — and it does
  * not exist in the mobile app at all. `detectHost` only chooses which of those
  * to lead with; the probe, not the user agent, decides what is live.
  */
-function GateReason({ probe }: { probe: WebMcpProbe }) {
+export function GateReason({ probe }: { probe: WebMcpProbe }) {
   // A model-context object that is present but unusable is the most specific
   // thing we know, and it outranks any guess about the host.
   if (probe.present) {
@@ -174,7 +134,7 @@ function GateReason({ probe }: { probe: WebMcpProbe }) {
           {probe.methods.length > 0 && (
             <> — what it does offer is <code>{probe.methods.join(', ')}</code></>
           )}
-          . Rather than guess at an unfamiliar shape, the layer does not claim to be live.
+          . Rather than guess at an unfamiliar shape, nothing is registered with it.
         </p>
       </>
     );
@@ -191,12 +151,10 @@ function GateReason({ probe }: { probe: WebMcpProbe }) {
           registers. WebMCP reaches a page here as <strong>site tools</strong>, and today
           that is the built-in browser in the <strong>ChatGPT desktop app</strong> — not
           the mobile app. Nothing was found at <code>document.modelContext</code>, so
-          there is nothing to register into and the layer does not claim to be live.
+          there is nothing to register into, and nothing is registered with an agent.
         </p>
         <p className="gate__body">
-          Open this page in the ChatGPT desktop app to see the real registration path, or
-          run the demo here with the built-in simulated caller, which invokes the same
-          tool implementations a browser would, with arguments you type.
+          Open this page in the ChatGPT desktop app to see the real registration path.
         </p>
       </>
     );
@@ -225,9 +183,8 @@ function GateReason({ probe }: { probe: WebMcpProbe }) {
           </li>
         </ul>
         <p className="gate__body">
-          When it is on, an arrow appears in the address bar and this panel goes live by
-          itself. Until then, run the demo with the built-in simulated caller, which
-          invokes the same tool implementations a browser would.
+          When it is on, an arrow appears in the address bar and the tools register
+          themselves.
         </p>
       </>
     );
@@ -240,7 +197,7 @@ function GateReason({ probe }: { probe: WebMcpProbe }) {
         Mandate compiles a human&apos;s delegation into WebMCP tools that the page
         registers. Nothing was found at <code>document.modelContext</code>,{' '}
         <code>navigator.modelContext</code> or <code>window.modelContext</code>, so there
-        is nothing to register into and the layer does not claim to be live.
+        is nothing to register into, and nothing is registered with an agent.
       </p>
       <p className="gate__body">
         To see the real registration path, either turn on{' '}
@@ -249,10 +206,6 @@ function GateReason({ probe }: { probe: WebMcpProbe }) {
         measured — and reload, or open this page in the{' '}
         <strong>ChatGPT desktop app&apos;s</strong> built-in browser, which supports
         WebMCP out of the box. The API only appears on a secure origin.
-      </p>
-      <p className="gate__body">
-        Or run the demo here with the built-in simulated caller, which invokes the same
-        tool implementations a browser would, with arguments you type.
       </p>
     </>
   );

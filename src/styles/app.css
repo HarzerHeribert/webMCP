@@ -968,3 +968,48 @@ h1, h2, h3, p { margin: 0; }
 .customer:hover { background: var(--surface-sunk); }
 .customer--selected:hover,
 .customer--delegated:hover { background: inherit; }
+
+/* The gate carries more prose than a grant does, so its popover is wider. */
+.pop:has(.gate--pop) { width: 470px; }
+.gate--pop { padding: var(--s4); gap: var(--s3); }
+.pill--gated { border-color: var(--warn); color: var(--warn); }
+.pill--gated .pill__dot { background: var(--warn); }
+.pill--gated .pill__name { color: var(--warn); }
+.pill--gated .pill__state { color: var(--warn); opacity: .85; }
+
+/* ── the missing dependency, said once and left on screen ──────────────────
+   Not a gate. A judge in a browser without WebMCP cannot satisfy the
+   dependency, so blocking them charged a click and a decision to reach a demo
+   that ran the same implementations anyway. The honesty was never in the
+   blocking — it is in this staying visible for the whole session. */
+.wmbanner {
+  background: var(--danger-wash);
+  border-bottom: 1px solid var(--danger-edge, #f3b0a8);
+  box-shadow: inset 0 2px 0 var(--danger);
+  padding: var(--s3) var(--s5);
+}
+.wmbanner__line { display: flex; align-items: baseline; gap: var(--s3); }
+.wmbanner__code {
+  flex: 0 0 auto; font: 700 var(--t-eyebrow)/1.6 var(--mono); letter-spacing: .08em;
+  color: var(--danger); background: var(--surface-1);
+  border: 1px solid var(--danger-edge, #f3b0a8); border-radius: var(--r-sm);
+  padding: 2px 7px;
+}
+.wmbanner__text { font-size: var(--t-sm); line-height: 1.5; color: #7a2018; min-width: 0; }
+.wmbanner__text strong { color: var(--danger); font-weight: 680; }
+.wmbanner__why {
+  flex: 0 0 auto; margin-left: auto; border: 1px solid var(--danger-edge, #f3b0a8);
+  background: var(--surface-1); color: var(--danger); cursor: pointer;
+  border-radius: var(--r-pill); padding: 5px 12px;
+  font: 650 var(--t-sm)/1 var(--sans); white-space: nowrap;
+}
+.wmbanner__why:hover { background: #fff; }
+.wmbanner__why:focus-visible { outline: none; box-shadow: var(--focus); }
+.wmbanner__detail {
+  margin-top: var(--s3); padding-top: var(--s3);
+  border-top: 1px solid var(--danger-edge, #f3b0a8);
+  max-width: 96ch;
+}
+.wmbanner__detail .gate__title { font-size: var(--t-md); margin: 0 0 var(--s2); }
+.wmbanner__detail .gate__body { font-size: var(--t-sm); margin: 0 0 var(--s2); }
+.wmbanner__detail .gate__list { margin-top: 0; }

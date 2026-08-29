@@ -117,6 +117,11 @@ export async function editFieldAsHuman(row: Locator, fieldLabel: string, value: 
  * it too, so this is a no-op once a selection exists.
  */
 export async function openMandateLayer(page: Page): Promise<void> {
+  // The app opens in the product form, which has no panel at all. Everything
+  // below this line is about the instrument, so switch to it first.
+  await page.waitForSelector('.workbench');
+  await page.getByRole('button', { name: 'Technical', exact: true }).click();
+
   // Wait for the app to boot first. An `isVisible()` check against a page still
   // showing "Opening a session…" answers false and silently does nothing, which
   // leaves the layer closed and every later assertion failing somewhere else.
@@ -125,12 +130,6 @@ export async function openMandateLayer(page: Page): Promise<void> {
   const rail = page.getByRole('button', { name: 'Open the Mandate capability layer' });
   await rail.waitFor({ state: 'visible' });
   await rail.click();
-
-  // Chromium here has no `navigator.modelContext`, so the layer gates itself and
-  // offers the simulated caller as a deliberate override. Take it — exactly the
-  // path a judge without the flag walks. With the flag, no gate appears.
-  const go = page.getByRole('button', { name: 'Run the demo with the simulated caller' });
-  if (await go.isVisible().catch(() => false)) await go.click();
 
   await page.getByRole('heading', { name: 'Authority', exact: true }).waitFor({ state: 'visible' });
 }

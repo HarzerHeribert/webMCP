@@ -10,14 +10,14 @@ import { customerRow, openMandateLayer, panelByTitle, runSimulatedCaller } from 
  * be concealed. A closed rail over an active mandate still names its version.
  */
 
-test('the layer starts closed, and Relay CRM works without it', async ({ page }) => {
+test('the instrument starts closed, and Relay CRM works without it', async ({ page }) => {
   await page.goto('/');
+  await page.waitForSelector('.workbench');
+  // The app opens as the product; this test is about the instrument behind it.
+  await page.getByRole('button', { name: 'Technical', exact: true }).click();
 
   const rail = page.getByRole('button', { name: 'Open the Mandate capability layer' });
   await expect(rail).toBeVisible();
-  // No WebMCP in this browser, so the rail says what is missing rather than
-  // offering a capability surface that could not exist.
-  await expect(rail).toContainText('WebMCP required');
 
   // Nothing Mandate contributes is on screen.
   await expect(page.getByText('Capability inspector', { exact: true })).toBeHidden();
@@ -29,23 +29,26 @@ test('the layer starts closed, and Relay CRM works without it', async ({ page })
   await expect(customerRow(page, 'Northwind Logistics')).toBeVisible();
 });
 
-test('without WebMCP the layer will not reveal itself, and says why', async ({ page }) => {
+test('without WebMCP the demo still runs, and says so without stopping anybody', async ({ page }) => {
   await page.goto('/');
-  // Selecting normally opens the layer. With no WebMCP it must not: there is no
-  // capability surface to reveal.
+  await page.waitForSelector('.workbench');
+
+  // Said once, on screen, for the whole session — and never in the way.
+  const banner = page.getByRole('status');
+  await expect(banner.getByText('WEBMCP_UNAVAILABLE', { exact: true })).toBeVisible();
+  await expect(banner).toContainText('no tool is registered with a real agent');
+
+  // Nothing was blocked: the product is usable with no override to take.
   await customerRow(page, 'Atlas Freight').locator('.customer__pick input').click();
-  await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeHidden();
+  await page.getByRole('button', { name: 'Mandate — delegated authority' }).click();
+  await expect(page.getByRole('dialog', { name: 'Delegated authority' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Delegate/ })).toBeEnabled();
 
-  await page.getByRole('button', { name: 'Open the Mandate capability layer' }).click();
-  await expect(page.getByRole('heading', { name: 'This browser has no WebMCP.' })).toBeVisible();
-  await expect(page.getByText('WEBMCP_UNAVAILABLE', { exact: true })).toBeVisible();
-  // Still nothing claiming to be live.
-  await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeHidden();
-
-  // The override is explicit, and only then does the surface appear.
-  await page.getByRole('button', { name: 'Run the demo with the simulated caller' }).click();
-  await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
-  await expect(page.getByText('WebMCP capability layer', { exact: true })).toBeVisible();
+  // The remedy differs by host, so it is behind a disclosure rather than shouted.
+  await expect(banner.getByRole('heading', { name: 'This browser has no WebMCP.' })).toBeHidden();
+  await banner.getByRole('button', { name: 'Why, and how to fix it' }).click();
+  await expect(banner.getByRole('heading', { name: 'This browser has no WebMCP.' })).toBeVisible();
+  await expect(banner).toContainText('enable-webmcp-testing');
 });
 
 test('a closed layer still declares live authority — it cannot be hidden', async ({ page }) => {
@@ -103,7 +106,8 @@ test.describe('inside the ChatGPT app, the gate gives advice that works there', 
 
   test('the desktop app is told about site tools, not about a Chrome flag', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Open the Mandate capability layer' }).click();
+    await page.waitForSelector('.workbench');
+    await page.getByRole('status').getByRole('button', { name: 'Why, and how to fix it' }).click();
 
     await expect(
       page.getByRole('heading', { name: 'ChatGPT has not exposed site tools to this page.' }),
@@ -111,10 +115,6 @@ test.describe('inside the ChatGPT app, the gate gives advice that works there', 
     await expect(page.getByText('Enable site tools')).toBeVisible();
     // The Chrome remedy is useless here and must not be the instruction given.
     await expect(page.getByText('enable-webmcp-testing')).toBeHidden();
-
-    // The demo is still reachable, which is the whole point of the gate.
-    await page.getByRole('button', { name: 'Run the demo with the simulated caller' }).click();
-    await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
   });
 });
 
@@ -126,14 +126,13 @@ test.describe('the ChatGPT mobile app is told the truth: there is nothing to tur
 
   test('it names the desktop app rather than a setting that does not exist', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: 'Open the Mandate capability layer' }).click();
+    await page.waitForSelector('.workbench');
+    await page.getByRole('status').getByRole('button', { name: 'Why, and how to fix it' }).click();
 
     await expect(
       page.getByRole('heading', { name: "ChatGPT's site tools are desktop-only." }),
     ).toBeVisible();
     await expect(page.getByText('Enable site tools')).toBeHidden();
-    await page.getByRole('button', { name: 'Run the demo with the simulated caller' }).click();
-    await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
   });
 });
 
@@ -233,3 +232,4 @@ test('a stale approval refuses to commit and says why', async ({ page }) => {
   await pop.getByRole('button', { name: 'Apply', exact: true }).click();
   await expect(pop.getByText(/record changed underneath|blocked/i)).toBeVisible();
 });
+
