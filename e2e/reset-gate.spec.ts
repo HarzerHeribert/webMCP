@@ -41,28 +41,28 @@ test('reset replays the whole demo end to end, with no manual repair', async ({ 
   // ── 1 · select, delegate, watch the inspector narrow ────────────────────
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click(); // leave only `status`
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
-  const stageRow = toolRow(registeredGroup, 'mandate_stage_customer_update');
+  const stageRow = toolRow(registeredGroup, 'mandate_stage_account_update');
   await expect(stageRow).toBeVisible();
   const schema = await readToolSchema(stageRow);
   const props = schema.properties as Record<string, { enum?: unknown[] }>;
-  expect(props.customerId.enum).toEqual(['c-atlas']);
+  expect(props.resourceId.enum).toEqual(['c-atlas']);
   expect(props.field.enum).toEqual(['status']);
 
   // ── 2 · the agent stages, and is refused out of scope ───────────────────
   await kestrelRow.getByRole('checkbox', { name: 'Select Kestrel Analytics' }).click();
-  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-atlas',
+  await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-atlas',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',
   });
   await expect(staged.locator('.change')).toHaveCount(1);
 
-  const refused = await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-kestrel',
+  const refused = await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-kestrel',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',
@@ -101,7 +101,7 @@ test('reset replays the whole demo end to end, with no manual repair', async ({ 
   // and one in the notice explaining what just ended. Assert the sentence, which
   // is the thing a person actually reads.
   await expect(authority.getByText(/Mandate v\d+ was revoked/)).toBeVisible();
-  await expect(toolRow(inspector.locator('.webmcp-group').filter({ hasText: 'Withheld' }), 'mandate_stage_customer_update')).toBeVisible();
+  await expect(toolRow(inspector.locator('.webmcp-group').filter({ hasText: 'Withheld' }), 'mandate_stage_account_update')).toBeVisible();
 
   // ── the gate: reset, with no manual repair ───────────────────────────────
   await page.getByRole('button', { name: 'Reset demo' }).click();
@@ -122,13 +122,13 @@ test('reset replays the whole demo end to end, with no manual repair', async ({ 
   // ── step 1 can be performed again immediately, no reload, no repair ─────
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click();
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
-  const stageRowAgain = toolRow(registeredGroup, 'mandate_stage_customer_update');
+  const stageRowAgain = toolRow(registeredGroup, 'mandate_stage_account_update');
   await expect(stageRowAgain).toBeVisible();
   const schemaAgain = await readToolSchema(stageRowAgain);
   const propsAgain = schemaAgain.properties as Record<string, { enum?: unknown[] }>;
-  expect(propsAgain.customerId.enum).toEqual(['c-atlas']);
+  expect(propsAgain.resourceId.enum).toEqual(['c-atlas']);
   expect(propsAgain.field.enum).toEqual(['status']);
 });

@@ -76,8 +76,8 @@ test('the guide walks back when authority is withdrawn, instead of naming a beat
   await expect(page.getByText('active · v1', { exact: true })).toBeVisible();
 
   // Stage something so the guide is past the delegation beat.
-  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-atlas', field: 'status', value: 'At risk', mandateVersion: '1',
+  await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-atlas', field: 'status', value: 'At risk', mandateVersion: '1',
   });
   await expect(page.locator('.change')).toHaveCount(1);
   const guide = page.locator('.demo-guide');
@@ -182,8 +182,8 @@ test('the approval appears on the record, reads as a sentence, and commits in on
   const row = customerRow(page, 'Northwind Logistics');
   await row.locator('.customer__pick input').click();
   await page.getByRole('button', { name: /^Delegate/ }).click();
-  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-northwind',
+  await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-northwind',
     field: 'nextAction',
     value: 'Book the exec sync',
     mandateVersion: '1',
@@ -220,8 +220,8 @@ test('a stale approval refuses to commit and says why', async ({ page }) => {
   const row = customerRow(page, 'Northwind Logistics');
   await row.locator('.customer__pick input').click();
   await page.getByRole('button', { name: /^Delegate/ }).click();
-  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-northwind',
+  await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-northwind',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',

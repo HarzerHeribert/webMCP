@@ -1,11 +1,11 @@
 import { Hono, type Context } from 'hono';
-import { compileCapabilities, NEVER_REGISTERED } from './core/capabilities';
+import { compileCapabilities, neverRegistered } from './core/capabilities';
 import { MandateError } from './core/errors';
 import { MandateService } from './core/service';
 import { MemorySessionStore, type SessionStore } from './core/store';
 import { unlimited, type Quota } from './core/quota';
 import type { Session } from './core/types';
-import { CUSTOMER_FIELDS, CUSTOMER_STATUSES, DELEGATABLE_FIELDS } from './core/types';
+import { DOMAINS, delegatableFields, domainOf, type DomainSpec, type FieldSpec } from './core/domains';
 
 /**
  * One service, two callers. `docs/16`: the human interface and the tool path
@@ -22,23 +22,29 @@ export const SESSION_HEADER = 'x-mandate-session';
 export interface ClientSession {
   session: Session;
   capabilities: ReturnType<typeof compileCapabilities>;
-  neverRegistered: typeof NEVER_REGISTERED;
+  neverRegistered: { name: string; reason: string }[];
+  /** Everything the client needs to render this host, so the interface has no
+   *  hard-coded nouns either. `hosts` lets a visitor switch which application
+   *  the layer is installed into. */
   schema: {
-    customerFields: typeof CUSTOMER_FIELDS;
-    delegatableFields: typeof DELEGATABLE_FIELDS;
-    statuses: typeof CUSTOMER_STATUSES;
+    domain: DomainSpec;
+    fields: readonly FieldSpec[];
+    delegatableFields: string[];
+    hosts: { id: string; product: string }[];
   };
 }
 
 function view(session: Session): ClientSession {
+  const domain = domainOf(session.domainId);
   return {
     session,
     capabilities: compileCapabilities(session),
-    neverRegistered: NEVER_REGISTERED,
+    neverRegistered: neverRegistered(session),
     schema: {
-      customerFields: CUSTOMER_FIELDS,
-      delegatableFields: DELEGATABLE_FIELDS,
-      statuses: CUSTOMER_STATUSES,
+      domain,
+      fields: domain.fields,
+      delegatableFields: delegatableFields(domain),
+      hosts: Object.values(DOMAINS).map((d) => ({ id: d.id, product: d.product })),
     },
   };
 }
@@ -113,21 +119,25 @@ export function createApp(store: SessionStore = new MemorySessionStore(), quota:
   });
   app.get('/session', async (c) => c.json(view(await service.read(sid(c)))));
   app.post('/session/reset', async (c) => c.json(view(await service.reset(sid(c)))));
+  app.post('/session/host', async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { domainId?: string };
+    return c.json(view(await service.switchHost(sid(c), String(body.domainId ?? ''))));
+  });
 
   app.post('/selection', async (c) => {
-    const { customerIds } = await c.req.json<{ customerIds: string[] }>();
-    return c.json(view(await service.setSelection(sid(c), customerIds ?? [])));
+    const { resourceIds } = await c.req.json<{ resourceIds: string[] }>();
+    return c.json(view(await service.setSelection(sid(c), resourceIds ?? [])));
   });
 
   app.post('/mandate', async (c) => {
-    const body = await c.req.json<{ customerIds: string[]; allowedFields: string[]; ttlMs?: number }>();
+    const body = await c.req.json<{ resourceIds: string[]; allowedFields: string[]; ttlMs?: number }>();
     return c.json(view(await service.createMandate(sid(c), body)));
   });
   app.post('/mandate/revoke', async (c) => c.json(view(await service.revokeMandate(sid(c)))));
 
   // ── human path ───────────────────────────────────────────────────────────
   app.post('/changes', async (c) => {
-    const body = await c.req.json<{ customerId: string; field: never; after: string }>();
+    const body = await c.req.json<{ resourceId: string; field: never; after: string }>();
     const { session } = await service.stageAsHuman(sid(c), body);
     return c.json(view(session));
   });
@@ -157,14 +167,14 @@ export function createApp(store: SessionStore = new MemorySessionStore(), quota:
   // ── agent path: exactly the registered tools, nothing more ───────────────
   app.post('/tools/stage', async (c) => {
     const body = await c.req.json<{
-      customerId: string;
+      resourceId: string;
       field: never;
       value: string;
       mandateVersion: number;
       changeVersion?: number;
     }>();
     const { session } = await service.stageAsAgent(sid(c), {
-      customerId: body.customerId,
+      resourceId: body.resourceId,
       field: body.field,
       after: body.value,
       mandateVersion: body.mandateVersion,

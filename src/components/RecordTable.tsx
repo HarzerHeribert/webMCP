@@ -3,31 +3,27 @@ import { useMode } from '../lib/mode';
 import { ApprovalPopover } from './MinimalLayer';
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
-import type { Customer, CustomerField } from '../../server/core/types';
+import type { Resource } from '../../server/core/types';
+import type { FieldSpec } from '../../server/core/domains';
 
 /**
- * Relay CRM's customer list, and the place the product's central distinction is
- * made visible: **selection proposes, delegation grants**. A selected row gets a
- * cool rail and a checkbox. A delegated row gets the amber authority ring and a
- * scope chip. They are never the same treatment, and a row can be one without
- * the other — which is exactly the M2 gate the audience needs to see.
+ * The host application's record list, and the place the product's central
+ * distinction is made visible: **selection proposes, delegation grants**. A
+ * selected row gets a cool rail and a checkbox. A delegated row gets the amber
+ * authority ring and a scope chip. They are never the same treatment, and a row
+ * can be one without the other — which is exactly the M2 gate the audience
+ * needs to see.
+ *
+ * Every noun, label, column and status here comes from `schema.domain`
+ * (`server/core/domains.ts`). Nothing in this file knows what a customer is,
+ * which is the point: switch the host and the same list renders services.
  */
 
-const EDITABLE: CustomerField[] = ['status', 'nextAction', 'owner', 'renewalDate'];
-const LABEL: Record<CustomerField, string> = {
-  status: 'Status',
-  nextAction: 'Next action',
-  owner: 'Owner',
-  renewalDate: 'Renewal',
-  arr: 'ARR',
-  notes: 'Notes',
-};
-
-export function CustomerTable() {
+export function RecordTable() {
   const { session, schema } = useSession();
   const { run } = useStore();
   const [filter, setFilter] = useState<string>('all');
-  const selected = new Set(session.selectedCustomerIds);
+  const selected = new Set(session.selectedResourceIds);
   const mandate = session.mandate?.status === 'ACTIVE' ? session.mandate : null;
 
   const toggle = (id: string) => {
@@ -43,15 +39,27 @@ export function CustomerTable() {
   // made about a mock.
   // `arr` is a preformatted display string ("€184,000"), not a number — the
   // seed carries it the way the record would show it.
-  const pipeline = session.customers.reduce((sum, c) => sum + euros(c.arr), 0);
-  const atRisk = session.customers.filter((c) => c.status === 'At risk').length;
-  const shown = filter === 'all' ? session.customers : session.customers.filter((c) => c.status === filter);
+  const d = schema.domain;
+  const editable = d.fields.filter((f) => !f.untrusted);
+  const untrusted = d.fields.find((f) => f.untrusted);
+  const statusOptions = d.fields.find((f) => f.key === d.statusField)?.options ?? [];
+
+  const sum = d.sumField
+    ? session.resources.reduce((n, r) => n + euros(r.values[d.sumField!]), 0)
+    : null;
+  const warning = session.resources.filter((r) =>
+    d.warnStatuses.includes(r.values[d.statusField] ?? ''),
+  ).length;
+  const shown =
+    filter === 'all'
+      ? session.resources
+      : session.resources.filter((r) => r.values[d.statusField] === filter);
 
   return (
     <section className="panel panel--fill">
       <div className="panel__head">
-        <h2 className="panel__title">Accounts</h2>
-        <span className="panel__count">{session.customers.length}</span>
+        <h2 className="panel__title">{d.collection}</h2>
+        <span className="panel__count">{session.resources.length}</span>
         <div className="panel__actions">
           <span className="dim" style={{ fontSize: 'var(--t-xs)' }}>
             {selected.size} selected
@@ -67,20 +75,24 @@ export function CustomerTable() {
       </div>
 
       <div className="crmbar">
+        {sum !== null && (
+          <div className="stat">
+            <span className="stat__k">{d.sumLabel}</span>
+            <span className="stat__v">{money(sum)}</span>
+          </div>
+        )}
         <div className="stat">
-          <span className="stat__k">Pipeline</span>
-          <span className="stat__v">{money(pipeline)}</span>
+          <span className="stat__k">Needs attention</span>
+          <span className={`stat__v${warning > 0 ? ' stat__v--warn' : ''}`}>{warning}</span>
         </div>
         <div className="stat">
-          <span className="stat__k">At risk</span>
-          <span className={`stat__v${atRisk > 0 ? ' stat__v--warn' : ''}`}>{atRisk}</span>
+          <span className="stat__k">{LABEL_OWNERS[d.id] ?? 'Owners'}</span>
+          <span className="stat__v">
+            {new Set(session.resources.map((r) => r.values[d.ownerField])).size}
+          </span>
         </div>
-        <div className="stat">
-          <span className="stat__k">Owners</span>
-          <span className="stat__v">{new Set(session.customers.map((c) => c.owner)).size}</span>
-        </div>
-        <div className="crmbar__filters" role="group" aria-label="Filter accounts by status">
-          {['all', ...schema.statuses].map((s) => (
+        <div className="crmbar__filters" role="group" aria-label={`Filter by ${d.statusField}`}>
+          {['all', ...statusOptions].map((s) => (
             <button
               key={s}
               className={`filt${filter === s ? ' filt--on' : ''}`}
@@ -95,16 +107,21 @@ export function CustomerTable() {
 
       <div className="panel__body panel__body--flush panel__body--scroll">
         <ul className="customers">
-          {shown.map((customer) => (
-            <CustomerRow
-              key={customer.id}
-              customer={customer}
-              selected={selected.has(customer.id)}
+          {shown.map((resource) => (
+            <ResourceRow
+              key={resource.id}
+              resource={resource}
+              selected={selected.has(resource.id)}
               delegatedFields={
-                mandate?.customerIds.includes(customer.id) ? mandate.allowedFields : null
+                mandate?.resourceIds.includes(resource.id) ? mandate.allowedFields : null
               }
-              statuses={schema.statuses}
-              onToggle={() => toggle(customer.id)}
+              fields={editable}
+              untrusted={untrusted}
+              headlineField={d.headlineField}
+              ownerField={d.ownerField}
+              statusField={d.statusField}
+              statusOptions={statusOptions}
+              onToggle={() => toggle(resource.id)}
             />
           ))}
         </ul>
@@ -122,17 +139,27 @@ export function CustomerTable() {
   );
 }
 
-function CustomerRow({
-  customer,
+function ResourceRow({
+  resource,
   selected,
   delegatedFields,
-  statuses,
+  fields,
+  untrusted,
+  headlineField,
+  ownerField,
+  statusField,
+  statusOptions,
   onToggle,
 }: {
-  customer: Customer;
+  resource: Resource;
   selected: boolean;
   delegatedFields: readonly string[] | null;
-  statuses: readonly string[];
+  fields: readonly FieldSpec[];
+  untrusted?: FieldSpec;
+  headlineField: string;
+  ownerField: string;
+  statusField: string;
+  statusOptions: readonly string[];
   onToggle(): void;
 }) {
   const { session } = useSession();
@@ -145,7 +172,7 @@ function CustomerRow({
   const reviewAnchor = useRef<HTMLElement | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const staged = session.changes.filter(
-    (c) => c.customerId === customer.id && c.state !== 'APPLIED',
+    (c) => c.resourceId === resource.id && c.state !== 'APPLIED',
   );
 
   return (
@@ -161,18 +188,18 @@ function CustomerRow({
       <div className="customer__head">
         <label className="customer__pick">
           <input type="checkbox" checked={selected} onChange={onToggle} />
-          <span className="sr-only">Select {customer.name}</span>
+          <span className="sr-only">Select {resource.name}</span>
         </label>
-        <span className={`avatar avatar--${hue(customer.owner)}`} aria-hidden>
-          {initials(customer.owner)}
+        <span className={`avatar avatar--${hue(resource.values[ownerField] ?? '')}`} aria-hidden>
+          {initials(resource.values[ownerField] ?? '')}
         </span>
         <div className="customer__ident">
-          <span className="customer__name">{customer.name}</span>
-          <span className="customer__segment">{customer.segment}</span>
+          <span className="customer__name">{resource.name}</span>
+          <span className="customer__segment">{resource.subtitle}</span>
         </div>
-        <span className="customer__arr" title="Annual recurring revenue">{customer.arr}</span>
+        <span className="customer__arr">{resource.values[headlineField]}</span>
         {delegatedFields && (
-          <span className="chip chip--scope" title="This customer is inside the active mandate">
+          <span className="chip chip--scope" title="This record is inside the active mandate">
             <span className="chip__dot" />
             delegated
           </span>
@@ -180,15 +207,14 @@ function CustomerRow({
       </div>
 
       <dl className="fields">
-        {EDITABLE.map((field) => (
+        {fields.map((spec) => (
           <EditableField
-            key={field}
-            customer={customer}
-            field={field}
-            statuses={statuses}
-            delegated={Boolean(delegatedFields?.includes(field))}
-            pending={staged.find((c) => c.field === field)?.after}
-            stale={staged.find((c) => c.field === field)?.state === 'STALE'}
+            key={spec.key}
+            resource={resource}
+            spec={spec}
+            delegated={Boolean(delegatedFields?.includes(spec.key))}
+            pending={staged.find((c) => c.field === spec.key)?.after}
+            stale={staged.find((c) => c.field === spec.key)?.state === 'STALE'}
             onReview={
               mode === 'minimal'
                 ? (el) => {
@@ -200,13 +226,13 @@ function CustomerRow({
           />
         ))}
         <div className="field field--readonly">
-          <dt className="field__label">{LABEL.arr}</dt>
-          <dd className="field__value mono">{customer.arr}</dd>
-        </div>
-        <div className="field field--readonly">
           <dt className="field__label">Health</dt>
           <dd className="field__value">
-            <span className={`health health--${slug(customer.status)}`}>
+            {/* Filled from the record's position in the status field's own
+                option list, so a new host gets a health indicator for free. */}
+            <span
+              className={`health health--${bars(resource.values[statusField] ?? '', statusOptions)}`}
+            >
               <span className="health__bar" />
               <span className="health__bar" />
               <span className="health__bar" />
@@ -217,41 +243,43 @@ function CustomerRow({
 
       {mode === 'minimal' && (
         <ApprovalPopover
-          customerId={customer.id}
+          resourceId={resource.id}
           anchorRef={reviewAnchor}
           open={reviewing}
           onClose={() => setReviewing(false)}
         />
       )}
 
-      <p className="customer__notes" title="External content. Never an instruction to any tool.">
-        <span className="customer__notes-tag">notes · untrusted</span>
-        {customer.notes}
-      </p>
+      {untrusted && (
+        <p className="customer__notes" title="External content. Never an instruction to any tool.">
+          <span className="customer__notes-tag">{untrusted.label.toLowerCase()} · untrusted</span>
+          {resource.values[untrusted.key]}
+        </p>
+      )}
     </li>
   );
 }
 
 function EditableField({
-  customer,
-  field,
-  statuses,
+  resource,
+  spec,
   delegated,
   pending,
   stale,
   onReview,
 }: {
-  customer: Customer;
-  field: CustomerField;
-  statuses: readonly string[];
+  resource: Resource;
+  spec: FieldSpec;
   delegated: boolean;
   pending?: string;
   stale?: boolean;
   onReview?(anchor: HTMLElement): void;
 }) {
   const { run } = useStore();
+  const field = spec.key;
+  const value = resource.values[field] ?? '';
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(customer[field]));
+  const [draft, setDraft] = useState(value);
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement>(null);
 
   useEffect(() => {
@@ -260,20 +288,18 @@ function EditableField({
 
   const commit = () => {
     setEditing(false);
-    if (draft !== String(customer[field])) void run(() => api.stage(customer.id, field, draft));
+    if (draft !== value) void run(() => api.stage(resource.id, field, draft));
   };
-
-  const value = String(customer[field]);
 
   return (
     <div className={`field${delegated ? ' field--delegated' : ''}`}>
       <dt className="field__label">
-        {LABEL[field]}
+        {spec.label}
         {delegated && <span className="field__scope" aria-label="in delegated scope" />}
       </dt>
       <dd className="field__value">
         {editing ? (
-          field === 'status' ? (
+          spec.options ? (
             <select
               ref={inputRef as React.RefObject<HTMLSelectElement>}
               className="field__input"
@@ -281,7 +307,7 @@ function EditableField({
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commit}
             >
-              {statuses.map((s) => (
+              {spec.options.map((s) => (
                 <option key={s}>{s}</option>
               ))}
             </select>
@@ -348,4 +374,17 @@ const initials = (name: string) =>
 const hue = (name: string) =>
   ['a', 'b', 'c', 'd', 'e'][[...name].reduce((h, ch) => (h + ch.charCodeAt(0)) % 5, 0)];
 
-const slug = (s: string) => s.toLowerCase().replace(/[^a-z]+/g, '-');
+/** The owner column is called something different in every host. */
+const LABEL_OWNERS: Record<string, string> = { crm: 'Owners', deploy: 'On call' };
+
+/**
+ * How many of the three bars to fill, from where the record's status sits in
+ * its own domain's option list. Ordered best-to-worst by convention in
+ * `domains.ts`, so a new host inherits a health indicator without writing one.
+ */
+const bars = (value: string, options: readonly string[]): string => {
+  const i = options.indexOf(value);
+  if (i < 0) return 'unknown';
+  const share = options.length <= 1 ? 1 : 1 - i / (options.length - 1);
+  return share > 0.66 ? 'good' : share > 0.33 ? 'fair' : 'poor';
+};

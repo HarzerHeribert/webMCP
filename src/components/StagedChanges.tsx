@@ -21,7 +21,7 @@ const STATE_CHIP: Record<Change['state'], { cls: string; label: string }> = {
 
 
 export function StagedChanges() {
-  const { session } = useSession();
+  const { session, schema } = useSession();
   const { run } = useStore();
 
   const pending = session.changes.filter((c) => c.state !== 'APPLIED');
@@ -51,8 +51,8 @@ export function StagedChanges() {
         {pending.length === 0 && applied.length === 0 ? (
           <div className="empty">
             <span className="empty__lead">Nothing staged</span>
-            Edit a field in Relay CRM, or delegate a scope and let an agent stage
-            a change. Both land here, in the same list.
+            Edit a field in {schema.domain.product}, or delegate a scope and let an
+            agent stage a change. Both land here, in the same list.
           </div>
         ) : (
           <ul className="changes">
@@ -102,7 +102,7 @@ export function StagedChanges() {
 function ChangeRow({ change }: { change: Change }) {
   const { session } = useSession();
   const { run } = useStore();
-  const customer = session.customers.find((c) => c.id === change.customerId);
+  const record = session.resources.find((c) => c.id === change.resourceId);
   const state = STATE_CHIP[change.state];
   const both = change.touchedBy.length > 1;
 
@@ -110,7 +110,7 @@ function ChangeRow({ change }: { change: Change }) {
     <li className={`change change--${change.state.toLowerCase()}`}>
       <div className="change__top">
         <span className="change__target">
-          {customer?.name}
+          {record?.name}
           <span className="change__field mono">{change.field}</span>
         </span>
         <span className={`chip ${state.cls}`}>

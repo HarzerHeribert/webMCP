@@ -1,17 +1,16 @@
 import { errors, MandateError } from './errors';
 import { assertDelegatable, authorize, settleExpiry } from './policy';
-import { EXTERNAL_UPDATE_TARGET, seedCustomers } from './seed';
+import { DEFAULT_DOMAIN, domainOf } from './domains';
+import { stageToolName } from './capabilities';
 import type { SessionStore } from './store';
 import type {
   Actor,
   Change,
-  Customer,
-  CustomerField,
+  Resource,
   Session,
   TimelineEvent,
   TimelineKind,
 } from './types';
-import { CUSTOMER_FIELDS } from './types';
 
 /**
  * The authoritative application service. The human interface and the WebMCP
@@ -61,15 +60,17 @@ export class MandateService {
 
   // ── session lifecycle ────────────────────────────────────────────────────
 
-  async createSession(): Promise<Session> {
+  async createSession(domainId: string = DEFAULT_DOMAIN): Promise<Session> {
     const now = this.#clock.now();
+    const domain = domainOf(domainId);
     const session: Session = {
       id: uid('s'),
       createdAt: now,
       revision: 1,
       mandateVersion: 0,
-      customers: seedCustomers(),
-      selectedCustomerIds: [],
+      domainId: domain.id,
+      resources: seed(domain),
+      selectedResourceIds: [],
       mandate: null,
       changes: [],
       timeline: [],
@@ -96,12 +97,41 @@ export class MandateService {
 
   /** Restores the deterministic seed and clears all mandates and changes.
    *  Keeps the session id, so the demo can be replayed without a reload. */
+  /**
+   * Move this session to a different host application. Everything the mandate
+   * touched belonged to the old host's records, so this is a reset — the point
+   * being demonstrated is that the *compiler and the enforcement* are unchanged,
+   * not that a mandate survives a change of universe.
+   */
+  async switchHost(id: string, domainId: string): Promise<Session> {
+    const session = await this.read(id);
+    const domain = domainOf(domainId);
+    session.domainId = domain.id;
+    session.revision = 1;
+    session.mandateVersion = 0;
+    session.resources = seed(domain);
+    session.selectedResourceIds = [];
+    session.mandate = null;
+    session.changes = [];
+    session.timeline = [];
+    this.#log(
+      session,
+      'SESSION_RESET',
+      'human',
+      `Host application switched to ${domain.product}.`,
+      `The capability compiler and the server are unchanged. Only the records, ` +
+        `the field names and the compiled tool surface differ.`,
+    );
+    await this.#store.put(session);
+    return session;
+  }
+
   async reset(id: string): Promise<Session> {
     const session = await this.read(id);
     session.revision = 1;
     session.mandateVersion = 0;
-    session.customers = seedCustomers();
-    session.selectedCustomerIds = [];
+    session.resources = seed(domainOf(session.domainId));
+    session.selectedResourceIds = [];
     session.mandate = null;
     session.changes = [];
     session.timeline = [];
@@ -112,17 +142,17 @@ export class MandateService {
 
   // ── selection: proposes scope, grants nothing ────────────────────────────
 
-  async setSelection(id: string, customerIds: string[]): Promise<Session> {
+  async setSelection(id: string, resourceIds: string[]): Promise<Session> {
     const session = await this.read(id);
-    const known = new Set(session.customers.map((c) => c.id));
-    session.selectedCustomerIds = customerIds.filter((c) => known.has(c));
+    const known = new Set(session.resources.map((c) => c.id));
+    session.selectedResourceIds = resourceIds.filter((c) => known.has(c));
     this.#log(
       session,
       'SELECTION_CHANGED',
       'human',
-      session.selectedCustomerIds.length === 0
+      session.selectedResourceIds.length === 0
         ? 'Selection cleared.'
-        : `${session.selectedCustomerIds.length} customer(s) selected. Selection grants no authority.`,
+        : `${session.selectedResourceIds.length} ${domainOf(session.domainId).noun}(s) selected. Selection grants no authority.`,
     );
     await this.#store.put(session);
     return session;
@@ -132,18 +162,18 @@ export class MandateService {
 
   async createMandate(
     id: string,
-    input: { customerIds: string[]; allowedFields: string[]; ttlMs?: number },
+    input: { resourceIds: string[]; allowedFields: string[]; ttlMs?: number },
   ): Promise<Session> {
     const session = await this.read(id);
     const now = this.#clock.now();
-    const fields = assertDelegatable(input.allowedFields);
-    const known = new Set(session.customers.map((c) => c.id));
-    const customerIds = input.customerIds.filter((c) => known.has(c));
+    const fields = assertDelegatable(domainOf(session.domainId), input.allowedFields);
+    const known = new Set(session.resources.map((c) => c.id));
+    const resourceIds = input.resourceIds.filter((c) => known.has(c));
 
-    if (customerIds.length === 0 || fields.length === 0) {
+    if (resourceIds.length === 0 || fields.length === 0) {
       throw errors.badRequest(
-        'A mandate must name at least one customer and one field.',
-        'Choose the customers and fields to delegate, then delegate again.',
+        `A mandate must name at least one ${domainOf(session.domainId).noun} and one field.`,
+        'Choose what to delegate, then delegate again.',
       );
     }
 
@@ -154,7 +184,7 @@ export class MandateService {
       id: narrowing ? previous.id : uid('m'),
       version: session.mandateVersion,
       status: 'ACTIVE',
-      customerIds,
+      resourceIds,
       allowedFields: fields,
       createdAt: now,
       expiresAt: now + (input.ttlMs ?? DEFAULT_MANDATE_TTL_MS),
@@ -166,8 +196,8 @@ export class MandateService {
       'human',
       narrowing
         ? `Mandate replaced at version ${session.mandateVersion}. Calls made against the old version will be refused.`
-        : `Mandate granted over ${customerIds.length} customer(s) and ${fields.length} field(s).`,
-      `${customerIds.map((c) => this.#name(session, c)).join(', ')} · ${fields.join(', ')}`,
+        : `Mandate granted over ${resourceIds.length} ${domainOf(session.domainId).noun}(s) and ${fields.length} field(s).`,
+      `${resourceIds.map((c) => this.#name(session, c)).join(', ')} · ${fields.join(', ')}`,
     );
     await this.#store.put(session);
     return session;
@@ -197,7 +227,7 @@ export class MandateService {
 
   async stageAsHuman(
     id: string,
-    input: { customerId: string; field: CustomerField; after: string },
+    input: { resourceId: string; field: string; after: string },
   ): Promise<{ session: Session; change: Change }> {
     const session = await this.read(id);
     return this.#stage(session, 'human', null, input);
@@ -209,8 +239,8 @@ export class MandateService {
   async stageAsAgent(
     id: string,
     input: {
-      customerId: string;
-      field: CustomerField;
+      resourceId: string;
+      field: string;
       after: string;
       mandateVersion: number;
       /** The change version the caller believes it is editing. Optional on a
@@ -223,16 +253,16 @@ export class MandateService {
     try {
       authorize(session, {
         mandateVersion: input.mandateVersion,
-        customerId: input.customerId,
+        resourceId: input.resourceId,
         field: input.field,
       });
     } catch (e) {
-      await this.#logRefusal(session, 'mandate_stage_customer_update', e, input.customerId);
+      await this.#logRefusal(session, stageToolName(domainOf(session.domainId)), e, input.resourceId);
       throw e;
     }
     if (input.changeVersion !== undefined) {
       const target = session.changes.find(
-        (c) => c.customerId === input.customerId && c.field === input.field && c.state !== 'APPLIED',
+        (c) => c.resourceId === input.resourceId && c.field === input.field && c.state !== 'APPLIED',
       );
       if (target && target.version !== input.changeVersion) {
         const e = errors.changeVersionConflict(
@@ -241,7 +271,7 @@ export class MandateService {
           'Read the workspace again and re-issue the update against the current value.',
           { changeId: target.id, calledVersion: input.changeVersion, currentVersion: target.version },
         );
-        await this.#logRefusal(session, 'mandate_stage_customer_update', e, input.customerId);
+        await this.#logRefusal(session, stageToolName(domainOf(session.domainId)), e, input.resourceId);
         throw e;
       }
     }
@@ -250,9 +280,9 @@ export class MandateService {
       session,
       'TOOL_CALL',
       'agent',
-      `mandate_stage_customer_update accepted for ${this.#name(session, input.customerId)}.`,
+      `${stageToolName(domainOf(session.domainId))} accepted for ${this.#name(session, input.resourceId)}.`,
       `${input.field} → ${input.after}`,
-      { changeId: result.change.id, customerId: input.customerId, tool: 'mandate_stage_customer_update' },
+      { changeId: result.change.id, resourceId: input.resourceId, tool: stageToolName(domainOf(session.domainId)) },
     );
     await this.#store.put(session);
     return result;
@@ -262,25 +292,29 @@ export class MandateService {
     session: Session,
     actor: Actor,
     mandateVersion: number | null,
-    input: { customerId: string; field: CustomerField; after: string },
+    input: { resourceId: string; field: string; after: string },
   ): Promise<{ session: Session; change: Change }> {
-    const customer = this.#customer(session, input.customerId);
-    if (!(CUSTOMER_FIELDS as readonly string[]).includes(input.field)) {
-      throw errors.badRequest(`Unknown field "${input.field}".`, 'Use a field from the schema.');
+    const resource = this.#resource(session, input.resourceId);
+    const domain = domainOf(session.domainId);
+    if (!domain.fields.some((f) => f.key === input.field)) {
+      throw errors.badRequest(
+        `Unknown field "${input.field}" for ${domain.product}.`,
+        `Fields in this host are: ${domain.fields.map((f) => f.key).join(', ')}.`,
+      );
     }
     if (input.after.length > LIMITS.valueChars) {
       throw errors.badRequest(
         `That value is ${input.after.length} characters; the limit is ${LIMITS.valueChars}.`,
-        'Send a value a person would actually type into a CRM field.',
+        'Send a value a person would actually type into that field.',
       );
     }
     const now = this.#clock.now();
 
-    // One staged change per (customer, field). A second stage on the same target
+    // One staged change per (resource, field). A second stage on the same target
     // edits the existing change rather than queueing a second one — that is what
     // makes the co-edit in FR-005 a shared entity rather than two opinions.
     const existing = session.changes.find(
-      (c) => c.customerId === input.customerId && c.field === input.field && c.state !== 'APPLIED',
+      (c) => c.resourceId === input.resourceId && c.field === input.field && c.state !== 'APPLIED',
     );
     if (existing) {
       existing.after = input.after;
@@ -294,9 +328,9 @@ export class MandateService {
         session,
         'CHANGE_EDITED',
         actor,
-        `${actor === 'human' ? 'Human' : 'Agent'} changed ${input.field} for ${customer.name} to "${input.after}".`,
+        `${actor === 'human' ? 'Human' : 'Agent'} changed ${input.field} for ${resource.name} to "${input.after}".`,
         existing.touchedBy.length > 1 ? 'This change has now been edited by both the human and the agent.' : undefined,
-        { changeId: existing.id, customerId: customer.id },
+        { changeId: existing.id, resourceId: resource.id },
       );
       await this.#store.put(session);
       return { session, change: existing };
@@ -311,9 +345,9 @@ export class MandateService {
 
     const change: Change = {
       id: uid('ch'),
-      customerId: input.customerId,
+      resourceId: input.resourceId,
       field: input.field,
-      before: String(customer[input.field]),
+      before: resource.values[input.field] ?? '',
       after: input.after,
       baseRevision: session.revision,
       version: 1,
@@ -329,9 +363,9 @@ export class MandateService {
       session,
       'CHANGE_STAGED',
       actor,
-      `${actor === 'human' ? 'Human' : 'Agent'} staged ${input.field} for ${customer.name}.`,
+      `${actor === 'human' ? 'Human' : 'Agent'} staged ${input.field} for ${resource.name}.`,
       `${change.before} → ${change.after}`,
-      { changeId: change.id, customerId: customer.id },
+      { changeId: change.id, resourceId: resource.id },
     );
     await this.#store.put(session);
     return { session, change };
@@ -348,7 +382,7 @@ export class MandateService {
       );
     }
     session.changes = session.changes.filter((c) => c.id !== changeId);
-    this.#log(session, 'CHANGE_DISCARDED', 'human', `Discarded the staged change to ${change.field} for ${this.#name(session, change.customerId)}.`, undefined, { customerId: change.customerId });
+    this.#log(session, 'CHANGE_DISCARDED', 'human', `Discarded the staged change to ${change.field} for ${this.#name(session, change.resourceId)}.`, undefined, { resourceId: change.resourceId });
     await this.#store.put(session);
     return session;
   }
@@ -429,8 +463,8 @@ export class MandateService {
     let rebased = 0;
     for (const change of session.changes) {
       if (change.state !== 'STALE') continue;
-      const customer = this.#customer(session, change.customerId);
-      change.before = String(customer[change.field]);
+      const resource = this.#resource(session, change.resourceId);
+      change.before = resource.values[change.field] ?? '';
       change.baseRevision = session.revision;
       change.version += 1;
       change.state = 'DRAFT';
@@ -441,9 +475,9 @@ export class MandateService {
         session,
         'REBASED',
         caller.actor,
-        `Rebased ${change.field} for ${customer.name} onto revision ${session.revision}.`,
+        `Rebased ${change.field} for ${resource.name} onto revision ${session.revision}.`,
         `Intended value preserved: "${change.after}". Now reads ${change.before} → ${change.after}.`,
-        { changeId: change.id, customerId: customer.id },
+        { changeId: change.id, resourceId: resource.id },
       );
     }
     if (rebased === 0) {
@@ -513,8 +547,8 @@ export class MandateService {
     const now = this.#clock.now();
     session.revision += 1;
     for (const change of pending) {
-      const customer = this.#customer(session, change.customerId);
-      (customer[change.field] as string) = change.after;
+      const resource = this.#resource(session, change.resourceId);
+      resource.values[change.field] = change.after;
       change.state = 'APPLIED';
       change.appliedAt = now;
       change.baseRevision = session.revision;
@@ -525,7 +559,7 @@ export class MandateService {
       'human',
       `Human applied ${pending.length} change(s). The record is now at revision ${session.revision}.`,
       pending
-        .map((c) => `${this.#name(session, c.customerId)} · ${c.field}: ${c.before} → ${c.after} (staged by ${c.touchedBy.join(' then ')})`)
+        .map((c) => `${this.#name(session, c.resourceId)} · ${c.field}: ${c.before} → ${c.after} (staged by ${c.touchedBy.join(' then ')})`)
         .join('\n'),
     );
     await this.#store.put(session);
@@ -536,17 +570,19 @@ export class MandateService {
 
   async simulateExternalUpdate(id: string): Promise<Session> {
     const session = await this.read(id);
-    const customer = this.#customer(session, EXTERNAL_UPDATE_TARGET);
-    const wasOwner = customer.owner;
-    customer.owner = wasOwner === 'Dana Whitfield' ? 'Ravi Menon' : 'Dana Whitfield';
+    // Fixed per domain, so the conflict beat lands identically every time.
+    const { resourceId, field, value } = domainOf(session.domainId).externalUpdate;
+    const resource = this.#resource(session, resourceId);
+    const was = resource.values[field] ?? '';
+    resource.values[field] = was === value ? `${value} (again)` : value;
     session.revision += 1;
     this.#log(
       session,
       'EXTERNAL_UPDATE',
       'system',
-      `Another user changed ${customer.name}. The record is now at revision ${session.revision}.`,
-      `owner: ${wasOwner} → ${customer.owner}`,
-      { customerId: customer.id },
+      `Another user changed ${resource.name}. The record is now at revision ${session.revision}.`,
+      `${field}: ${was} → ${resource.values[field]}`,
+      { resourceId: resource.id },
     );
     await this.#store.put(session);
     return session;
@@ -554,14 +590,14 @@ export class MandateService {
 
   // ── internals ────────────────────────────────────────────────────────────
 
-  #customer(session: Session, id: string): Customer {
-    const c = session.customers.find((x) => x.id === id);
-    if (!c) throw errors.notFound(`No customer "${id}" in this session.`);
+  #resource(session: Session, id: string): Resource {
+    const c = session.resources.find((x) => x.id === id);
+    if (!c) throw errors.notFound(`No ${domainOf(session.domainId).noun} "${id}" in this session.`);
     return c;
   }
 
   #name(session: Session, id: string): string {
-    return session.customers.find((c) => c.id === id)?.name ?? id;
+    return session.resources.find((c) => c.id === id)?.name ?? id;
   }
 
   /** Staged agent work outlives the authority that produced it — deliberately.
@@ -599,13 +635,13 @@ export class MandateService {
     }
   }
 
-  async #logRefusal(session: Session, tool: string, e: unknown, customerId?: string): Promise<void> {
+  async #logRefusal(session: Session, tool: string, e: unknown, resourceId?: string): Promise<void> {
     const code = e instanceof MandateError ? e.envelope.code : 'BAD_REQUEST';
     const message = e instanceof Error ? e.message : String(e);
     this.#log(session, 'TOOL_REFUSED', 'agent', `${tool} refused: ${code}.`, message, {
       tool,
       errorCode: code,
-      customerId,
+      resourceId,
     });
     await this.#store.put(session);
   }
@@ -613,7 +649,7 @@ export class MandateService {
 
 /** Field-level validation. Small on purpose: it exists so VALIDATION_FAILED is a
  *  real state with a real cause, not a decorative one. */
-export function validateValue(field: CustomerField, value: string): string | undefined {
+export function validateValue(field: string, value: string): string | undefined {
   if (value.trim() === '') return 'This field cannot be empty.';
   if (field === 'renewalDate' && value !== '—' && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return 'Renewal date must be YYYY-MM-DD, or “—” for none.';
@@ -622,4 +658,10 @@ export function validateValue(field: CustomerField, value: string): string | und
     return 'Next action needs at least a few words to be actionable.';
   }
   return undefined;
+}
+
+/** A fresh copy of a domain's records, so a reset cannot hand back objects a
+ *  previous session mutated. */
+function seed(domain: { records: readonly Resource[] }): Resource[] {
+  return domain.records.map((r) => ({ ...r, values: { ...r.values } }));
 }

@@ -1,6 +1,5 @@
 import type { ClientSession } from '../../server/app';
 import type { ErrorEnvelope } from '../../server/core/errors';
-import type { CustomerField } from '../../server/core/types';
 
 export type { ClientSession };
 export type { ErrorEnvelope };
@@ -62,12 +61,13 @@ export const api = {
   },
   refresh: () => call('/session'),
   reset: () => post('/session/reset'),
-  setSelection: (customerIds: string[]) => post('/selection', { customerIds }),
-  delegate: (customerIds: string[], allowedFields: string[], ttlMs?: number) =>
-    post('/mandate', { customerIds, allowedFields, ttlMs }),
+  switchHost: (domainId: string) => post('/session/host', { domainId }),
+  setSelection: (resourceIds: string[]) => post('/selection', { resourceIds }),
+  delegate: (resourceIds: string[], allowedFields: string[], ttlMs?: number) =>
+    post('/mandate', { resourceIds, allowedFields, ttlMs }),
   revoke: () => post('/mandate/revoke'),
-  stage: (customerId: string, field: CustomerField, after: string) =>
-    post('/changes', { customerId, field, after }),
+  stage: (resourceId: string, field: string, after: string) =>
+    post('/changes', { resourceId, field, after }),
   discard: (changeId: string) => call(`/changes/${changeId}`, { method: 'DELETE' }),
   validate: () => post('/changes/validate'),
   rebase: () => post('/changes/rebase'),
@@ -85,12 +85,12 @@ export const api = {
  */
 export const agentApi = {
   stage: (
-    customerId: string,
+    resourceId: string,
     field: string,
     value: string,
     mandateVersion: number,
     changeVersion?: number,
-  ) => post('/tools/stage', { customerId, field, value, mandateVersion, changeVersion }),
+  ) => post('/tools/stage', { resourceId, field, value, mandateVersion, changeVersion }),
   validate: (mandateVersion: number) => post('/tools/validate', { mandateVersion }),
   rebase: (mandateVersion: number) => post('/tools/rebase', { mandateVersion }),
 };

@@ -21,11 +21,11 @@ test('a human edit on a field the agent already staged co-edits the same change,
   // Delegate `status` on Atlas, and have the agent stage it.
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click();
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
-  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-atlas',
+  await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-atlas',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',
@@ -53,10 +53,11 @@ test('an external update conflicts staged work; rebase preserves the intended va
   const meridianRow = customerRow(page, 'Meridian Health');
 
   // Stage a human edit on the exact field the demo instrument's external
-  // update touches (Meridian Health's owner), so rebase's before/after can
-  // be checked against a real value change, not just an unchanged one.
-  await editFieldAsHuman(meridianRow, 'Owner', 'New Owner');
-  await expect(staged.getByText('Dana Whitfield', { exact: true })).toBeVisible();
+  // update touches — `domains.ts` fixes that per host, and in the CRM it is
+  // Meridian Health's next action — so rebase's before/after can be checked
+  // against a real value change rather than an unchanged one.
+  await editFieldAsHuman(meridianRow, 'Next action', 'Send the renewal paperwork');
+  await expect(staged.getByText('Schedule Q4 business review', { exact: true })).toBeVisible();
 
   // The demo instrument's trigger lives outside the conflict panel proper —
   // `ConflictPanel.tsx` only renders the "Conflict & recovery" section once
@@ -71,11 +72,11 @@ test('an external update conflicts staged work; rebase preserves the intended va
 
   // The intended `after` value survives the rebase unchanged...
   const change = staged.locator('.change').first();
-  await expect(change.getByText('New Owner', { exact: true })).toBeVisible();
+  await expect(change.getByText('Send the renewal paperwork', { exact: true })).toBeVisible();
   // ...and the `before` has moved to the value the external update set,
   // because rebase re-reads the current record rather than replaying blind.
-  await expect(change.getByText('Ravi Menon', { exact: true })).toBeVisible();
-  await expect(change.getByText('Dana Whitfield', { exact: true })).toHaveCount(0);
+  await expect(change.getByText('Renewal call booked', { exact: true })).toBeVisible();
+  await expect(change.getByText('Schedule Q4 business review', { exact: true })).toHaveCount(0);
   await expect(staged.getByText('draft', { exact: true })).toBeVisible();
 });
 

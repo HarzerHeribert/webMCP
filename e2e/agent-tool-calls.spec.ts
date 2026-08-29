@@ -23,7 +23,7 @@ test('the simulated caller stages an in-scope change, and is refused out of scop
   const atlasRow = customerRow(page, 'Atlas Freight');
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click();
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
   // Select Kestrel too: selected, but never delegated.
@@ -31,8 +31,8 @@ test('the simulated caller stages an in-scope change, and is refused out of scop
   await kestrelRow.getByRole('checkbox', { name: 'Select Kestrel Analytics' }).click();
 
   // ── in scope: a staged change appears with the agent's provenance mark ──
-  const inScope = await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-atlas',
+  const inScope = await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-atlas',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',
@@ -42,8 +42,8 @@ test('the simulated caller stages an in-scope change, and is refused out of scop
   await expect(staged.locator('.change').filter({ hasText: 'Atlas Freight' }).getByText('agent', { exact: true })).toBeVisible();
 
   // ── out of scope: a customer that is selected but not delegated ─────────
-  const outOfScopeCustomer = await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-kestrel',
+  const outOfScopeCustomer = await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-kestrel',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',
@@ -53,8 +53,8 @@ test('the simulated caller stages an in-scope change, and is refused out of scop
   await expect(kestrelRow.getByText('Prospect', { exact: true })).toBeVisible();
 
   // ── out of scope: a non-delegated field on a delegated customer ─────────
-  const outOfScopeField = await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-atlas',
+  const outOfScopeField = await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-atlas',
     field: 'owner',
     value: 'Someone Else',
     mandateVersion: '1',
@@ -76,7 +76,7 @@ test('revoke mid-flight is refused server-side, even against the mandate version
 
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click();
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
   const sessionId = await readout(page, 'session');
@@ -93,7 +93,7 @@ test('revoke mid-flight is refused server-side, even against the mandate version
   // the call outright rather than trusting the caller's stale belief.
   const res = await page.request.post('/api/tools/stage', {
     headers: { 'x-mandate-session': sessionId, 'content-type': 'application/json' },
-    data: { customerId: 'c-atlas', field: 'status', value: 'Active', mandateVersion },
+    data: { resourceId: 'c-atlas', field: 'status', value: 'Active', mandateVersion },
   });
   expect(res.ok()).toBe(false);
   const body = await res.json();
@@ -118,11 +118,11 @@ test('the injected note in Atlas Freight is never authority: the tool call it as
 
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click();
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
-  const result = await runSimulatedCaller(page, 'mandate_stage_customer_update', {
-    customerId: 'c-northwind',
+  const result = await runSimulatedCaller(page, 'mandate_stage_account_update', {
+    resourceId: 'c-northwind',
     field: 'status',
     value: 'Active',
     mandateVersion: '1',

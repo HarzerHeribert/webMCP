@@ -56,7 +56,7 @@ describe.skipIf(!live)('against a real Redis', () => {
     const svc = new MandateService(store);
     const created = await svc.createSession();
     await svc.setSelection(created.id, ['c-atlas']);
-    await svc.createMandate(created.id, { customerIds: ['c-atlas'], allowedFields: ['status'] });
+    await svc.createMandate(created.id, { resourceIds: ['c-atlas'], allowedFields: ['status'] });
 
     // Read it back through a *separate* connection: this is the thing process
     // memory cannot do, and the reason this adapter exists.
@@ -64,9 +64,9 @@ describe.skipIf(!live)('against a real Redis', () => {
     try {
       const round = (await other.get(created.id)) as Session;
       expect(round.id).toBe(created.id);
-      expect(round.customers).toHaveLength(6);
+      expect(round.resources).toHaveLength(6);
       expect(round.mandate?.allowedFields).toEqual(['status']);
-      expect(round.selectedCustomerIds).toEqual(['c-atlas']);
+      expect(round.selectedResourceIds).toEqual(['c-atlas']);
     } finally {
       other.close();
     }

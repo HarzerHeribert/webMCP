@@ -32,7 +32,7 @@ test('select, delegate, stage a human edit, validate, apply, then reset returns 
   await expect(atlasCheckbox).toBeChecked();
 
   // ── delegate ─────────────────────────────────────────────────────────────
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
   // ── the scope chips read back exactly what was delegated ───────────────
@@ -80,7 +80,7 @@ test('a customer that is selected but not delegated is refused on the agent path
   const atlasCheckbox = atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' });
   await atlasCheckbox.click();
   await expect(atlasCheckbox).toBeChecked();
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
   // Selection is independent of delegation: select Kestrel too. It is now
@@ -96,7 +96,7 @@ test('a customer that is selected but not delegated is refused on the agent path
 
   const res = await page.request.post('/api/tools/stage', {
     headers: { 'x-mandate-session': sessionId, 'content-type': 'application/json' },
-    data: { customerId: 'c-kestrel', field: 'status', value: 'Active', mandateVersion },
+    data: { resourceId: 'c-kestrel', field: 'status', value: 'Active', mandateVersion },
   });
 
   expect(res.ok()).toBe(false);

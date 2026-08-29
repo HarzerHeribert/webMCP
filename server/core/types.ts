@@ -9,47 +9,19 @@
  *      intended value across a revision it never saw.
  */
 
-export const CUSTOMER_FIELDS = [
-  'status',
-  'nextAction',
-  'owner',
-  'renewalDate',
-  'arr',
-  'notes',
-] as const;
-export type CustomerField = (typeof CUSTOMER_FIELDS)[number];
-
-/** The fields a mandate is allowed to cover. `arr` and `notes` are deliberately
- *  excluded: money and free text are where an over-broad delegation hurts, and
- *  the demo needs a field that is visible but never delegable. */
-export const DELEGATABLE_FIELDS = [
-  'status',
-  'nextAction',
-  'owner',
-  'renewalDate',
-] as const satisfies readonly CustomerField[];
-export type DelegatableField = (typeof DELEGATABLE_FIELDS)[number];
-
-export const CUSTOMER_STATUSES = [
-  'Prospect',
-  'Trial',
-  'Active',
-  'At risk',
-  'Churned',
-] as const;
-export type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
-
-export interface Customer {
+/**
+ * One row of whatever the host application manages: an account, a service, a
+ * ticket. Its fields are data rather than a type, because the mandate is over
+ * *field names* and a type would make the mechanism look like it knows what a
+ * customer is. It does not — see `domains.ts`.
+ */
+export interface Resource {
   id: string;
   name: string;
-  segment: string;
-  status: CustomerStatus;
-  nextAction: string;
-  owner: string;
-  renewalDate: string;
-  arr: string;
-  /** Untrusted external content. Never an instruction to any tool. */
-  notes: string;
+  subtitle: string;
+  /** Keyed by `FieldSpec.key`. Always strings: a change stores an absolute
+   *  intended value, and the domain decides how to render it. */
+  values: Record<string, string>;
 }
 
 export type MandateStatus = 'ACTIVE' | 'REVOKED' | 'EXPIRED';
@@ -58,8 +30,8 @@ export interface Mandate {
   id: string;
   version: number;
   status: MandateStatus;
-  customerIds: string[];
-  allowedFields: DelegatableField[];
+  resourceIds: string[];
+  allowedFields: string[];
   createdAt: number;
   expiresAt: number;
   /** Set when the mandate leaves ACTIVE, so the timeline can say why. */
@@ -72,8 +44,8 @@ export type Actor = 'human' | 'agent';
 
 export interface Change {
   id: string;
-  customerId: string;
-  field: CustomerField;
+  resourceId: string;
+  field: string;
   /** The value at the moment the change was staged, for the before → after read. */
   before: string;
   /** The absolute intended value. Never a delta. */
@@ -120,7 +92,7 @@ export interface TimelineEvent {
   summary: string;
   detail?: string;
   changeId?: string;
-  customerId?: string;
+  resourceId?: string;
   /** Present on TOOL_CALL / TOOL_REFUSED so the timeline can show the wire truth. */
   tool?: string;
   errorCode?: string;
@@ -134,9 +106,11 @@ export interface Session {
    *  optimistic concurrency here. */
   revision: number;
   mandateVersion: number;
-  customers: Customer[];
+  /** Which host application this session is running against (`domains.ts`). */
+  domainId: string;
+  resources: Resource[];
   /** Proposes scope. Grants nothing. */
-  selectedCustomerIds: string[];
+  selectedResourceIds: string[];
   mandate: Mandate | null;
   changes: Change[];
   timeline: TimelineEvent[];

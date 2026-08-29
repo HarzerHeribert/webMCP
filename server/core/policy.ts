@@ -1,6 +1,6 @@
 import { errors } from './errors';
-import type { CustomerField, DelegatableField, Mandate, Session } from './types';
-import { DELEGATABLE_FIELDS } from './types';
+import type { Mandate, Session } from './types';
+import { delegatableFields, type DomainSpec } from './domains';
 
 /**
  * The enforcement point. `docs/06_SECURITY_MODEL.md`: a WebMCP caller is an
@@ -25,8 +25,8 @@ export function settleExpiry(session: Session, now: number): boolean {
 
 export interface AgentCall {
   mandateVersion: number;
-  customerId?: string;
-  field?: CustomerField;
+  resourceId?: string;
+  field?: string;
 }
 
 /**
@@ -66,16 +66,16 @@ export function authorize(session: Session, call: AgentCall): Mandate {
     );
   }
 
-  if (call.customerId !== undefined && !m.customerIds.includes(call.customerId)) {
+  if (call.resourceId !== undefined && !m.resourceIds.includes(call.resourceId)) {
     throw errors.outOfScope(
-      'That customer is not in the delegated scope.',
-      'Only the customers listed in the mandate can be changed. Selecting a ' +
-        'customer in the interface does not delegate it.',
-      { customerId: call.customerId, allowedCustomerIds: m.customerIds },
+      'That record is not in the delegated scope.',
+      'Only the records listed in the mandate can be changed. Selecting one ' +
+        'in the interface does not delegate it.',
+      { resourceId: call.resourceId, allowedResourceIds: m.resourceIds },
     );
   }
 
-  if (call.field !== undefined && !m.allowedFields.includes(call.field as DelegatableField)) {
+  if (call.field !== undefined && !m.allowedFields.includes(call.field)) {
     throw errors.outOfScope(
       `The field "${call.field}" is not in the delegated scope.`,
       'Only the fields listed in the mandate can be changed.',
@@ -89,14 +89,15 @@ export function authorize(session: Session, call: AgentCall): Mandate {
 /** Field names that a mandate may name at all. Applied when the mandate is
  *  created, so an over-broad delegation is impossible to express rather than
  *  merely refused later. */
-export function assertDelegatable(fields: string[]): DelegatableField[] {
-  const bad = fields.filter((f) => !(DELEGATABLE_FIELDS as readonly string[]).includes(f));
+export function assertDelegatable(domain: DomainSpec, fields: string[]): string[] {
+  const allowed = delegatableFields(domain);
+  const bad = fields.filter((f) => !allowed.includes(f));
   if (bad.length) {
     throw errors.badRequest(
       `These fields can never be delegated: ${bad.join(', ')}.`,
-      `Delegatable fields are: ${DELEGATABLE_FIELDS.join(', ')}.`,
+      `Delegatable fields in ${domain.product} are: ${allowed.join(', ')}.`,
       { rejected: bad },
     );
   }
-  return fields as DelegatableField[];
+  return fields;
 }

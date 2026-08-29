@@ -22,7 +22,7 @@ interface JsonSchemaObject {
  *
  * Inputs are seeded from the tool's live `inputSchema` but stay editable: the
  * schema communicates the delegated scope, it does not enforce it
- * (`docs/12_DECISIONS.md` D-005) — the server does that. Typing a customer id
+ * (`docs/12_DECISIONS.md` D-005) — the server does that. Typing a record id
  * the schema didn't suggest is exactly how to see an `OUT_OF_SCOPE` refusal.
  */
 export function AgentConsole() {

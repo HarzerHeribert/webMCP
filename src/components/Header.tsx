@@ -13,6 +13,35 @@ import { useMode } from '../lib/mode';
  *
  * It changes which panels render. It changes nothing the server does.
  */
+/**
+ * Which host application the layer is installed into.
+ *
+ * This is the whole genericity claim, made pressable. Switching rewrites the
+ * records, the field names, the filter options, the compiled tool schema and
+ * even the mutating tool's *name* — and touches nothing in `policy.ts`,
+ * `service.ts` or `capabilities.ts`, because none of them ever knew what a
+ * customer was.
+ */
+function HostSwitch() {
+  const { schema, session } = useSession();
+  const { run } = useStore();
+  return (
+    <div className="modeswitch modeswitch--host" role="group" aria-label="Host application">
+      {schema.hosts.map((h) => (
+        <button
+          key={h.id}
+          className={`modeswitch__opt${session.domainId === h.id ? ' modeswitch__opt--on' : ''}`}
+          aria-pressed={session.domainId === h.id}
+          onClick={() => void run(() => api.switchHost(h.id))}
+          title={`Install the same layer into ${h.product}. Resets the session.`}
+        >
+          {h.product}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ModeSwitch() {
   const { mode, setMode } = useMode();
   return (
@@ -72,6 +101,7 @@ export function Header() {
           label="webmcp"
           value={webmcp.status === 'registered' ? `${webmcp.toolNames.length} tools` : webmcp.statusLabel}
         />
+        <HostSwitch />
         <ModeSwitch />
         <div className="header__instruments">
           <button

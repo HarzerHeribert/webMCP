@@ -9,7 +9,7 @@ await p.locator('.customer__pick input').nth(0).click(); await p.waitForTimeout(
 await p.getByRole('button', { name: /^Delegate/ }).click(); await p.waitForTimeout(900);
 const out = await p.evaluate(async () => {
   const tools = await document.modelContext.getTools();
-  const stage = tools.find((t) => t.name === 'mandate_stage_customer_update');
+  const stage = tools.find((t) => t.name === 'mandate_stage_account_update');
   return {
     typeofSchema: typeof stage.inputSchema,
     ctor: stage.inputSchema?.constructor?.name,

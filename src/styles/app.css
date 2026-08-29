@@ -26,7 +26,10 @@ h1, h2, h3, p { margin: 0; }
 /* ── layout ───────────────────────────────────────────────────────────────── */
 .app {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  /* header · banner · guide · workbench. The banner arrived after this grid was
+     written and inherited the workbench's row, which is why the guide sat on
+     top of the host's own header. */
+  grid-template-rows: auto auto auto minmax(0, 1fr);
   height: 100%;
   max-width: 1920px;
   margin: 0 auto;
@@ -199,10 +202,14 @@ h1, h2, h3, p { margin: 0; }
 /* ── header ───────────────────────────────────────────────────────────────── */
 .header {
   display: flex; align-items: center; gap: var(--s4);
-  padding: 0 var(--s5); height: 58px;
+  padding: 0 var(--s5); min-height: 58px;
   border-bottom: 1px solid var(--line);
   background: var(--surface-1);
 }
+.brand__mark { white-space: nowrap; }
+/* Two switches and five readouts is more than this row was sized for. The
+   tagline is the first thing to go, then the readouts. */
+@media (max-width: 1560px) { .brand__host { display: none; } }
 .brand { display: flex; align-items: baseline; gap: var(--s2); }
 .brand__mark {
   font-size: var(--t-lg); font-weight: 650; letter-spacing: -0.02em; color: var(--text);
@@ -963,10 +970,10 @@ h1, h2, h3, p { margin: 0; }
 .health__bar:nth-child(1) { height: 6px; }
 .health__bar:nth-child(2) { height: 10px; }
 .health__bar:nth-child(3) { height: 14px; }
-.health--active .health__bar { background: var(--ok); }
-.health--trial .health__bar:nth-child(-n + 2) { background: var(--primary); }
-.health--prospect .health__bar:nth-child(1) { background: var(--settled); }
-.health--at-risk .health__bar:nth-child(1) { background: var(--danger); }
+.health--good .health__bar { background: var(--ok); }
+.health--fair .health__bar:nth-child(-n + 2) { background: var(--primary); }
+.health--poor .health__bar:nth-child(1) { background: var(--danger); }
+.health--unknown .health__bar:nth-child(1) { background: var(--settled); }
 
 .customer { transition: background var(--transition); }
 .customer:hover { background: var(--surface-sunk); }

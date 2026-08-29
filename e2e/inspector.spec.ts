@@ -33,7 +33,7 @@ test('the inspector narrows exactly to what the mandate grants, and reverts to w
   await expect(toolRow(registeredGroup, 'mandate_get_capabilities')).toBeVisible();
 
   await expect(withheldGroup.locator('li.webmcp-tool')).toHaveCount(3);
-  for (const name of ['mandate_stage_customer_update', 'mandate_validate_changes', 'mandate_rebase_changes']) {
+  for (const name of ['mandate_stage_account_update', 'mandate_validate_changes', 'mandate_rebase_changes']) {
     const row = toolRow(withheldGroup, name);
     await expect(row).toBeVisible();
     // each withheld tool states why — not just that it is withheld
@@ -44,23 +44,23 @@ test('the inspector narrows exactly to what the mandate grants, and reverts to w
   const atlasRow = panelByTitle(page, 'Accounts').getByRole('listitem').filter({ hasText: 'Atlas Freight' });
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click(); // leave only `status` delegated
-  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();
+  await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ / }).click();
   await expect(authority.getByText(/^active · v1$/)).toBeVisible();
 
-  // ── mandate_stage_customer_update becomes registered, and its rendered
+  // ── mandate_stage_account_update becomes registered, and its rendered
   //    input schema names exactly that customer id and that field ────────
   // An active mandate — whatever its scope — registers all three mutating
   // tools at once (`mandate_validate_changes` and `mandate_rebase_changes`
   // operate over "whatever is staged", not a specific field, so they need no
-  // narrower a scope than "a mandate exists"); it is `mandate_stage_customer_update`'s
+  // narrower a scope than "a mandate exists"); it is `mandate_stage_account_update`'s
   // *schema*, not its registration, that narrows to the exact grant.
   await expect(registeredGroup.locator('li.webmcp-tool')).toHaveCount(5);
   await expect(withheldGroup.locator('li.webmcp-tool')).toHaveCount(0);
-  const stageRow = toolRow(registeredGroup, 'mandate_stage_customer_update');
+  const stageRow = toolRow(registeredGroup, 'mandate_stage_account_update');
   await expect(stageRow).toBeVisible();
   let schema = await readToolSchema(stageRow);
   let props = schema.properties as Record<string, { enum?: unknown[]; const?: unknown }>;
-  expect(props.customerId.enum).toEqual(['c-atlas']);
+  expect(props.resourceId.enum).toEqual(['c-atlas']);
   expect(props.field.enum).toEqual(['status']);
   expect(props.mandateVersion.const).toBe(1);
 
@@ -75,7 +75,7 @@ test('the inspector narrows exactly to what the mandate grants, and reverts to w
 
   schema = await readToolSchema(stageRow);
   props = schema.properties as Record<string, { enum?: unknown[]; const?: unknown }>;
-  expect(props.customerId.enum).toEqual(['c-atlas']);
+  expect(props.resourceId.enum).toEqual(['c-atlas']);
   expect(props.field.enum).toEqual(['nextAction']);
   expect(props.mandateVersion.const).toBe(2);
 
@@ -87,7 +87,7 @@ test('the inspector narrows exactly to what the mandate grants, and reverts to w
   await expect(authority.getByText(/Mandate v\d+ was revoked/)).toBeVisible();
   await expect(registeredGroup.locator('li.webmcp-tool')).toHaveCount(2);
   await expect(withheldGroup.locator('li.webmcp-tool')).toHaveCount(3);
-  await expect(toolRow(withheldGroup, 'mandate_stage_customer_update')).toBeVisible();
+  await expect(toolRow(withheldGroup, 'mandate_stage_account_update')).toBeVisible();
 });
 
 test('no WebMCP flag is needed: the header reads unavailable, and the simulated caller still drives the real tools', async ({ page }) => {

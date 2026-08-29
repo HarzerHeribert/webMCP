@@ -17,9 +17,9 @@ import type { WebMcpProbe } from '../webmcp/adapter';
  *    decision to somebody who often cannot satisfy the dependency at all, to
  *    reach a demo that was always going to run the same implementations. The
  *    honesty was never in the blocking.
- * 2. **It is not part of the host.** Shut it and Relay CRM carries on being an
- *    ordinary CRM, which is the clearest statement of `docs/12_DECISIONS.md`
- *    D-002 available to a picture.
+ * 2. **It is not part of the host.** Shut it and the host carries on being
+ *    ordinary software, which is the clearest statement of
+ *    `docs/12_DECISIONS.md` D-002 available to a picture.
  *
  * One rule bounds the hiding: **live authority is never invisible.** With a
  * mandate active the closed rail is amber and names the version, because an
@@ -27,17 +27,17 @@ import type { WebMcpProbe } from '../webmcp/adapter';
  * the only thing this product asks to be trusted on.
  */
 export function MandateLayer({ children }: { children: ReactNode }) {
-  const { session } = useSession();
+  const { session, schema } = useSession();
   const { lastError } = useStore();
   const [open, setOpen] = useState(false);
 
   const mandate = session.mandate;
   const active = mandate?.status === 'ACTIVE' ? mandate : null;
-  const selected = session.selectedCustomerIds.length;
+  const selected = session.selectedResourceIds.length;
   const staged = session.changes.filter((c) => c.state !== 'APPLIED').length;
 
   // Only rising edges open it, so closing it stays closed.
-  // Stacked on a narrow viewport the layer opens *below* the account list, so
+  // Stacked on a narrow viewport the layer opens *below* the record list, so
   // opening it looks like nothing happened until you scroll. Bring it into view.
   const panel = useRef<HTMLElement | null>(null);
   const wasOpen = useRef(false);
@@ -85,7 +85,7 @@ export function MandateLayer({ children }: { children: ReactNode }) {
         <span className="layer__name">Mandate</span>
         <span className="layer__kind">WebMCP capability layer</span>
         <span className="layer__note">
-          Installed into Relay CRM. Not part of it — the same layer would run on any web app.
+          Installed into {schema.domain.product}. Not part of it — the same layer runs on any host.
         </span>
         <button
           className="btn btn--quiet btn--sm layer__close"
@@ -95,7 +95,7 @@ export function MandateLayer({ children }: { children: ReactNode }) {
           title={
             active
               ? 'Close the layer. The mandate stays active and the rail keeps saying so.'
-              : 'Close the layer. Relay CRM carries on without it.'
+              : `Close the layer. ${schema.domain.product} carries on without it.`
           }
         >
           Close

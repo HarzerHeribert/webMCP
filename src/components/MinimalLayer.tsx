@@ -10,7 +10,7 @@ import { Popover } from './Popover';
  * What has to be permanently visible turns out to be one thing: **live
  * authority**, which this product will not hide under any circumstances. Scope
  * is already legible without a panel — the delegated rows carry the amber ring —
- * and pending work is already legible, because `CustomerTable` renders the
+ * and pending work is already legible, because the record table renders the
  * staged value inline on the field it would change.
  *
  * That leaves a pill, and two moments that each have somewhere to be anchored:
@@ -23,7 +23,7 @@ export function MinimalLayer() {
   const pill = useRef<HTMLButtonElement | null>(null);
 
   const mandate = session.mandate?.status === 'ACTIVE' ? session.mandate : null;
-  const selected = session.selectedCustomerIds.length;
+  const selected = session.selectedResourceIds.length;
   const pending = session.changes.filter((c) => c.state !== 'APPLIED').length;
 
   const label = mandate
@@ -62,12 +62,12 @@ export function MinimalLayer() {
  * manages by permanently spending the space.
  */
 export function ApprovalPopover({
-  customerId,
+  resourceId,
   anchorRef,
   open,
   onClose,
 }: {
-  customerId: string;
+  resourceId: string;
   anchorRef: RefObject<HTMLElement | null>;
   open: boolean;
   onClose(): void;
@@ -75,7 +75,7 @@ export function ApprovalPopover({
   const { session } = useSession();
   const { run, lastError } = useStore();
 
-  const mine = session.changes.filter((c) => c.customerId === customerId && c.state !== 'APPLIED');
+  const mine = session.changes.filter((c) => c.resourceId === resourceId && c.state !== 'APPLIED');
   if (mine.length === 0) return null;
 
   const stale = mine.some((c) => c.state === 'STALE');

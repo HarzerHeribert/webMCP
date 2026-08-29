@@ -7,7 +7,7 @@ import { useSession, useStore } from '../lib/store';
  * host demo around it.
  *
  * Three things are deliberate here. The composer refuses to act on the
- * selection alone — the human must name the fields, because "the customers I
+ * selection alone — the human must name the fields, because "the records I
  * happened to click" is not an intent. The active panel states the scope as
  * exact chips rather than a summary, because a scope the human cannot read back
  * is not one they can be said to have granted. And revoke is always one click
@@ -21,7 +21,7 @@ const TTLS = [
 ];
 
 export function AuthorityPanel() {
-  const { session, schema } = useSession();
+  const { session } = useSession();
   const mandate = session.mandate;
   const active = mandate?.status === 'ACTIVE' ? mandate : null;
 
@@ -48,7 +48,7 @@ export function AuthorityPanel() {
         ) : (
           <>
             {mandate && <MandateEnded />}
-            <Composer key={session.mandateVersion} statuses={schema.delegatableFields} />
+            <Composer key={`${session.domainId}:${session.mandateVersion}`} />
           </>
         )}
       </div>
@@ -84,31 +84,35 @@ function MandateEnded() {
   );
 }
 
-function Composer({ statuses }: { statuses: readonly string[] }) {
-  const { session } = useSession();
+function Composer() {
+  const { session, schema } = useSession();
   const { run } = useStore();
-  const [fields, setFields] = useState<string[]>(['status', 'nextAction']);
+  // Default to the first two the host allows, whatever they are called.
+  const [fields, setFields] = useState<string[]>(() => schema.delegatableFields.slice(0, 2));
   const [ttl, setTtl] = useState(TTLS[1].ms);
+  const undelegatable = schema.fields.filter((f) => f.undelegatable);
 
-  const selected = session.selectedCustomerIds;
+  const selected = session.selectedResourceIds;
   const ready = selected.length > 0 && fields.length > 0;
 
   return (
     <div className="composer">
       <p className="panel__note">
-        Selecting customers proposes a scope. It grants nothing. Delegation is a
+        Selecting {schema.domain.collection.toLowerCase()} proposes a scope. It grants nothing. Delegation is a
         separate, explicit act — and it is what makes tools appear.
       </p>
 
       <div className="composer__step">
-        <span className="composer__legend">1 · Customers, from your selection</span>
+        <span className="composer__legend">1 · {schema.domain.collection}, from your selection</span>
         {selected.length === 0 ? (
-          <p className="composer__blank">Select customers in Relay CRM to propose a scope.</p>
+          <p className="composer__blank">
+            Select {schema.domain.collection.toLowerCase()} in {schema.domain.product} to propose a scope.
+          </p>
         ) : (
           <div className="chip-row">
             {selected.map((id) => (
               <span key={id} className="chip">
-                {session.customers.find((c) => c.id === id)?.name ?? id}
+                {session.resources.find((c) => c.id === id)?.name ?? id}
               </span>
             ))}
           </div>
@@ -118,7 +122,7 @@ function Composer({ statuses }: { statuses: readonly string[] }) {
       <div className="composer__step">
         <span className="composer__legend">2 · Fields you are delegating</span>
         <div className="chip-row">
-          {statuses.map((field) => {
+          {schema.delegatableFields.map((field) => {
             const on = fields.includes(field);
             return (
               <button
@@ -136,8 +140,14 @@ function Composer({ statuses }: { statuses: readonly string[] }) {
           })}
         </div>
         <p className="composer__hint">
-          <code>arr</code> and <code>notes</code> are absent by design: they can
-          never be delegated at all.
+          {undelegatable.map((f, i) => (
+            <span key={f.key}>
+              {i > 0 && (i === undelegatable.length - 1 ? ' and ' : ', ')}
+              <code>{f.key}</code>
+            </span>
+          ))}{' '}
+          {undelegatable.length === 1 ? 'is' : 'are'} absent by design: they can never be
+          delegated at all.
         </p>
       </div>
 
@@ -164,14 +174,14 @@ function Composer({ statuses }: { statuses: readonly string[] }) {
         onClick={() => void run(() => api.delegate(selected, fields, ttl))}
       >
         Delegate {fields.length} field{fields.length === 1 ? '' : 's'} on{' '}
-        {selected.length} customer{selected.length === 1 ? '' : 's'}
+        {selected.length} {schema.domain.noun}{selected.length === 1 ? '' : 's'}
       </button>
     </div>
   );
 }
 
 function ActiveMandate() {
-  const { session } = useSession();
+  const { session, schema } = useSession();
   const { run } = useStore();
   const mandate = session.mandate!;
   const remaining = useCountdown(mandate.expiresAt);
@@ -180,12 +190,12 @@ function ActiveMandate() {
   return (
     <div className="mandate">
       <div className="mandate__scope">
-        <span className="composer__legend">Customers</span>
+        <span className="composer__legend">{schema.domain.collection}</span>
         <div className="chip-row">
-          {mandate.customerIds.map((id) => (
+          {mandate.resourceIds.map((id) => (
             <span key={id} className="chip chip--scope">
               <span className="chip__dot" />
-              {session.customers.find((c) => c.id === id)?.name ?? id}
+              {session.resources.find((c) => c.id === id)?.name ?? id}
             </span>
           ))}
         </div>
@@ -240,7 +250,7 @@ function NarrowForm({ onDone }: { onDone(): void }) {
   const { session, schema } = useSession();
   const { run } = useStore();
   const mandate = session.mandate!;
-  const [customerIds, setCustomerIds] = useState<string[]>(mandate.customerIds);
+  const [resourceIds, setResourceIds] = useState<string[]>(mandate.resourceIds);
   const [fields, setFields] = useState<string[]>([...mandate.allowedFields]);
 
   return (
@@ -250,17 +260,17 @@ function NarrowForm({ onDone }: { onDone(): void }) {
         against the old version is refused with <code>POLICY_CHANGED</code>.
       </p>
       <div className="chip-row">
-        {mandate.customerIds.map((id) => {
-          const on = customerIds.includes(id);
+        {mandate.resourceIds.map((id) => {
+          const on = resourceIds.includes(id);
           return (
             <button
               key={id}
               className={`chip${on ? ' chip--scope' : ''}`}
               aria-pressed={on}
-              onClick={() => setCustomerIds((c) => (on ? c.filter((x) => x !== id) : [...c, id]))}
+              onClick={() => setResourceIds((c) => (on ? c.filter((x) => x !== id) : [...c, id]))}
             >
               {on && <span className="chip__dot" />}
-              {session.customers.find((c) => c.id === id)?.name ?? id}
+              {session.resources.find((c) => c.id === id)?.name ?? id}
             </button>
           );
         })}
@@ -283,9 +293,9 @@ function NarrowForm({ onDone }: { onDone(): void }) {
       </div>
       <button
         className="btn btn--authority btn--block btn--sm"
-        disabled={customerIds.length === 0 || fields.length === 0}
+        disabled={resourceIds.length === 0 || fields.length === 0}
         onClick={async () => {
-          await run(() => api.delegate(customerIds, fields, mandate.expiresAt - Date.now()));
+          await run(() => api.delegate(resourceIds, fields, mandate.expiresAt - Date.now()));
           onDone();
         }}
       >

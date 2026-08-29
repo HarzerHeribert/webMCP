@@ -13,7 +13,7 @@ const JSON_HEADERS = { 'content-type': 'application/json' };
 async function newSession(app: ReturnType<typeof createApp>) {
   const res = await app.request('/session', { method: 'POST' });
   return (await res.json()) as {
-    session: { id: string; changes: unknown[]; selectedCustomerIds: string[] };
+    session: { id: string; changes: unknown[]; selectedResourceIds: string[] };
     capabilities: Array<{ name: string }>;
     neverRegistered: Array<{ name: string }>;
   };
@@ -28,14 +28,14 @@ describe('the human and agent paths share one service over HTTP', () => {
     await app.request('/changes', {
       method: 'POST',
       headers: { [SESSION_HEADER]: sid, ...JSON_HEADERS },
-      body: JSON.stringify({ customerId: 'c-solvent', field: 'nextAction', after: 'Call to confirm renewal' }),
+      body: JSON.stringify({ resourceId: 'c-solvent', field: 'nextAction', after: 'Call to confirm renewal' }),
     });
 
     // The agent path reads through exactly the same route the
     // `mandate_get_workspace` tool exposes: GET /session.
     const res = await app.request('/session', { headers: { [SESSION_HEADER]: sid } });
     const body = await res.json();
-    const change = body.session.changes.find((c: { customerId: string }) => c.customerId === 'c-solvent');
+    const change = body.session.changes.find((c: { resourceId: string }) => c.resourceId === 'c-solvent');
 
     expect(change).toBeDefined();
     expect(change.after).toBe('Call to confirm renewal');
@@ -84,13 +84,13 @@ describe('session isolation', () => {
     await app.request('/selection', {
       method: 'POST',
       headers: { [SESSION_HEADER]: b.session.id, ...JSON_HEADERS },
-      body: JSON.stringify({ customerIds: ['c-holloway'] }),
+      body: JSON.stringify({ resourceIds: ['c-holloway'] }),
     });
 
     const readA = await app.request('/session', { headers: { [SESSION_HEADER]: a.session.id } });
     const bodyA = await readA.json();
     expect(bodyA.session.id).toBe(a.session.id);
-    expect(bodyA.session.selectedCustomerIds).toEqual([]); // untouched by B's mutation
+    expect(bodyA.session.selectedResourceIds).toEqual([]); // untouched by B's mutation
 
     // A forged id — close to a real one but not equal to it — is rejected
     // outright, never silently served someone else's session.
@@ -107,11 +107,11 @@ describe('session isolation', () => {
     await app.request('/selection', {
       method: 'POST',
       headers: { [SESSION_HEADER]: a.session.id, ...JSON_HEADERS },
-      body: JSON.stringify({ customerIds: ['c-atlas'] }),
+      body: JSON.stringify({ resourceIds: ['c-atlas'] }),
     });
 
     const readB = await app.request('/session', { headers: { [SESSION_HEADER]: b.session.id } });
     const bodyB = await readB.json();
-    expect(bodyB.session.selectedCustomerIds).toEqual([]); // B is untouched by a mutation issued under A's id
+    expect(bodyB.session.selectedResourceIds).toEqual([]); // B is untouched by a mutation issued under A's id
   });
 });

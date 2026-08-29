@@ -1,4 +1,5 @@
 import { ApiError, agentApi, type ClientSession, type ErrorEnvelope } from '../lib/api';
+import { stageToolName } from '../../server/core/capabilities';
 
 /**
  * The WebMCP tool implementations. Every mutating call goes through
@@ -50,23 +51,20 @@ function num(input: Record<string, unknown>, key: string): number | undefined {
   return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
 }
 
-export type ToolName =
-  | 'mandate_get_workspace'
-  | 'mandate_get_capabilities'
-  | 'mandate_stage_customer_update'
-  | 'mandate_validate_changes'
-  | 'mandate_rebase_changes';
-
-export type ToolImplementations = Record<ToolName, (input: Record<string, unknown>) => Promise<ToolResult>>;
+/** The mutating tool's name is compiled from the host's own noun, so it is not
+ *  a constant here — `stageToolName(domain)` decides it, and the implementation
+ *  is registered under whatever it returns. */
+export type ToolImplementations = Record<string, (input: Record<string, unknown>) => Promise<ToolResult>>;
 
 export function createToolImplementations(rt: ToolRuntime): ToolImplementations {
+  const stageName = stageToolName(rt.getSession().schema.domain);
   return {
     async mandate_get_workspace() {
       const { session } = rt.getSession();
       return ok({
         revision: session.revision,
-        customers: session.customers,
-        selectedCustomerIds: session.selectedCustomerIds,
+        customers: session.resources,
+        selectedResourceIds: session.selectedResourceIds,
         changes: session.changes,
       });
     },
@@ -86,18 +84,18 @@ export function createToolImplementations(rt: ToolRuntime): ToolImplementations 
       });
     },
 
-    async mandate_stage_customer_update(input) {
-      const customerId = str(input, 'customerId');
+    async [stageName](input: Record<string, unknown>) {
+      const resourceId = str(input, 'resourceId');
       const field = str(input, 'field');
       const value = str(input, 'value');
       const mandateVersion = num(input, 'mandateVersion');
-      if (!customerId || !field || value === undefined || mandateVersion === undefined) {
-        return badRequest('customerId, field, value, and mandateVersion are all required.');
+      if (!resourceId || !field || value === undefined || mandateVersion === undefined) {
+        return badRequest('resourceId, field, value, and mandateVersion are all required.');
       }
       try {
-        await agentApi.stage(customerId, field, value, mandateVersion);
+        await agentApi.stage(resourceId, field, value, mandateVersion);
         await rt.refresh();
-        return ok({ staged: true, customerId, field, value });
+        return ok({ staged: true, resourceId, field, value });
       } catch (e) {
         await rt.refresh();
         if (e instanceof ApiError) return fail(e.envelope);

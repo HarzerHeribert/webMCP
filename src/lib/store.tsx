@@ -45,10 +45,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // "the UI feels unresponsive" actually was.
   const signature = (v: ClientSession) =>
     [
+      // The host application is part of what the interface renders, and a
+      // switch resets everything else to its opening values — so without this
+      // the signature of "Northstar Deploy, fresh" is identical to "Relay CRM,
+      // fresh" and the switch appears to do nothing.
+      v.session.domainId,
       v.session.revision,
       v.session.mandateVersion,
       v.session.mandate?.status ?? '-',
-      v.session.selectedCustomerIds.join(','),
+      v.session.selectedResourceIds.join(','),
       v.session.changes.length,
       v.session.changes.map((c) => `${c.id}:${c.version}:${c.state}`).join(','),
       v.session.timeline.length,

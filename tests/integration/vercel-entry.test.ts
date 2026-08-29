@@ -39,10 +39,10 @@ describe('the Vercel function entry', () => {
     const created = await call('/api/session', { method: 'POST' });
     expect(created.status).toBe(200);
     const view = created.json as unknown as {
-      session: { id: string; customers: unknown[] };
+      session: { id: string; resources: unknown[] };
       capabilities: { name: string }[];
     };
-    expect(view.session.customers).toHaveLength(6);
+    expect(view.session.resources).toHaveLength(6);
     expect(view.capabilities).toHaveLength(5);
 
     const read = await call('/api/session', { sid: view.session.id });
@@ -55,13 +55,13 @@ describe('the Vercel function entry', () => {
     await call('/api/mandate', {
       method: 'POST',
       sid,
-      body: { customerIds: ['c-atlas'], allowedFields: ['status'] },
+      body: { resourceIds: ['c-atlas'], allowedFields: ['status'] },
     });
 
     const refused = await call('/api/tools/stage', {
       method: 'POST',
       sid,
-      body: { customerId: 'c-kestrel', field: 'status', value: 'Active', mandateVersion: 1 },
+      body: { resourceId: 'c-kestrel', field: 'status', value: 'Active', mandateVersion: 1 },
     });
     expect((refused.json as unknown as { error: { code: string } }).error.code).toBe('OUT_OF_SCOPE');
   });

@@ -1,5 +1,5 @@
+import { domainOf, type DomainSpec } from './domains';
 import type { Mandate, Session } from './types';
-import { CUSTOMER_STATUSES } from './types';
 
 /**
  * The capability compiler. It turns the *current* mandate into the tool
@@ -34,6 +34,10 @@ const OBJ = (properties: Record<string, unknown>, required: string[]) => ({
 export function compileCapabilities(session: Session): ToolDescriptor[] {
   const m = session.mandate;
   const live = m?.status === 'ACTIVE' ? m : null;
+  // Every noun below comes from here. Switch the host application and the tool
+  // surface an agent reads is rewritten — names, enums and prose — without a
+  // line of this file changing.
+  const d = domainOf(session.domainId);
 
   const withheld = (reason: string) => ({
     availability: 'withheld' as const,
@@ -45,15 +49,15 @@ export function compileCapabilities(session: Session): ToolDescriptor[] {
   });
 
   const scopeSuffix = live
-    ? ` Scope: ${live.customerIds.length} customer(s), fields ${live.allowedFields.join(', ')}. Mandate version ${live.version}.`
+    ? ` Scope: ${live.resourceIds.length} ${d.noun}(s), fields ${live.allowedFields.join(', ')}. Mandate version ${live.version}.`
     : '';
 
   const tools: ToolDescriptor[] = [
     {
       name: 'mandate_get_workspace',
       description:
-        'Read the visible Relay CRM workspace: customers, their fields, the ' +
-        'current selection, and the staged changes. Read-only.',
+        `Read the visible ${d.product} workspace: ${d.collection.toLowerCase()}, their ` +
+        'fields, the current selection, and the staged changes. Read-only.',
       inputSchema: OBJ({}, []),
       readOnly: true,
       ...registered('Read-only. Registered whenever the page is open; reading needs no mandate.'),
@@ -70,18 +74,18 @@ export function compileCapabilities(session: Session): ToolDescriptor[] {
   ];
 
   tools.push({
-    name: 'mandate_stage_customer_update',
+    name: stageToolName(d),
     description:
       'Stage an absolute new value for one delegated field on one delegated ' +
-      'customer. Staging never commits: only the human can apply.' +
+      `${d.noun}. Staging never commits: only the human can apply.` +
       scopeSuffix,
     inputSchema: OBJ(
       {
-        customerId: live
+        resourceId: live
           ? {
               type: 'string',
-              enum: live.customerIds,
-              description: 'Must be a customer the human delegated.',
+              enum: live.resourceIds,
+              description: `Must be a ${d.noun} the human delegated.`,
             }
           : { type: 'string' },
         field: live
@@ -91,7 +95,7 @@ export function compileCapabilities(session: Session): ToolDescriptor[] {
               description: 'Must be a field the human delegated.',
             }
           : { type: 'string' },
-        value: valueSchema(live),
+        value: valueSchema(d, live),
         mandateVersion: {
           type: 'integer',
           const: live?.version,
@@ -108,11 +112,11 @@ export function compileCapabilities(session: Session): ToolDescriptor[] {
             'call is refused rather than quietly overwriting their edit.',
         },
       },
-      ['customerId', 'field', 'value', 'mandateVersion'],
+      ['resourceId', 'field', 'value', 'mandateVersion'],
     ),
     readOnly: false,
     ...(live
-      ? registered(`Registered because an active mandate covers ${live.customerIds.length} customer(s).`)
+      ? registered(`Registered because an active mandate covers ${live.resourceIds.length} ${d.noun}(s).`)
       : withheld('Withheld: the human has not delegated any authority.')),
   });
 
@@ -153,18 +157,28 @@ export function compileCapabilities(session: Session): ToolDescriptor[] {
   return tools;
 }
 
-function valueSchema(live: Mandate | null): Record<string, unknown> {
-  // When status is the only delegated field the enum can be exact; otherwise the
-  // value stays a string and the server does the deciding. Narrowing a schema
-  // further than the truth would be a lie the caller cannot check.
-  if (live && live.allowedFields.length === 1 && live.allowedFields[0] === 'status') {
-    return { type: 'string', enum: [...CUSTOMER_STATUSES] };
-  }
+/** The mutating tool is named after the host's own noun, so an agent reading
+ *  the surface is told what kind of thing it may touch before it reads a
+ *  single enum. */
+export function stageToolName(d: DomainSpec): string {
+  return `mandate_stage_${d.noun}_update`;
+}
+
+function valueSchema(d: DomainSpec, live: Mandate | null): Record<string, unknown> {
+  // When exactly one field is delegated and that field is a closed set, the
+  // enum can be exact; otherwise the value stays a string and the server does
+  // the deciding. Narrowing further than the truth would be a lie the caller
+  // cannot check.
+  const only = live?.allowedFields.length === 1 ? live.allowedFields[0] : undefined;
+  const options = d.fields.find((f) => f.key === only)?.options;
+  if (options) return { type: 'string', enum: [...options] };
+
+  const closed = d.fields.filter((f) => f.options);
   return {
     type: 'string',
     description:
-      'The absolute new value, not a delta. If the field is status, it must be ' +
-      `one of: ${CUSTOMER_STATUSES.join(', ')}.`,
+      'The absolute new value, not a delta.' +
+      closed.map((f) => ` If the field is ${f.key}, it must be one of: ${f.options!.join(', ')}.`).join(''),
   };
 }
 
@@ -173,10 +187,13 @@ function valueSchema(live: Mandate | null): Record<string, unknown> {
  * against it and the inspector can show the human what is structurally absent —
  * "there is no apply tool" is a claim worth being able to see.
  */
-export const NEVER_REGISTERED = [
-  { name: 'mandate_apply_changes', reason: 'Applying is a human-only action (D-006). No agent path exists at any layer.' },
-  { name: 'mandate_delete_customer', reason: 'Destructive operations are outside anything a session mandate can grant.' },
-  { name: 'mandate_admin_mandate', reason: 'An agent must never be able to widen its own authority.' },
-  { name: 'mandate_export_all', reason: 'Bulk export defeats the point of a bounded scope.' },
-  { name: 'mandate_sql', reason: 'No raw data access is exposed to any caller.' },
-] as const;
+export function neverRegistered(session: Session): { name: string; reason: string }[] {
+  const d = domainOf(session.domainId);
+  return [
+    { name: 'mandate_apply_changes', reason: 'Applying is a human-only action (D-006). No agent path exists at any layer.' },
+    { name: `mandate_delete_${d.noun}`, reason: 'Destructive operations are outside anything a session mandate can grant.' },
+    { name: 'mandate_admin_mandate', reason: 'An agent must never be able to widen its own authority.' },
+    { name: 'mandate_export_all', reason: 'Bulk export defeats the point of a bounded scope.' },
+    { name: 'mandate_sql', reason: 'No raw data access is exposed to any caller.' },
+  ];
+}

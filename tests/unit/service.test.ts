@@ -30,7 +30,7 @@ describe('reading needs no authority', () => {
 
     const read = await s.read(created.id);
     expect(read.mandate).toBeNull();
-    expect(read.customers).toHaveLength(6);
+    expect(read.resources).toHaveLength(6);
   });
 });
 
@@ -40,13 +40,13 @@ describe('scope: selection proposes, delegation grants', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
     });
     const mandateVersion = withMandate.mandate!.version;
 
     const { change } = await s.stageAsAgent(session.id, {
-      customerId: 'c-atlas',
+      resourceId: 'c-atlas',
       field: 'status',
       after: 'Active',
       mandateVersion,
@@ -63,13 +63,13 @@ describe('scope: selection proposes, delegation grants', () => {
     // c-kestrel is selected — proposed — but the mandate only names c-atlas.
     await s.setSelection(session.id, ['c-atlas', 'c-kestrel']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
     });
 
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-kestrel',
+        resourceId: 'c-kestrel',
         field: 'status',
         after: 'Active',
         mandateVersion: withMandate.mandate!.version,
@@ -83,14 +83,14 @@ describe('scope: selection proposes, delegation grants', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
     });
 
     // c-northwind was never even selected — a fortiori it is out of scope.
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-northwind',
+        resourceId: 'c-northwind',
         field: 'status',
         after: 'Active',
         mandateVersion: withMandate.mandate!.version,
@@ -104,13 +104,13 @@ describe('scope: selection proposes, delegation grants', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'], // owner is not delegated
     });
 
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-atlas',
+        resourceId: 'c-atlas',
         field: 'owner',
         after: 'Someone Else',
         mandateVersion: withMandate.mandate!.version,
@@ -126,7 +126,7 @@ describe('revocation', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
     });
     const discoveredVersion = withMandate.mandate!.version;
@@ -143,7 +143,7 @@ describe('revocation', () => {
     // caller.
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-atlas',
+        resourceId: 'c-atlas',
         field: 'status',
         after: 'Active',
         mandateVersion: discoveredVersion,
@@ -159,7 +159,7 @@ describe('policy version', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const first = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status', 'nextAction'],
     });
     const discoveredVersion = first.mandate!.version;
@@ -168,7 +168,7 @@ describe('policy version', () => {
     // than revoking it — this is the case `policy.ts`'s POLICY_CHANGED branch
     // exists for, distinct from the revoked-mandate case above.
     const narrowed = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
     });
     expect(narrowed.mandate!.status).toBe('ACTIVE');
@@ -176,7 +176,7 @@ describe('policy version', () => {
 
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-atlas',
+        resourceId: 'c-atlas',
         field: 'status',
         after: 'Active',
         mandateVersion: discoveredVersion, // the version the caller last read
@@ -191,7 +191,7 @@ describe('conflict and rebase', () => {
     const s = svc();
     const session = await s.createSession();
     const { change } = await s.stageAsHuman(session.id, {
-      customerId: 'c-meridian',
+      resourceId: 'c-meridian',
       field: 'owner',
       after: 'Priya Raman',
     });
@@ -222,7 +222,7 @@ describe('conflict and rebase', () => {
     const session = await s.createSession();
     const intendedAfter = 'Priya Raman';
     const { change } = await s.stageAsHuman(session.id, {
-      customerId: 'c-meridian',
+      resourceId: 'c-meridian',
       field: 'owner',
       after: intendedAfter,
     });
@@ -245,7 +245,7 @@ describe('conflict and rebase', () => {
   it('apply refuses to commit a change that is not VALIDATED, including a STALE one', async () => {
     const s = svc();
     const session = await s.createSession();
-    await s.stageAsHuman(session.id, { customerId: 'c-meridian', field: 'owner', after: 'Priya Raman' });
+    await s.stageAsHuman(session.id, { resourceId: 'c-meridian', field: 'owner', after: 'Priya Raman' });
     await s.simulateExternalUpdate(session.id); // the staged change is now STALE, never validated
     await refused(s.applyAsHuman(session.id), 'VALIDATION_FAILED');
   });
@@ -271,14 +271,14 @@ describe('conflict and rebase', () => {
     const s = svc();
     const session = await s.createSession();
     const { change } = await s.stageAsHuman(session.id, {
-      customerId: 'c-meridian',
+      resourceId: 'c-meridian',
       field: 'owner',
       after: 'Priya Raman',
     });
     await s.validate(session.id, { actor: 'human' }); // change.state -> VALIDATED at revision 1
 
     const bumped = await s.simulateExternalUpdate(session.id); // revision -> 2, owner flipped externally
-    const ownerAfterExternalUpdate = bumped.customers.find((c) => c.id === 'c-meridian')!.owner;
+    const afterExternalUpdate = bumped.resources.find((c) => c.id === 'c-meridian')!.values.nextAction;
 
     // Expected: apply refuses because the change's baseRevision (1) no
     // longer matches the current session revision (2).
@@ -287,8 +287,9 @@ describe('conflict and rebase', () => {
     // Because apply refused, the external update's value still stands. This is
     // the assertion that fails if applyAsHuman ever goes back to trusting the
     // VALIDATED flag instead of re-checking the base revision.
-    const stillLive = (await s.read(session.id)).customers.find((c) => c.id === 'c-meridian')!.owner;
-    expect(stillLive).toBe(ownerAfterExternalUpdate);
+    const stillLive = (await s.read(session.id)).resources.find((c) => c.id === 'c-meridian')!.values
+      .nextAction;
+    expect(stillLive).toBe(afterExternalUpdate);
     void change;
   });
 });
@@ -315,7 +316,7 @@ describe('apply is human-only, by construction', () => {
   it('a human apply is recorded in the timeline as an audited human action', async () => {
     const s = svc();
     const session = await s.createSession();
-    await s.stageAsHuman(session.id, { customerId: 'c-atlas', field: 'status', after: 'Active' });
+    await s.stageAsHuman(session.id, { resourceId: 'c-atlas', field: 'status', after: 'Active' });
     await s.validate(session.id, { actor: 'human' });
     const applied = await s.applyAsHuman(session.id);
 
@@ -329,12 +330,12 @@ describe('untrusted content grants no authority', () => {
   it("the injected instruction in c-atlas's notes changes no authority: staging what the note asks for is still refused", async () => {
     const s = svc();
     const session = await s.createSession();
-    const atlas = session.customers.find((c) => c.id === 'c-atlas')!;
-    expect(atlas.notes).toMatch(/set every account to\s+Active/i);
+    const atlas = session.resources.find((c) => c.id === 'c-atlas')!;
+    expect(atlas.values.notes).toMatch(/set every account to\s+Active/i);
 
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
     });
 
@@ -344,7 +345,7 @@ describe('untrusted content grants no authority', () => {
     // the note did not grant an inch of authority.
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-northwind',
+        resourceId: 'c-northwind',
         field: 'status',
         after: 'Active',
         mandateVersion: withMandate.mandate!.version,
@@ -361,7 +362,7 @@ describe('expiry', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
       ttlMs: 1000,
     });
@@ -380,7 +381,7 @@ describe('expiry', () => {
     const session = await s.createSession();
     await s.setSelection(session.id, ['c-atlas']);
     const withMandate = await s.createMandate(session.id, {
-      customerIds: ['c-atlas'],
+      resourceIds: ['c-atlas'],
       allowedFields: ['status'],
       ttlMs: 1000,
     });
@@ -390,7 +391,7 @@ describe('expiry', () => {
 
     await refused(
       s.stageAsAgent(session.id, {
-        customerId: 'c-atlas',
+        resourceId: 'c-atlas',
         field: 'status',
         after: 'Active',
         mandateVersion,

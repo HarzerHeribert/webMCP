@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { AuthorityPanel } from './components/AuthorityPanel';
-import { CustomerTable } from './components/CustomerTable';
+import { RecordTable } from './components/RecordTable';
 import { Header } from './components/Header';
 import { StagedChanges } from './components/StagedChanges';
 import { ConflictPanel } from './components/ConflictPanel';
@@ -12,7 +12,7 @@ import { MandateLayer } from './components/MandateLayer';
 import { MinimalLayer } from './components/MinimalLayer';
 import { WebMcpBanner } from './components/WebMcpBanner';
 import { ModeProvider, useMode } from './lib/mode';
-import { useStore } from './lib/store';
+import { useSession, useStore } from './lib/store';
 import { WebMcpProvider } from './webmcp/provider';
 
 /**
@@ -54,6 +54,30 @@ function Layer() {
       </div>
       <Timeline />
     </MandateLayer>
+  );
+}
+
+/**
+ * The host application, drawn from `schema.domain`. Its name, its mark and its
+ * own description of itself are the host's, not Mandate's — which is the whole
+ * of D-002 in one component.
+ */
+function Host() {
+  const { schema } = useSession();
+  const d = schema.domain;
+  return (
+    <section className="host" aria-label={`${d.product}, the host application`}>
+      <header className="host__chrome">
+        <span className="host__mark" aria-hidden>
+          {d.mark}
+        </span>
+        <span className="host__name">{d.product}</span>
+        <span className="host__note">{d.tagline}</span>
+      </header>
+      <div className="column column--fit">
+        <RecordTable />
+      </div>
+    </section>
   );
 }
 
@@ -111,19 +135,7 @@ export function App() {
         <WebMcpBanner />
         <Guide />
         <Workbench>
-          <section className="host" aria-label="Relay CRM, the host application">
-            <header className="host__chrome">
-              <span className="host__mark" aria-hidden>
-                R
-              </span>
-              <span className="host__name">Relay CRM</span>
-              <span className="host__note">The host application. Mandate did not build this.</span>
-            </header>
-            <div className="column column--fit">
-              <CustomerTable />
-            </div>
-          </section>
-
+          <Host />
           <Layer />
         </Workbench>
       </div>

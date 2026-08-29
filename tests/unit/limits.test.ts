@@ -16,7 +16,7 @@ describe('session size is bounded', () => {
     const session = await s.createSession();
     await expect(
       s.stageAsHuman(session.id, {
-        customerId: 'c-atlas',
+        resourceId: 'c-atlas',
         field: 'nextAction',
         after: 'x'.repeat(LIMITS.valueChars + 1),
       }),

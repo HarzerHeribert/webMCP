@@ -24,12 +24,12 @@ const STEPS: Step[] = [
   {
     n: 1,
     label: 'Select',
-    ask: 'Pick two customers in Relay CRM. Watch the capability inspector — nothing appears.',
+    ask: 'Pick two records in the host. Watch the capability inspector — nothing appears.',
   },
   {
     n: 2,
     label: 'Delegate',
-    ask: 'Delegate status and nextAction. This is the act that creates authority.',
+    ask: 'Delegate two fields. This is the act that creates authority.',
     authority: true,
   },
   {
@@ -40,7 +40,7 @@ const STEPS: Step[] = [
   {
     n: 4,
     label: 'Refused',
-    ask: 'Try a customer you selected but never delegated. The server refuses it.',
+    ask: 'Try a record you selected but never delegated. The server refuses it.',
   },
   {
     n: 5,
@@ -90,7 +90,7 @@ function deriveStep(session: Session): Step['n'] {
   if (active && hasChanges && refused) return 5;
   if (active && hasChanges) return 4;
   if (active) return 3;
-  if (session.selectedCustomerIds.length > 0) return 2;
+  if (session.selectedResourceIds.length > 0) return 2;
   return 1;
 }
 
