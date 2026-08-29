@@ -3078,12 +3078,166 @@ var RedisSessionStore = class _RedisSessionStore {
   }
 };
 
+// server/core/redis-socket-store.ts
+import { connect as netConnect } from "node:net";
+import { connect as tlsConnect } from "node:tls";
+var RedisSocketStore = class _RedisSocketStore {
+  #url;
+  #ttlSeconds;
+  #socket = null;
+  /** Serialises commands: RESP replies arrive in request order, so two
+   *  in-flight commands on one socket would interleave their parsers. */
+  #chain = Promise.resolve();
+  constructor(url, ttlSeconds = 1800) {
+    this.#url = new URL(url);
+    this.#ttlSeconds = ttlSeconds;
+  }
+  static fromEnv(env) {
+    const url = env.REDIS_URL ?? env.KV_URL ?? env.STORAGE_REDIS_URL;
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      if (!/^rediss?:$/.test(parsed.protocol)) return null;
+      return new _RedisSocketStore(url);
+    } catch {
+      return null;
+    }
+  }
+  // ── connection ───────────────────────────────────────────────────────────
+  async #connected() {
+    if (this.#socket && !this.#socket.destroyed) return this.#socket;
+    const secure = this.#url.protocol === "rediss:";
+    const port = Number(this.#url.port || (secure ? 6380 : 6379));
+    const host = this.#url.hostname;
+    const socket = await new Promise((resolve, reject) => {
+      const s = secure ? tlsConnect({ host, port, servername: host }, () => resolve(s)) : netConnect({ host, port }, () => resolve(s));
+      s.once("error", reject);
+      s.setTimeout(1e4, () => s.destroy(new Error("redis: socket timeout")));
+    });
+    socket.on("error", () => socket.destroy());
+    this.#socket = socket;
+    const password = decodeURIComponent(this.#url.password || "");
+    const username = decodeURIComponent(this.#url.username || "");
+    if (password) {
+      await this.#send(socket, username ? ["AUTH", username, password] : ["AUTH", password]);
+    }
+    return socket;
+  }
+  /** Write one command and read exactly one reply. */
+  #send(socket, args) {
+    const encoded = `*${args.length}\r
+` + args.map((a) => `$${Buffer.byteLength(String(a))}\r
+${String(a)}\r
+`).join("");
+    return new Promise((resolve, reject) => {
+      let buffer = Buffer.alloc(0);
+      const cleanup = () => {
+        socket.off("data", onData);
+        socket.off("error", onError);
+        socket.off("close", onClose);
+      };
+      const onData = (chunk) => {
+        buffer = Buffer.concat([buffer, chunk]);
+        const parsed = parseReply(buffer);
+        if (parsed === void 0) return;
+        cleanup();
+        if (parsed.error) reject(new Error(`redis: ${parsed.error}`));
+        else resolve(parsed.value);
+      };
+      const onError = (e) => {
+        cleanup();
+        reject(e);
+      };
+      const onClose = () => {
+        cleanup();
+        reject(new Error("redis: connection closed"));
+      };
+      socket.on("data", onData);
+      socket.once("error", onError);
+      socket.once("close", onClose);
+      socket.write(encoded);
+    });
+  }
+  #command(...args) {
+    const run = async () => {
+      try {
+        return await this.#send(await this.#connected(), args);
+      } catch (e) {
+        this.#socket?.destroy();
+        this.#socket = null;
+        throw e;
+      }
+    };
+    const next = this.#chain.then(run, run);
+    this.#chain = next.then(
+      () => void 0,
+      () => void 0
+    );
+    return next;
+  }
+  // ── SessionStore ─────────────────────────────────────────────────────────
+  #key(id) {
+    return `mandate:${id}`;
+  }
+  async get(id) {
+    const raw2 = await this.#command("GET", this.#key(id));
+    return typeof raw2 === "string" ? JSON.parse(raw2) : void 0;
+  }
+  async put(session) {
+    await this.#command("SET", this.#key(session.id), JSON.stringify(session), "EX", this.#ttlSeconds);
+  }
+  async delete(id) {
+    await this.#command("DEL", this.#key(id));
+  }
+  // ── CounterStore, for the quota ──────────────────────────────────────────
+  async incr(key, ttlSeconds) {
+    const n = Number(await this.#command("INCR", key));
+    if (n === 1) await this.#command("EXPIRE", key, ttlSeconds);
+    return n;
+  }
+  async count(key) {
+    const raw2 = await this.#command("GET", key);
+    return typeof raw2 === "string" ? Number(raw2) || 0 : 0;
+  }
+  /** Tests and shutdown; a lambda never needs it. */
+  close() {
+    this.#socket?.destroy();
+    this.#socket = null;
+  }
+};
+function parseReply(buf) {
+  const end = buf.indexOf("\r\n");
+  if (end === -1) return void 0;
+  const kind = buf[0];
+  const head = buf.subarray(1, end).toString();
+  switch (kind) {
+    case 43:
+      return { value: head };
+    case 45:
+      return { value: null, error: head };
+    case 58:
+      return { value: Number(head) };
+    case 36: {
+      const len = Number(head);
+      if (len === -1) return { value: null };
+      const start = end + 2;
+      if (buf.length < start + len + 2) return void 0;
+      return { value: buf.subarray(start, start + len).toString() };
+    }
+    default:
+      return { value: null, error: `unsupported reply type ${String.fromCharCode(kind)}` };
+  }
+}
+
 // server/vercel-entry.ts
-var store = RedisSessionStore.fromEnv(process.env);
+var store = RedisSessionStore.fromEnv(process.env) ?? RedisSocketStore.fromEnv(process.env);
+if (store) {
+  console.log(`[mandate] session store: ${store.constructor.name}`);
+}
 if (!store) {
   const seen = Object.keys(process.env).filter((k) => /REDIS|KV_|UPSTASH/i.test(k)).sort();
   console.warn(
-    `[mandate] no Upstash credentials (KV_REST_API_URL / UPSTASH_REDIS_REST_URL). Falling back to process memory: sessions will not survive between invocations. Store-shaped env keys present: ${seen.length ? seen.join(", ") : "none"}. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or the KV_REST_API_* pair) to persist.`
+    `[mandate] no Upstash credentials (KV_REST_API_URL / UPSTASH_REDIS_REST_URL). Falling back to process memory: sessions will not survive between invocations. Store-shaped env keys present: ${seen.length ? seen.join(", ") : "none"}. Bind REDIS_URL, or the UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN pair.`
   );
 }
 var quota = store ? redisQuota(store) : unlimited;

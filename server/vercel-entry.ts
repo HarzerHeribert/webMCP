@@ -3,6 +3,7 @@ import { createApp, notFoundJson } from './app';
 import { redisQuota, unlimited } from './core/quota';
 import { MemorySessionStore } from './core/store';
 import { RedisSessionStore } from './core/redis-store';
+import { RedisSocketStore } from './core/redis-socket-store';
 
 /**
  * The Vercel entry (D-011). **`scripts/build-api.mjs` bundles this file into
@@ -20,12 +21,14 @@ import { RedisSessionStore } from './core/redis-store';
  * locally and wrong here — the warning says so out loud rather than letting a
  * demo quietly lose sessions between invocations.
  */
-// Upstash's REST pair only. A `redis://` URL would need a TCP client, and the
-// one obvious choice (node-redis) cannot be bundled — it crashes at import
-// once inlined, verified by running the bundle in a directory with no
-// node_modules. REST is also simply the right shape for a lambda: no
-// connection to establish, nothing to pool, nothing to leak.
-const store = RedisSessionStore.fromEnv(process.env);
+// Two shapes of binding exist and the platform picks one. Upstash's REST pair
+// is the nicer fit for a lambda — nothing to connect or pool — but what is
+// actually bound here is `REDIS_URL`, so the socket adapter is what runs.
+// node-redis is not an option: it cannot survive bundling.
+const store = RedisSessionStore.fromEnv(process.env) ?? RedisSocketStore.fromEnv(process.env);
+if (store) {
+  console.log(`[mandate] session store: ${store.constructor.name}`);
+}
 if (!store) {
   // Names only, never values: enough to tell from a log line whether the store
   // binding actually reached the function, without putting a token in a log.
@@ -36,7 +39,7 @@ if (!store) {
     '[mandate] no Upstash credentials (KV_REST_API_URL / UPSTASH_REDIS_REST_URL). ' +
       'Falling back to process memory: sessions will not survive between invocations. ' +
       `Store-shaped env keys present: ${seen.length ? seen.join(', ') : 'none'}. ` +
-      'Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or the KV_REST_API_* pair) to persist.',
+      'Bind REDIS_URL, or the UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN pair.',
   );
 }
 
