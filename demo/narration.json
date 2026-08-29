@@ -3,14 +3,24 @@
   "speed": 1.05,
   "beats": [
     {
+      "id": "card-key",
+      "caption": "",
+      "say": "An agent that can act inside your web app needs authority. Today that means an API key: every record, every field, valid until somebody remembers to revoke it."
+    },
+    {
+      "id": "card-sentence",
+      "caption": "",
+      "say": "But nobody means forever, everything. What a person actually means is narrow. These two accounts, these two fields, the next ten minutes."
+    },
+    {
+      "id": "card-gap",
+      "caption": "",
+      "say": "Nothing turns that sentence into that grant. Mandate compiles it, into a WebMCP tool schema the agent reads and a rule the server enforces on every call."
+    },
+    {
       "id": "host",
       "caption": "Relay CRM \u2014 the host application",
       "say": "This is Relay CRM. Ordinary business software. Mandate is not part of it. It's a capability layer installed into it, and right now it is doing nothing."
-    },
-    {
-      "id": "problem",
-      "caption": "The problem: authority today is a key",
-      "say": "An agent that can act in here needs authority. Today that means an API key, scoped to everything, valid until someone remembers to revoke it. Mandate compiles something else: the sentence a human actually means."
     },
     {
       "id": "select",
@@ -63,9 +73,14 @@
       "say": "The human validates, and applies. The values land in the CRM."
     },
     {
+      "id": "usermode",
+      "caption": "The same session, without the instrumentation",
+      "say": "Everything you have just seen \u2014 the inspector, the caller, the audit \u2014 is instrumentation for this explanation. Here is the product underneath. The grant, the work, and the human commit. Enforcement is identical; only the panels are gone."
+    },
+    {
       "id": "close",
       "caption": "Human intent, compiled into a live WebMCP contract",
-      "say": "Shut the layer, and Relay CRM is an ordinary CRM again. Mandate turns explicit, temporary human intent into a live WebMCP capability contract, and the server enforces it on every call."
+      "say": "Shut the layer, and Relay CRM is an ordinary CRM again. Mandate turns explicit, temporary human intent into a live WebMCP contract that the server enforces on every call."
     }
   ]
 }

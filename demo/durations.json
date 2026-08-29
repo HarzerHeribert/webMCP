@@ -1,6 +1,8 @@
 {
+  "card-key": 10.261,
+  "card-sentence": 8.0,
+  "card-gap": 10.389,
   "host": 9.749,
-  "problem": 13.333,
   "select": 8.96,
   "delegate": 4.053,
   "compiled": 14.251,
@@ -11,5 +13,6 @@
   "revoke": 7.445,
   "noapply": 6.293,
   "apply": 3.968,
-  "close": 13.589
+  "usermode": 14.4,
+  "close": 12.907
 }

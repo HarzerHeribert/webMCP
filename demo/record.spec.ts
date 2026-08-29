@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { customerRow, panelByLabel, panelByTitle } from '../e2e/helpers';
 import { agentCall, beat, caption, click, installOverlay, point, setOrigin, timings } from './overlay';
@@ -29,6 +29,26 @@ test('record the demo', async ({ page }) => {
   // Playwright starts the video when the page is created, a moment before this
   // line, so this is the video's zero to within a few milliseconds.
   setOrigin(Date.now());
+  // ── the problem, before any software ─────────────────────────────────────
+  // Three cards, same tokens as the product, driven by the same beat clock. A
+  // demo that opens by using the thing assumes the viewer already knows why it
+  // should exist.
+  const cards = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), 'cards.html')).href;
+  await page.goto(cards);
+  await page.waitForTimeout(700);
+
+  for (const [n, id] of [['1', 'card-key'], ['2', 'card-sentence'], ['3', 'card-gap']] as const) {
+    await beat(page, id, '', async () => {
+      await page.evaluate((card) => document.body.setAttribute('data-card', card), n);
+      for (const step of ['1', '2', '3']) {
+        await page.evaluate((s) => document.body.setAttribute('data-step', s), step);
+        await page.waitForTimeout(2100);
+      }
+    });
+    await page.evaluate(() => document.body.setAttribute('data-step', '0'));
+  }
+
+  // ── and now the software ─────────────────────────────────────────────────
   await page.goto('/');
   await page.waitForSelector('.workbench');
   await installOverlay(page);
@@ -39,11 +59,10 @@ test('record the demo', async ({ page }) => {
   expect(live, 'flagged Chrome must expose document.modelContext').toBe('object');
 
   await beat(page, 'host', line('host'), async () => {
-    await point(page, page.getByRole('button', { name: 'Open the Mandate capability layer' }));
-  });
-
-  await beat(page, 'problem', line('problem'), async () => {
-    await click(page, page.getByRole('button', { name: 'Open the Mandate capability layer' }));
+    const rail = page.getByRole('button', { name: 'Open the Mandate capability layer' });
+    await point(page, rail);
+    await page.waitForTimeout(2200);
+    await click(page, rail);
     await page.getByRole('heading', { name: 'Authority', exact: true }).waitFor();
   });
 
@@ -148,6 +167,14 @@ test('record the demo', async ({ page }) => {
     await click(page, staged.getByRole('button', { name: 'Validate', exact: true }));
     await click(page, staged.getByRole('button', { name: /^Apply / }));
     await point(page, customerRow(page, 'Northwind Logistics'));
+  });
+
+  await beat(page, 'usermode', line('usermode'), async () => {
+    await click(page, page.getByRole('button', { name: 'User', exact: true }));
+    await page.waitForTimeout(900);
+    await point(page, customerRow(page, 'Northwind Logistics'));
+    await page.waitForTimeout(700);
+    await point(page, panelByTitle(page, 'Authority'));
   });
 
   await beat(page, 'close', line('close'), async () => {

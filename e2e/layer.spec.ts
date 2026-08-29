@@ -136,3 +136,39 @@ test.describe('the ChatGPT mobile app is told the truth: there is nothing to tur
     await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
   });
 });
+
+/**
+ * `docs/12_DECISIONS.md` is unchanged by the mode switch, and that is the point
+ * worth testing: user mode removes panels and nothing else. What the server
+ * enforces, and what the page registers, are identical either way.
+ */
+test('user mode drops the instrumentation without touching what is enforced', async ({ page }) => {
+  await page.goto('/');
+  await openMandateLayer(page);
+  await customerRow(page, 'Northwind Logistics').locator('.customer__pick input').click();
+  await page.getByRole('button', { name: /^Delegate/ }).click();
+
+  // Technical mode: the reviewer's instruments are present.
+  await expect(page.getByText('Capability inspector', { exact: true })).toBeVisible();
+  await expect(page.getByText('Simulated caller', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Timeline', exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'User', exact: true }).click();
+
+  // User mode: gone, along with the guide that narrates them.
+  await expect(page.getByText('Capability inspector', { exact: true })).toBeHidden();
+  await expect(page.getByText('Simulated caller', { exact: true })).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Timeline', exact: true })).toBeHidden();
+
+  // What a person needs is still there, and live authority is still declared —
+  // the rule that bounds every other piece of hiding in this interface.
+  await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
+  await expect(page.getByText('active · v1')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Staged changes', exact: true })).toBeVisible();
+  await expect(customerRow(page, 'Northwind Logistics')).toHaveClass(/customer--delegated/);
+
+  // And the switch is a view, not a permission: back again, nothing was lost.
+  await page.getByRole('button', { name: 'Technical', exact: true }).click();
+  await expect(page.getByText('Capability inspector', { exact: true })).toBeVisible();
+  await expect(page.getByText('active · v1')).toBeVisible();
+});

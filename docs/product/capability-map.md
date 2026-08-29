@@ -200,8 +200,19 @@ Phase M8 — Deployment
 ☑ Deploy one HTTPS origin, with a deterministic reset and no credentials in the repo.
     EVIDENCE: `scripts/verify-live.mjs https://webmcp-weld.vercel.app` — 12/12, including a deterministic reset back to the seed. No credentials in the repo; the store is bound by platform env.
 ☑ Verify the live URL works in Chrome with WebMCP enabled **and** degrades correctly where it is not. (SUBMISSION)
-    EVIDENCE: manual (headless Chromium against the live origin): the rail reads `WebMCP required`, the gate explains WEBMCP_UNAVAILABLE, the override runs the demo, delegation works and an undelegated customer is refused. The flagged path is unverified — no flagged browser here; the adapter's registration path is covered by unit-level tests only.
+    EVIDENCE: manual, both paths. Unflagged (headless Chromium, live origin): the rail reads `WebMCP required`, the gate explains WEBMCP_UNAVAILABLE, the override runs the demo, an undelegated customer is refused. Flagged (Chrome 152, `--enable-features=WebMCP`): registration is real, the schema enums are the live scope, `executeTool` stages, and out-of-scope is refused — `docs/19_DEPLOYMENT_RECORD.md`, `docs/20_WEBMCP_FIELD_NOTES.md`.
 ☑ Verify no cross-session leakage and no internal error text on the deployed origin.
     EVIDENCE: `scripts/verify-live.mjs` — session B cannot see session A's selection, a forged id returns 404 `NOT_FOUND`, and no reply matches /stack|node_modules|TypeError/.
 ☑ Record deployed URL, commit SHA, browser and version, and the stated limitations.
     EVIDENCE: `docs/19_DEPLOYMENT_RECORD.md`.
+
+Phase M9 — Telling it (submission surface)
+
+☑ Say what is missing in terms of the host the reader is actually in, not one remedy for everybody.
+    EVIDENCE: `src/webmcp/host.ts` + the gate's three branches; `docs/20_WEBMCP_FIELD_NOTES.md` §7 — ChatGPT site tools are desktop-only, version- and permission-gated, and disabled on Luna, so "enable a Chrome flag" is unactionable there. Two browser tests drive the gate under ChatGPT desktop and mobile user agents.
+☑ Open the video on the problem, not on the software.
+    EVIDENCE: `demo/cards.html` — three cards in the product's own tokens (the key, the sentence, the gap), driven by the same beat clock as the demo and recorded in the same pass.
+☑ Separate the instrument from the product on screen, rather than only claiming they are separate.
+    EVIDENCE: `src/lib/mode.tsx` + the header's audience switch. User mode drops the inspector, the simulated caller, the timeline and the guide, and gives the host the larger share of the workbench; the pending values were already inline on the records. `e2e/layer.spec.ts` — "user mode drops the instrumentation without touching what is enforced" asserts live authority is still declared and that switching back loses nothing.
+☑ Record a submission video, under three minutes, on the flagged path. (SUBMISSION)
+    EVIDENCE: `demo/mandate-demo.mp4` — 2:46, 1600×1000, recorded in Chrome 152 with `--enable-features=WebMCP`; every agent action is a real `document.modelContext.executeTool` call and the recorder refuses to film otherwise. Pipeline and its sync model in `docs/21_DEMO_VIDEO.md`.

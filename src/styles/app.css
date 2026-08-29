@@ -694,3 +694,38 @@ h1, h2, h3, p { margin: 0; }
   color: var(--text-2);
 }
 .gate__list strong { color: var(--text); font-weight: 600; }
+
+/* ── the audience switch ──────────────────────────────────────────────────
+   A segmented control, sized to disappear next to the readouts it sits beside.
+   It selects which panels render; it is not a permission, a filter, or a
+   setting the server can see. */
+.modeswitch {
+  display: inline-flex; background: var(--surface-3); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 2px; gap: 2px;
+}
+.modeswitch__opt {
+  border: 0; background: transparent; cursor: pointer;
+  font: 600 var(--t-sm)/1 var(--sans); color: var(--text-2);
+  padding: 6px 13px; border-radius: var(--r-pill); transition: var(--transition);
+}
+.modeswitch__opt:hover { color: var(--text); }
+.modeswitch__opt--on {
+  background: var(--surface-1); color: var(--text);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, .06);
+}
+.modeswitch__opt:focus-visible { outline: none; box-shadow: var(--focus); }
+
+/* User mode: one column, and the layer stops asking for two-thirds of the
+   workbench. The host is the thing you are working in; Mandate is the thing
+   bounding what an agent may do to it. */
+.layer__grid--user { grid-template-columns: minmax(340px, 1fr); }
+.workbench:has(.layer__grid--user) {
+  grid-template-columns: minmax(400px, 1.75fr) minmax(360px, 1fr);
+}
+
+/* At user-mode width the layer's header has half the room it was designed for.
+   The chip must not wrap — a three-line "WEBMCP CAPABILITY LAYER" reads as a
+   layout bug — and the aside explaining the layer to a reviewer is exactly the
+   thing user mode is meant to be without. */
+.layer__kind { white-space: nowrap; }
+.layer:has(.layer__grid--user) .layer__note { display: none; }

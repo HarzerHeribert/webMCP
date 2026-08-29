@@ -71,12 +71,17 @@ Verification tools worth knowing:
 
 ## What is left
 
-1. **Upload the video.** It is made: `demo/mandate-demo.mp4`, 2:14, 1600×1000,
+1. **Upload the video.** It is made: `demo/mandate-demo.mp4`, 2:46, 1600×1000,
    recorded in flagged Chrome so every agent action on camera is a real
    `document.modelContext.executeTool` call. `docs/21_DEMO_VIDEO.md` explains
    the three-command pipeline and how to re-cut it after a UI change. What is
    left is human: watch it with sound (the narration is synthesised locally and
    nobody has listened to it yet), then put it on public YouTube.
+
+   It opens with three problem cards (`demo/cards.html`) and closes by flipping
+   to **User** mode, which is the answer to "why does this take two-thirds of a
+   screen?" — most of the layer is instrumentation for the argument, and the
+   switch shows the product underneath rather than claiming it exists.
 2. **Submit on Devpost**: live URL, repo, video, description (the README is
    written to be that text).
 3. An independent Fable verifier drove the live origin in flagged Chrome and

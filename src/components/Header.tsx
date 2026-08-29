@@ -1,10 +1,41 @@
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
 import { useWebMcp } from '../webmcp/provider';
+import { useMode } from '../lib/mode';
 
 /** The instrument row. Everything here is something the demo asks the audience
  *  to watch change: the revision, the mandate version, and whether the page's
  *  tool surface is live. */
+/**
+ * The audience switch. Two labels, because the honest answer to "why does this
+ * take up so much room?" is that most of it is instrumentation for a reviewer,
+ * and the product underneath is small. Saying that is weaker than showing it.
+ *
+ * It changes which panels render. It changes nothing the server does.
+ */
+function ModeSwitch() {
+  const { mode, setMode } = useMode();
+  return (
+    <div className="modeswitch" role="group" aria-label="Who the interface is showing">
+      {(['user', 'technical'] as const).map((m) => (
+        <button
+          key={m}
+          className={`modeswitch__opt${mode === m ? ' modeswitch__opt--on' : ''}`}
+          aria-pressed={mode === m}
+          onClick={() => setMode(m)}
+          title={
+            m === 'user'
+              ? 'What a person actually lives with: the grant, the work, the commit.'
+              : 'Everything a reviewer needs: the compiled tool contract, a caller, the audit.'
+          }
+        >
+          {m === 'user' ? 'User' : 'Technical'}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function Header() {
   const { session } = useSession();
   const { run, revisionPulse } = useStore();
@@ -41,6 +72,7 @@ export function Header() {
           label="webmcp"
           value={webmcp.status === 'registered' ? `${webmcp.toolNames.length} tools` : webmcp.statusLabel}
         />
+        <ModeSwitch />
         <div className="header__instruments">
           <button
             className="btn btn--sm"

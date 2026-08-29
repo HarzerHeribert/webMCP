@@ -1,0 +1,173 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Mandate — the problem</title>
+<style>
+  /* Deliberately the product's own tokens (`src/styles/tokens.css`): the cards
+     have to read as the opening of this piece of software, not as a slide deck
+     someone pasted in front of it. */
+  :root {
+    --bg: #f2f5f9; --surface-1: #ffffff; --surface-2: #f7f9fc;
+    --line: #e2e8f0; --line-strong: #cbd5e1;
+    --text: #16202c; --text-2: #4a5769; --text-3: #78859a;
+    --primary: #0b6bcb; --primary-wash: #eaf3fd; --primary-edge: #a9cdf2;
+    --authority: #9a6700; --authority-wash: #fff8e6; --authority-edge: #e6c360;
+    --agent: #6941c6; --agent-wash: #f4f0ff;
+    --danger: #b42318; --danger-wash: #fef3f2; --danger-edge: #f3b0a8;
+    --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--sans);
+    display: grid; place-items: center;
+  }
+  .card { width: 1300px; display: none; }
+  body[data-card="1"] .card--1, body[data-card="2"] .card--2, body[data-card="3"] .card--3 { display: block; }
+
+  .eyebrow {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--text-3); font-weight: 700; margin-bottom: 16px;
+  }
+  h1 { font-size: 55px; line-height: 1.16; letter-spacing: -.024em; margin: 0 0 52px; font-weight: 640; }
+  h1 em { font-style: normal; color: var(--authority); }
+  .foot { margin-top: 50px; font-size: 20px; color: var(--text-2); line-height: 1.5; }
+  .foot b { color: var(--text); font-weight: 620; }
+
+  /* Anything with `reveal` fades up as the step advances. */
+  .reveal { opacity: 0; transform: translateY(9px); transition: opacity .5s ease, transform .5s cubic-bezier(.33,.02,.2,1); }
+  body[data-step="1"] .s1, body[data-step="2"] .s1, body[data-step="3"] .s1,
+  body[data-step="2"] .s2, body[data-step="3"] .s2,
+  body[data-step="3"] .s3 { opacity: 1; transform: none; }
+
+  /* ── card 1 — the key ───────────────────────────────────────────── */
+  .flow { display: grid; grid-template-columns: 230px 168px 1fr; align-items: center; gap: 0; }
+  .actor {
+    background: var(--agent-wash); border: 1px solid #d9cdf5; border-radius: 12px;
+    padding: 30px 18px; text-align: center;
+  }
+  .actor__name { font-family: var(--mono); font-size: 15px; color: var(--agent); font-weight: 600; }
+  .actor__sub { font-size: 12.5px; color: var(--text-3); margin-top: 5px; }
+  .arrow { display: grid; place-items: center; position: relative; }
+  /* The rule runs behind the chip rather than beside it, so the chip can be any
+     width without colliding with its own connector. */
+  .arrow::before {
+    content: ''; position: absolute; left: 6px; right: 6px; top: 50%;
+    height: 2px; background: var(--danger-edge);
+  }
+  .arrow::after {
+    content: ''; position: absolute; right: 6px; top: 50%; margin-top: -5px;
+    border-left: 9px solid var(--danger-edge);
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  }
+  .arrow__key {
+    position: relative; background: var(--danger-wash); border: 1px solid var(--danger-edge);
+    color: var(--danger); border-radius: 999px; padding: 5px 13px;
+    font-family: var(--mono); font-size: 12.5px; font-weight: 600; white-space: nowrap;
+  }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+  .rec {
+    background: var(--surface-1); border: 1px solid var(--line); border-left: 3px solid var(--danger);
+    border-radius: 10px; padding: 19px 18px;
+  }
+  .rec__name { font-size: 16px; font-weight: 620; }
+  .rec__fields { font-size: 13px; color: var(--text-3); margin-top: 7px; font-family: var(--mono); }
+
+  /* ── card 2 — the sentence ──────────────────────────────────────── */
+  .sentence { font-size: 43px; line-height: 1.58; letter-spacing: -.014em; font-weight: 500; }
+  .span { border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+  .span--who  { background: var(--primary-wash);   box-shadow: inset 0 0 0 1px var(--primary-edge); }
+  .span--what { background: var(--agent-wash);     box-shadow: inset 0 0 0 1px #d9cdf5; }
+  .span--when { background: var(--authority-wash); box-shadow: inset 0 0 0 1px var(--authority-edge); }
+  .legend { display: flex; gap: 56px; margin-top: 52px; }
+  .legend__k { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; color: var(--text-3); }
+  .legend__v { font-size: 17px; color: var(--text-2); margin-top: 7px; }
+
+  /* ── card 3 — the gap ───────────────────────────────────────────── */
+  .pipe { display: grid; grid-template-columns: 1fr 176px 1fr; align-items: center; }
+  .box {
+    background: var(--surface-1); border: 1px solid var(--line); border-radius: 12px; padding: 28px 26px;
+  }
+  .box--out { border-color: var(--authority-edge); background: var(--authority-wash); }
+  .box__label { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; color: var(--text-3); margin-bottom: 11px; }
+  .box p { margin: 0; font-size: 19px; line-height: 1.5; }
+  .box pre { margin: 0; font-family: var(--mono); font-size: 15px; line-height: 1.66; color: var(--text); }
+  .compile { position: relative; display: grid; place-items: center; }
+  .compile::before {
+    content: ''; position: absolute; left: 6px; right: 6px; top: 50%;
+    height: 2px; background: var(--authority-edge);
+  }
+  .compile::after {
+    content: ''; position: absolute; right: 6px; top: 50%; margin-top: -5px;
+    border-left: 9px solid var(--authority-edge);
+    border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  }
+  .compile__chip {
+    position: relative; background: var(--authority); color: #fff; border-radius: 999px;
+    padding: 8px 19px; font-family: var(--mono); font-size: 14px; font-weight: 600;
+  }
+</style>
+
+<body data-card="1" data-step="0">
+  <section class="card card--1">
+    <div class="eyebrow reveal s1">How an agent gets authority today</div>
+    <h1 class="reveal s1">An API key is the only unit of trust on offer.</h1>
+    <div class="flow reveal s2">
+      <div class="actor">
+        <div class="actor__name">agent</div>
+        <div class="actor__sub">any agent, any session</div>
+      </div>
+      <div class="arrow"><div class="arrow__key">API key</div></div>
+      <div class="grid">
+        <div class="rec"><div class="rec__name">Northwind</div><div class="rec__fields">all fields</div></div>
+        <div class="rec"><div class="rec__name">Meridian</div><div class="rec__fields">all fields</div></div>
+        <div class="rec"><div class="rec__name">Atlas</div><div class="rec__fields">all fields</div></div>
+        <div class="rec"><div class="rec__name">Kestrel</div><div class="rec__fields">all fields</div></div>
+        <div class="rec"><div class="rec__name">Halcyon</div><div class="rec__fields">all fields</div></div>
+        <div class="rec"><div class="rec__name">Ridgeline</div><div class="rec__fields">all fields</div></div>
+      </div>
+    </div>
+    <p class="foot reveal s3">
+      Every record. Every field. <b>Until somebody remembers to revoke it.</b>
+    </p>
+  </section>
+
+  <section class="card card--2">
+    <div class="eyebrow reveal s1">What the person actually meant</div>
+    <h1 class="reveal s1">Nobody means “forever, everything”.</h1>
+    <p class="sentence reveal s2">
+      Let it update <span class="span span--who">Northwind and Atlas</span>’s
+      <span class="span span--what">status and next action</span> for the
+      <span class="span span--when">next ten minutes</span>.
+    </p>
+    <div class="legend reveal s3">
+      <div><div class="legend__k">Who</div><div class="legend__v">two accounts, not six</div></div>
+      <div><div class="legend__k">What</div><div class="legend__v">two fields, not the record</div></div>
+      <div><div class="legend__k">How long</div><div class="legend__v">ten minutes, then gone</div></div>
+    </div>
+  </section>
+
+  <section class="card card--3">
+    <div class="eyebrow reveal s1">The gap</div>
+    <h1 class="reveal s1">Nothing turns the sentence into the grant.</h1>
+    <div class="pipe">
+      <div class="box reveal s1">
+        <div class="box__label">What a human decided</div>
+        <p>Northwind and Atlas · status and next action · ten minutes</p>
+      </div>
+      <div class="compile reveal s2">
+        <div class="compile__chip">compile</div>
+      </div>
+      <div class="box box--out reveal s3">
+        <div class="box__label">What the agent is handed</div>
+<pre>customerId: enum ["c-northwind","c-atlas"]
+field:      enum ["status","nextAction"]
+mandateVersion: const 1</pre>
+      </div>
+    </div>
+    <p class="foot reveal s3">
+      A WebMCP tool schema, <b>recompiled every time the human changes their mind</b> —
+      and re-checked by the server on every call.
+    </p>
+  </section>
+</body>

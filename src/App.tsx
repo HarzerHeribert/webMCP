@@ -8,6 +8,7 @@ import { Timeline } from './components/Timeline';
 import { AgentConsole } from './components/AgentConsole';
 import { DemoGuide } from './components/DemoGuide';
 import { MandateLayer } from './components/MandateLayer';
+import { ModeProvider, useMode } from './lib/mode';
 import { useStore } from './lib/store';
 import { WebMcpProvider } from './webmcp/provider';
 
@@ -30,6 +31,55 @@ import { WebMcpProvider } from './webmcp/provider';
  * simulated caller sits directly above the staged changes it produces, so
  * running a tool and watching the result land are one glance apart.
  */
+/**
+ * What the layer contains depends on who is being addressed — see
+ * `src/lib/mode.tsx`. In `user` mode the three instrumentation panels are gone
+ * and what is left is the shipping shape: the grant, the work it produced, and
+ * the human commit. The pending values were always rendered inline on the
+ * records themselves (`CustomerTable`), so nothing has to be rebuilt to show a
+ * person what changed — the panels that go away were never for them.
+ */
+function LayerContents() {
+  const { mode } = useMode();
+
+  if (mode === 'user') {
+    return (
+      <div className="layer__grid layer__grid--user">
+        <div className="column column--fit">
+          <AuthorityPanel />
+          <ConflictPanel />
+          <StagedChanges />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="layer__grid">
+        <div className="column column--fit">
+          <AuthorityPanel />
+          <Inspector />
+        </div>
+        <div className="column column--fit">
+          <ConflictPanel />
+          <AgentConsole />
+          <StagedChanges />
+        </div>
+      </div>
+      <Timeline />
+    </>
+  );
+}
+
+/** The guide narrates the reviewer's path — including beats that only exist in
+ *  `technical` mode — so in `user` mode it would be telling you to use panels
+ *  that are not on screen. */
+function Guide() {
+  const { mode } = useMode();
+  return mode === 'technical' ? <DemoGuide /> : null;
+}
+
 export function App() {
   const { view, loading, bootError, retryBoot } = useStore();
 
@@ -63,9 +113,10 @@ export function App() {
 
   return (
     <WebMcpProvider>
+      <ModeProvider>
       <div className="app">
         <Header />
-        <DemoGuide />
+        <Guide />
         <main className="workbench">
           <section className="host" aria-label="Relay CRM, the host application">
             <header className="host__chrome">
@@ -81,21 +132,11 @@ export function App() {
           </section>
 
           <MandateLayer>
-            <div className="layer__grid">
-              <div className="column column--fit">
-                <AuthorityPanel />
-                <Inspector />
-              </div>
-              <div className="column column--fit">
-                <ConflictPanel />
-                <AgentConsole />
-                <StagedChanges />
-              </div>
-            </div>
-            <Timeline />
+            <LayerContents />
           </MandateLayer>
         </main>
       </div>
+      </ModeProvider>
     </WebMcpProvider>
   );
 }
