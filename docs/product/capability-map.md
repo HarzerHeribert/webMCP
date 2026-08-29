@@ -182,7 +182,8 @@ Phase M7B — Submission artifacts
     EVIDENCE: `README.md` — the problem, why WebMCP specifically, the schema-communicates-authority claim, the implementation, and what this is not.
 ☑ Write the <3-minute video script, beat by beat, against the running demo. (SUBMISSION)
     EVIDENCE: `docs/17_DEMO_SCRIPT.md` — sixteen beats with timings, written against the running app, plus an explicit do-not-claim list.
-☐ Record the limitations honestly: no identity attestation, no production CRM, no model. (D-009, `docs/09`)
+☑ Record the limitations honestly: no identity attestation, no production CRM, no model. (D-009, `docs/09`)
+    EVIDENCE: `docs/18_LIMITATIONS.md`, linked from the README — the security claim stated precisely, what the schema does and does not do, no model anywhere, and what has not been tested.
 
 Phase M8 — Deployment
 

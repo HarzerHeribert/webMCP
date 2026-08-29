@@ -126,6 +126,10 @@ either way.
 - Not a production CRM. Relay CRM is a seeded, resettable demo.
 - Not an autonomous agent, and not an agent harness.
 
+The full, honest list is [`docs/18_LIMITATIONS.md`](docs/18_LIMITATIONS.md) —
+including the sentence about delegation that is convenient and slightly false,
+and the accurate one that replaces it.
+
 ## Licence
 
 MIT — see [LICENSE](LICENSE).
