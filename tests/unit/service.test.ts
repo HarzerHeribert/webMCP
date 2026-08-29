@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { MandateService } from '../../server/core/service.ts';
-import { MemorySessionStore } from '../../server/core/store.ts';
-import { MandateError } from '../../server/core/errors.ts';
-import { FakeClock } from '../helpers/fakeClock.ts';
+import { MandateService } from '../../server/core/service';
+import { MemorySessionStore } from '../../server/core/store';
+import { MandateError } from '../../server/core/errors';
+import { FakeClock } from '../helpers/fakeClock';
 
 /**
  * Unit layer: drives `MandateService` directly against an in-memory store and

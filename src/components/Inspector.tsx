@@ -1,7 +1,7 @@
 import '../styles/webmcp.css';
-import type { ToolDescriptor } from '../../server/core/capabilities.ts';
-import { useSession } from '../lib/store.tsx';
-import { useWebMcp } from '../webmcp/provider.tsx';
+import type { ToolDescriptor } from '../../server/core/capabilities';
+import { useSession } from '../lib/store';
+import { useWebMcp } from '../webmcp/provider';
 
 /**
  * The capability inspector — `docs/15_DESIGN_SYSTEM.md`: "Inspector mirrors

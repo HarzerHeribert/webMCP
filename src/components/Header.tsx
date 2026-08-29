@@ -1,6 +1,6 @@
-import { api } from '../lib/api.ts';
-import { useSession, useStore } from '../lib/store.tsx';
-import { useWebMcp } from '../webmcp/provider.tsx';
+import { api } from '../lib/api';
+import { useSession, useStore } from '../lib/store';
+import { useWebMcp } from '../webmcp/provider';
 
 /** The instrument row. Everything here is something the demo asks the audience
  *  to watch change: the revision, the mandate version, and whether the page's

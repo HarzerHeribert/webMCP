@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
-import { useSession } from '../lib/store.tsx';
-import type { TimelineEvent, TimelineKind } from '../../server/core/types.ts';
+import { useSession } from '../lib/store';
+import type { TimelineEvent, TimelineKind } from '../../server/core/types';
 import '../styles/timeline.css';
 
 /**

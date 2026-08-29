@@ -1,10 +1,10 @@
-import { Hono } from 'hono';
-import { compileCapabilities, NEVER_REGISTERED } from './core/capabilities.ts';
-import { MandateError } from './core/errors.ts';
-import { MandateService } from './core/service.ts';
-import { MemorySessionStore, type SessionStore } from './core/store.ts';
-import type { Session } from './core/types.ts';
-import { CUSTOMER_FIELDS, CUSTOMER_STATUSES, DELEGATABLE_FIELDS } from './core/types.ts';
+import { Hono, type Context } from 'hono';
+import { compileCapabilities, NEVER_REGISTERED } from './core/capabilities';
+import { MandateError } from './core/errors';
+import { MandateService } from './core/service';
+import { MemorySessionStore, type SessionStore } from './core/store';
+import type { Session } from './core/types';
+import { CUSTOMER_FIELDS, CUSTOMER_STATUSES, DELEGATABLE_FIELDS } from './core/types';
 
 /**
  * One service, two callers. `docs/16`: the human interface and the tool path
@@ -42,9 +42,33 @@ function view(session: Session): ClientSession {
   };
 }
 
+/**
+ * An unknown route is still an API answer. Hono's default 404 is plain text,
+ * which breaks the envelope `docs/16_API_AND_ERROR_MODEL.md` promises — and the
+ * most important 404 this service returns is `/tools/apply`, where a caller
+ * deserves to be told in the same shape as every other refusal.
+ *
+ * Exported because a sub-app's `notFound` does not propagate through Hono's
+ * `.route()` mount: the Vercel entry mounts this service and has to set it too.
+ */
+export const notFoundJson = (c: Context) =>
+  c.json(
+    {
+      error: {
+        code: 'NOT_FOUND',
+        message: 'No such route.',
+        recoverable: false,
+        recovery: 'Read mandate_get_capabilities for the tools that exist.',
+      },
+    },
+    404,
+  );
+
 export function createApp(store: SessionStore = new MemorySessionStore()) {
   const service = new MandateService(store);
   const app = new Hono();
+
+  app.notFound(notFoundJson);
 
   app.onError((err, c) => {
     if (err instanceof MandateError) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createApp, SESSION_HEADER } from '../../server/app.ts';
+import { createApp, SESSION_HEADER } from '../../server/app';
 
 /**
  * Integration layer: drives `createApp()` through Hono's built-in fetch

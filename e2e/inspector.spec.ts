@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { panelByLabel, panelByTitle, readout, readToolSchema, toolRow, openMandateLayer } from './helpers.ts';
+import { panelByLabel, panelByTitle, readout, readToolSchema, toolRow, openMandateLayer } from './helpers';
 
 /**
  * The capability inspector: `docs/15_DESIGN_SYSTEM.md`'s claim that the

@@ -582,3 +582,23 @@ h1, h2, h3, p { margin: 0; }
 .commit--blocked { border-top-color: var(--warn); }
 .commit--blocked { border-top-color: var(--warn); }
 .commit__ready { margin-left: var(--s2); vertical-align: middle; }
+
+/* ── boot failure ─────────────────────────────────────────────────────────
+   A dead service used to look exactly like a slow one: "Opening a session…"
+   forever, with nothing to read and nothing to press. */
+.boot__msg { color: var(--text-3); font-size: var(--t-sm); letter-spacing: 0.02em; }
+.boot__fail {
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--s3);
+  max-width: 54ch; padding: var(--s8) var(--s6);
+  background: var(--surface-1); border: 1px solid var(--line);
+  border-top: 2px solid var(--danger);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-panel);
+}
+.boot__title { font-size: var(--t-lg); font-weight: 620; letter-spacing: -0.015em; }
+.boot__body { font-size: var(--t-base); color: var(--text-2); line-height: 1.6; }
+.boot__detail {
+  font-size: var(--t-xs); color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--line-hair);
+  border-radius: var(--r-sm); padding: var(--s2) var(--s3); align-self: stretch;
+  overflow-wrap: anywhere;
+}

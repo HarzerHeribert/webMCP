@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ApiError, api, type ClientSession, type ErrorEnvelope } from './api.ts';
+import { ApiError, api, type ClientSession, type ErrorEnvelope } from './api';
 
 /**
  * One store, one truth. Every mutation returns the whole server view, and the
@@ -15,6 +15,11 @@ import { ApiError, api, type ClientSession, type ErrorEnvelope } from './api.ts'
 interface StoreValue {
   view: ClientSession | null;
   loading: boolean;
+  /** Set when the very first session could not be opened at all — a dead API,
+   *  not a refusal. Distinct from `lastError`, which is a refusal the server
+   *  chose to make. */
+  bootError: string | null;
+  retryBoot(): void;
   lastError: ErrorEnvelope | null;
   /** Bumped whenever the server revision changes, so readouts can flash. */
   revisionPulse: number;
@@ -29,6 +34,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<ClientSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastError, setLastError] = useState<ErrorEnvelope | null>(null);
+  const [bootError, setBootError] = useState<string | null>(null);
+  const [bootAttempt, setBootAttempt] = useState(0);
   const [revisionPulse, setRevisionPulse] = useState(0);
   const lastRevision = useRef<number>(0);
 
@@ -75,15 +82,29 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, [absorb]);
 
+  // A failed boot must say so. Swallowing it left the page on "Opening a
+  // session…" forever, which is what a dead API looked like from the outside:
+  // no error, no retry, nothing to act on.
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
+      setLoading(true);
+      setBootError(null);
       try {
-        absorb(await api.open());
+        const opened = await api.open();
+        if (!cancelled) absorb(opened);
+      } catch (e) {
+        if (!cancelled) {
+          setBootError(e instanceof Error ? e.message : String(e));
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [absorb]);
+    return () => {
+      cancelled = true;
+    };
+  }, [absorb, bootAttempt]);
 
   // A mandate expires by the clock. Without this poll the interface would keep
   // claiming authority that the server has already let lapse.
@@ -94,8 +115,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [view?.session.mandate?.status, view?.session.mandate?.version, refresh, view?.session.mandate]);
 
   const value = useMemo<StoreValue>(
-    () => ({ view, loading, lastError, revisionPulse, clearError: () => setLastError(null), run, refresh }),
-    [view, loading, lastError, revisionPulse, run, refresh],
+    () => ({
+      view,
+      loading,
+      bootError,
+      retryBoot: () => setBootAttempt((n) => n + 1),
+      lastError,
+      revisionPulse,
+      clearError: () => setLastError(null),
+      run,
+      refresh,
+    }),
+    [view, loading, bootError, lastError, revisionPulse, run, refresh],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

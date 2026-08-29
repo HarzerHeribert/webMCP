@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { customerRow, panelByTitle, readout, runSimulatedCaller, openMandateLayer } from './helpers.ts';
+import { customerRow, panelByTitle, readout, runSimulatedCaller, openMandateLayer } from './helpers';
 
 /**
  * The agent path, driven through the real UI rather than a raw request: the

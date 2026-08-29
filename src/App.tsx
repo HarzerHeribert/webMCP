@@ -1,15 +1,15 @@
-import { AuthorityPanel } from './components/AuthorityPanel.tsx';
-import { CustomerTable } from './components/CustomerTable.tsx';
-import { Header } from './components/Header.tsx';
-import { StagedChanges } from './components/StagedChanges.tsx';
-import { ConflictPanel } from './components/ConflictPanel.tsx';
-import { Inspector } from './components/Inspector.tsx';
-import { Timeline } from './components/Timeline.tsx';
-import { AgentConsole } from './components/AgentConsole.tsx';
-import { DemoGuide } from './components/DemoGuide.tsx';
-import { MandateLayer } from './components/MandateLayer.tsx';
-import { useStore } from './lib/store.tsx';
-import { WebMcpProvider } from './webmcp/provider.tsx';
+import { AuthorityPanel } from './components/AuthorityPanel';
+import { CustomerTable } from './components/CustomerTable';
+import { Header } from './components/Header';
+import { StagedChanges } from './components/StagedChanges';
+import { ConflictPanel } from './components/ConflictPanel';
+import { Inspector } from './components/Inspector';
+import { Timeline } from './components/Timeline';
+import { AgentConsole } from './components/AgentConsole';
+import { DemoGuide } from './components/DemoGuide';
+import { MandateLayer } from './components/MandateLayer';
+import { useStore } from './lib/store';
+import { WebMcpProvider } from './webmcp/provider';
 
 /**
  * Two regions, and the seam between them is the whole point.
@@ -31,12 +31,32 @@ import { WebMcpProvider } from './webmcp/provider.tsx';
  * running a tool and watching the result land are one glance apart.
  */
 export function App() {
-  const { view, loading } = useStore();
+  const { view, loading, bootError, retryBoot } = useStore();
 
-  if (loading || !view) {
+  if (!view) {
     return (
       <div className="app">
-        <div className="boot">Opening a session…</div>
+        <div className="boot">
+          {loading ? (
+            <span className="boot__msg">Opening a session…</span>
+          ) : (
+            <div className="boot__fail">
+              <span className="chip chip--danger">
+                <span className="chip__dot" />
+                cannot reach the service
+              </span>
+              <h1 className="boot__title">Relay CRM could not open a session.</h1>
+              <p className="boot__body">
+                The application service did not answer. Nothing is lost — sessions are
+                seeded on demand, so a retry starts a fresh one.
+              </p>
+              {bootError && <p className="boot__detail mono">{bootError}</p>}
+              <button className="btn btn--primary" onClick={retryBoot}>
+                Try again
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

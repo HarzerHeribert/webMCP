@@ -1,5 +1,5 @@
-import type { Mandate, Session } from './types.ts';
-import { CUSTOMER_STATUSES } from './types.ts';
+import type { Mandate, Session } from './types';
+import { CUSTOMER_STATUSES } from './types';
 
 /**
  * The capability compiler. It turns the *current* mandate into the tool

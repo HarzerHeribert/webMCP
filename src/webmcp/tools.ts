@@ -1,4 +1,4 @@
-import { ApiError, agentApi, type ClientSession, type ErrorEnvelope } from '../lib/api.ts';
+import { ApiError, agentApi, type ClientSession, type ErrorEnvelope } from '../lib/api';
 
 /**
  * The WebMCP tool implementations. Every mutating call goes through

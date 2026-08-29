@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { customerRow, editFieldAsHuman, panelByTitle, readout, runSimulatedCaller, openMandateLayer } from './helpers.ts';
+import { customerRow, editFieldAsHuman, panelByTitle, readout, runSimulatedCaller, openMandateLayer } from './helpers';
 
 /**
  * The shared workspace: a human edit and an agent edit landing on the same

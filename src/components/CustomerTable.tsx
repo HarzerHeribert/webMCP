@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { api } from '../lib/api.ts';
-import { useSession, useStore } from '../lib/store.tsx';
-import type { Customer, CustomerField } from '../../server/core/types.ts';
+import { api } from '../lib/api';
+import { useSession, useStore } from '../lib/store';
+import type { Customer, CustomerField } from '../../server/core/types';
 
 /**
  * Relay CRM's customer list, and the place the product's central distinction is

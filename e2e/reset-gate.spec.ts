@@ -7,7 +7,7 @@ import {
   readout,
   readToolSchema,
   runSimulatedCaller,
-  toolRow, openMandateLayer } from './helpers.ts';
+  toolRow, openMandateLayer } from './helpers';
 
 /**
  * THE GATE: reset must replay the whole demo, in one uninterrupted run, with

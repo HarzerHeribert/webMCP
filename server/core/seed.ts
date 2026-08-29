@@ -1,4 +1,4 @@
-import type { Customer } from './types.ts';
+import type { Customer } from './types';
 
 /** Deterministic Relay CRM seed. Byte-identical on every reset, because the
  *  demo is replayed live and a surprise row is a fumbled demo (`docs/13`). */

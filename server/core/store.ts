@@ -1,4 +1,4 @@
-import type { Session } from './types.ts';
+import type { Session } from './types';
 
 /**
  * The storage port. Everything above it is pure domain logic, so the deployment

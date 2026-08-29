@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useSession, useStore } from '../lib/store.tsx';
-import { useWebMcp } from '../webmcp/provider.tsx';
+import { useSession, useStore } from '../lib/store';
+import { useWebMcp } from '../webmcp/provider';
 
 /**
  * The layer, what gates it, and the fact that it can be closed.

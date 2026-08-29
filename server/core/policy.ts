@@ -1,6 +1,6 @@
-import { errors } from './errors.ts';
-import type { CustomerField, DelegatableField, Mandate, Session } from './types.ts';
-import { DELEGATABLE_FIELDS } from './types.ts';
+import { errors } from './errors';
+import type { CustomerField, DelegatableField, Mandate, Session } from './types';
+import { DELEGATABLE_FIELDS } from './types';
 
 /**
  * The enforcement point. `docs/06_SECURITY_MODEL.md`: a WebMCP caller is an

@@ -1,13 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { ToolDescriptor } from '../../server/core/capabilities.ts';
-import { useSession, useStore } from '../lib/store.tsx';
-import { isWebMcpAvailable, registerWebMcpTools } from './adapter.ts';
-import type { WebMcpTool } from './adapter.ts';
-import { createToolImplementations } from './tools.ts';
-import type { ToolImplementations, ToolResult } from './tools.ts';
+import type { ToolDescriptor } from '../../server/core/capabilities';
+import { useSession, useStore } from '../lib/store';
+import { isWebMcpAvailable, registerWebMcpTools } from './adapter';
+import type { WebMcpTool } from './adapter';
+import { createToolImplementations } from './tools';
+import type { ToolImplementations, ToolResult } from './tools';
 
-export type { ToolResult } from './tools.ts';
+export type { ToolResult } from './tools';
 
 /**
  * CONTRACT — `Header.tsx` reads `status`, `statusLabel`, `toolNames`, and

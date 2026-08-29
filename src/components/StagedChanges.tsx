@@ -1,6 +1,6 @@
-import { api } from '../lib/api.ts';
-import { useSession, useStore } from '../lib/store.tsx';
-import type { Change } from '../../server/core/types.ts';
+import { api } from '../lib/api';
+import { useSession, useStore } from '../lib/store';
+import type { Change } from '../../server/core/types';
 
 /**
  * The shared workspace. A human edit and an agent edit land in the same list, in

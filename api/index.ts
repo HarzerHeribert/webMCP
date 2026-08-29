@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
-import { createApp } from '../server/app.ts';
-import { MemorySessionStore } from '../server/core/store.ts';
-import { RedisSessionStore } from '../server/core/redis-store.ts';
+import { createApp, notFoundJson } from '../server/app';
+import { MemorySessionStore } from '../server/core/store';
+import { RedisSessionStore } from '../server/core/redis-store';
 
 /**
  * The Vercel entry (D-011). `vercel.json` rewrites every `/api/*` request here,
@@ -25,7 +25,9 @@ if (!store) {
   );
 }
 
-const app = new Hono().route('/api', createApp(store ?? new MemorySessionStore()));
+const app = new Hono()
+  .route('/api', createApp(store ?? new MemorySessionStore()))
+  .notFound(notFoundJson);
 
 export default function handler(request: Request): Response | Promise<Response> {
   return app.fetch(request);

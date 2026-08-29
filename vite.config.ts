@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import type { Connect, PluginOption } from 'vite';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createApp } from './server/app.ts';
+import { createApp } from './server/app';
 
 /**
  * The service runs *inside* the dev server, so client and API share one origin

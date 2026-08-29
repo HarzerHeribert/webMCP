@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useSession } from '../lib/store.tsx';
+import { useSession } from '../lib/store';
 import '../styles/demo.css';
 
 /**

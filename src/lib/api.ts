@@ -1,6 +1,6 @@
-import type { ClientSession } from '../../server/app.ts';
-import type { ErrorEnvelope } from '../../server/core/errors.ts';
-import type { CustomerField } from '../../server/core/types.ts';
+import type { ClientSession } from '../../server/app';
+import type { ErrorEnvelope } from '../../server/core/errors';
+import type { CustomerField } from '../../server/core/types';
 
 export type { ClientSession };
 export type { ErrorEnvelope };

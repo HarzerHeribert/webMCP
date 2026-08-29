@@ -1,4 +1,4 @@
-import type { Clock } from '../../server/core/service.ts';
+import type { Clock } from '../../server/core/service';
 
 /** A controllable clock for expiry tests. `MandateService` takes an injectable
  *  `Clock`; this is the test double so expiry can be driven by moving a number

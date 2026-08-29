@@ -1,6 +1,6 @@
-import { api } from '../lib/api.ts';
-import { useStore } from '../lib/store.tsx';
-import type { ErrorEnvelope } from '../lib/api.ts';
+import { api } from '../lib/api';
+import { useStore } from '../lib/store';
+import type { ErrorEnvelope } from '../lib/api';
 import '../styles/timeline.css';
 
 /**

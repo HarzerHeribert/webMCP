@@ -1,5 +1,5 @@
-import type { SessionStore } from './store.ts';
-import type { Session } from './types.ts';
+import type { SessionStore } from './store';
+import type { Session } from './types';
 
 /**
  * Upstash Redis over its REST API — no SDK, because one `fetch` is the whole

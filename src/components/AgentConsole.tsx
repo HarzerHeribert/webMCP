@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useWebMcp } from '../webmcp/provider.tsx';
-import type { ToolResult } from '../webmcp/provider.tsx';
+import { useWebMcp } from '../webmcp/provider';
+import type { ToolResult } from '../webmcp/provider';
 
 interface JsonSchemaProp {
   type?: string;

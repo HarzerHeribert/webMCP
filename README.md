@@ -122,6 +122,11 @@ npm run check      # typecheck, lint, unit + integration tests
 npm run test:e2e   # browser tests
 ```
 
+Deployed as a single Vercel function under `/api` with the built client on the
+same origin. Import specifiers carry no `.ts` extension: the platform transpiles
+the function entry without rewriting them, and a `.ts` specifier becomes a
+runtime module path that does not exist in the lambda.
+
 The WebMCP API is behind a flag in Chrome. Without it the app reports
 `WEBMCP_UNAVAILABLE`, stays completely usable by hand, and the built-in
 simulated caller drives the same tool implementations — so the whole demo runs

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { customerRow, openMandateLayer, panelByTitle } from './helpers.ts';
+import { customerRow, openMandateLayer, panelByTitle } from './helpers';
 
 /**
  * The layer is not part of the host, and the interface says so by being able to

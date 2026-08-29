@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { panelByTitle, readout, openMandateLayer } from './helpers.ts';
+import { panelByTitle, readout, openMandateLayer } from './helpers';
 
 /**
  * The human flow that exists today: select → delegate → the scope chips read

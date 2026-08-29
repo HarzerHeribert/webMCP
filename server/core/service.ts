@@ -1,7 +1,7 @@
-import { errors, MandateError } from './errors.ts';
-import { assertDelegatable, authorize, settleExpiry } from './policy.ts';
-import { EXTERNAL_UPDATE_TARGET, seedCustomers } from './seed.ts';
-import type { SessionStore } from './store.ts';
+import { errors, MandateError } from './errors';
+import { assertDelegatable, authorize, settleExpiry } from './policy';
+import { EXTERNAL_UPDATE_TARGET, seedCustomers } from './seed';
+import type { SessionStore } from './store';
 import type {
   Actor,
   Change,
@@ -10,8 +10,8 @@ import type {
   Session,
   TimelineEvent,
   TimelineKind,
-} from './types.ts';
-import { CUSTOMER_FIELDS } from './types.ts';
+} from './types';
+import { CUSTOMER_FIELDS } from './types';
 
 /**
  * The authoritative application service. The human interface and the WebMCP

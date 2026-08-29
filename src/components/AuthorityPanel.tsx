@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api.ts';
-import { useSession, useStore } from '../lib/store.tsx';
+import { api } from '../lib/api';
+import { useSession, useStore } from '../lib/store';
 
 /**
  * The delegation surface. This panel is the product; everything else is the
