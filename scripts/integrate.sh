@@ -29,6 +29,12 @@ if [ -n "$(git status --porcelain)" ]; then
   echo "  dirty tree makes 'what did this worker change' unanswerable."; exit 1
 fi
 
+# Generated files a worker's toolchain rewrites just by running. They are not
+# deliverables, they collide across every worktree, and a worker that ran a
+# typecheck would otherwise look like it was fighting the other two.
+GENERATED=(':(exclude)*.tsbuildinfo' ':(exclude)node_modules')
+ignore_generated() { grep -Ev '(\.tsbuildinfo|^node_modules)' ; }
+
 fail=0
 printf '\033[1m=== %d worktree(s) ===\033[0m\n' "${#NAMES[@]}"
 for n in "${NAMES[@]}"; do
@@ -61,10 +67,10 @@ fi
 echo
 for n in "${NAMES[@]}"; do
   wt=".worktrees/$n"; patch=$(mktemp)
-  git -C "$wt" diff HEAD > "$patch"
+  git -C "$wt" diff HEAD -- . "${GENERATED[@]}" > "$patch"
   if [ -s "$patch" ]; then
     if git apply --check "$patch" 2>/dev/null && git apply "$patch"; then
-      printf '  applied  %-24s %s\n' "$n" "$(git -C "$wt" diff --shortstat HEAD)"
+      printf '  applied  %-24s %s\n' "$n" "$(git -C "$wt" diff --shortstat HEAD -- . "${GENERATED[@]}")"
     else
       printf '  \033[31mFAILED   %s — patch does not apply\033[0m\n' "$n"; rm -f "$patch"; exit 1
     fi
@@ -72,11 +78,8 @@ for n in "${NAMES[@]}"; do
   rm -f "$patch"
   # Untracked files are invisible to `git diff` and are frequently the whole
   # package — a tests-only worker has no tracked changes at all.
-  git -C "$wt" ls-files --others --exclude-standard | while read -r f; do
+  git -C "$wt" ls-files --others --exclude-standard | ignore_generated | while read -r f; do
     [ -n "$f" ] || continue
-    # A worktree's node_modules is a symlink this script planted; it is not a
-    # deliverable, and copying it into main would replace the real directory.
-    case "$f" in node_modules|node_modules/*) continue ;; esac
     mkdir -p "$(dirname "./$f")"; cp "$wt/$f" "./$f"
     printf '  copied   %-24s %s\n' "$n" "$f"
   done
