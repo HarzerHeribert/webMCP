@@ -1,5 +1,4 @@
 import { api } from '../lib/api';
-import { useMode } from '../lib/mode';
 import { useSession, useStore } from '../lib/store';
 import type { Change } from '../../server/core/types';
 
@@ -20,40 +19,10 @@ const STATE_CHIP: Record<Change['state'], { cls: string; label: string }> = {
   APPLIED: { cls: 'chip--settled', label: 'applied' },
 };
 
-/**
- * The same four states, said to somebody who is about to approve them.
- *
- * `draft` / `validated` / `stale` are the state machine's own names, and they
- * are the right names in technical mode because the inspector and the timeline
- * use them too. They are the wrong names on an approval: a person deciding
- * whether to commit somebody else's edit needs to know whether it is safe, not
- * which enum member it is. `stale` in particular is the one state that should
- * stop somebody, and "stale" does not read as "this would overwrite work you
- * have not seen".
- */
-const STATE_PLAIN: Record<Change['state'], { cls: string; label: string }> = {
-  DRAFT: { cls: 'chip--settled', label: 'not checked yet' },
-  VALIDATED: { cls: 'chip--ok', label: 'checked · safe to apply' },
-  STALE: { cls: 'chip--warn', label: 'the record moved on — redo this' },
-  APPLIED: { cls: 'chip--settled', label: 'applied' },
-};
-
-/** Field keys are the schema's nouns, and in technical mode they have to match
- *  the enum the inspector shows. On an approval they are just jargon. */
-const FIELD_LABEL: Record<string, string> = {
-  status: 'Status',
-  nextAction: 'Next action',
-  owner: 'Owner',
-  renewalDate: 'Renewal date',
-  arr: 'ARR',
-  notes: 'Notes',
-};
 
 export function StagedChanges() {
   const { session } = useSession();
   const { run } = useStore();
-  const { mode } = useMode();
-  const plain = mode === 'user';
 
   const pending = session.changes.filter((c) => c.state !== 'APPLIED');
   const applied = session.changes.filter((c) => c.state === 'APPLIED');
@@ -65,7 +34,7 @@ export function StagedChanges() {
       <div className="panel__head">
         <h2 className="panel__title">Staged changes</h2>
         <span className="panel__count">{pending.length}</span>
-        {!plain && (
+        {(
           <div className="panel__actions">
             <button
               className="btn btn--sm"
@@ -110,40 +79,18 @@ export function StagedChanges() {
           </span>
           <span className="commit__sub">
             {anyStale
-              ? plain
-                ? 'The record changed underneath this. Bring it up to date first.'
-                : 'Stale work must be rebased before it can be applied.'
+              ? 'Stale work must be rebased before it can be applied.'
               : pending.length === 0
                 ? 'Nothing to commit.'
                 : allValidated
                   ? `${pending.length} validated change${pending.length === 1 ? '' : 's'} ready to commit.`
-                  : plain
-                    ? 'Applying checks these against the record first.'
-                    : 'Validate the staged changes first.'}
+                  : 'Validate the staged changes first.'}
           </span>
         </div>
         <button
           className="btn btn--primary"
-          disabled={plain ? pending.length === 0 || anyStale : !allValidated}
-          onClick={() =>
-            void run(async () => {
-              // One button for a person. Validation is a step in the mechanism,
-              // not a decision anybody makes — nobody means "check it but do
-              // not do it". It still runs first, and it is the only moment the
-              // distinction was ever worth showing: if the record moved
-              // underneath, stop here rather than let the server refuse with
-              // "validate the staged changes first", which is advice about a
-              // button this mode does not have. The rows now say what happened.
-              if (plain && !allValidated) {
-                const checked = await api.validate();
-                const blocked = checked.session.changes.some(
-                  (c) => c.state !== 'APPLIED' && c.state !== 'VALIDATED',
-                );
-                if (blocked) return checked;
-              }
-              return api.apply(session.revision);
-            })
-          }
+          disabled={!allValidated}
+          onClick={() => void run(() => api.apply(session.revision))}
         >
           Apply {pending.length > 0 ? pending.length : ''} change{pending.length === 1 ? '' : 's'}
         </button>
@@ -155,10 +102,8 @@ export function StagedChanges() {
 function ChangeRow({ change }: { change: Change }) {
   const { session } = useSession();
   const { run } = useStore();
-  const { mode } = useMode();
-  const plain = mode === 'user';
   const customer = session.customers.find((c) => c.id === change.customerId);
-  const state = (plain ? STATE_PLAIN : STATE_CHIP)[change.state];
+  const state = STATE_CHIP[change.state];
   const both = change.touchedBy.length > 1;
 
   return (
@@ -166,9 +111,7 @@ function ChangeRow({ change }: { change: Change }) {
       <div className="change__top">
         <span className="change__target">
           {customer?.name}
-          <span className={`change__field${plain ? ' change__field--plain' : ' mono'}`}>
-            {plain ? (FIELD_LABEL[change.field] ?? change.field) : change.field}
-          </span>
+          <span className="change__field mono">{change.field}</span>
         </span>
         <span className={`chip ${state.cls}`}>
           <span className="chip__dot" />
@@ -192,19 +135,15 @@ function ChangeRow({ change }: { change: Change }) {
         ) : (
           <span className={`chip chip--${change.touchedBy[0]}`}>
             <Provenance actor={change.touchedBy[0]} />
-            {plain
-              ? change.touchedBy[0] === 'human'
-                ? 'you staged this'
-                : 'the agent staged this'
-              : change.touchedBy[0]}
+            {change.touchedBy[0]}
           </span>
         )}
         {/* Provenance for the audit, not for the approver: which revision a
             change was based on and which mandate authorised it are what make
             the conflict and rebase story legible, and they are noise to
             somebody deciding whether to commit it. */}
-        {!plain && <span className="dim mono">base r{change.baseRevision}</span>}
-        {!plain && change.mandateVersion !== null && (
+        <span className="dim mono">base r{change.baseRevision}</span>
+        {change.mandateVersion !== null && (
           <span className="dim mono">mandate v{change.mandateVersion}</span>
         )}
         {change.state !== 'APPLIED' && (

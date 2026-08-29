@@ -138,51 +138,50 @@ test.describe('the ChatGPT mobile app is told the truth: there is nothing to tur
 });
 
 /**
- * `docs/12_DECISIONS.md` is unchanged by the mode switch, and that is the point
- * worth testing: user mode removes panels and nothing else. What the server
- * enforces, and what the page registers, are identical either way.
+ * The product form has no panel at all. What survives the removal is the rule
+ * that bounds every other piece of hiding in this interface: live authority is
+ * never invisible.
  */
-test('user mode drops the instrumentation without touching what is enforced', async ({ page }) => {
+test('the product form has no panel, and still cannot hide live authority', async ({ page }) => {
   await page.goto('/');
   await openMandateLayer(page);
   await customerRow(page, 'Northwind Logistics').locator('.customer__pick input').click();
   await page.getByRole('button', { name: /^Delegate/ }).click();
 
-  // Technical mode: the reviewer's instruments are present.
   await expect(page.getByText('Capability inspector', { exact: true })).toBeVisible();
-  await expect(page.getByText('Simulated caller', { exact: true })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Timeline', exact: true })).toBeVisible();
 
-  await page.getByRole('button', { name: 'User', exact: true }).click();
+  await page.getByRole('button', { name: 'Product', exact: true }).click();
 
-  // User mode: gone, along with the guide that narrates them.
+  // Every panel is gone, including the layer itself.
+  await expect(page.locator('.layer')).toHaveCount(0);
   await expect(page.getByText('Capability inspector', { exact: true })).toBeHidden();
   await expect(page.getByText('Simulated caller', { exact: true })).toBeHidden();
-  await expect(page.getByRole('heading', { name: 'Timeline', exact: true })).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Staged changes', exact: true })).toBeHidden();
 
-  // What a person needs is still there, and live authority is still declared —
-  // the rule that bounds every other piece of hiding in this interface.
-  await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
-  await expect(page.getByText('active · v1')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Staged changes', exact: true })).toBeVisible();
+  // What is left states the live mandate, and the record still carries its ring.
+  const pill = page.getByRole('button', { name: 'Mandate — delegated authority' });
+  await expect(pill).toBeVisible();
+  await expect(pill).toContainText('active · v1');
   await expect(customerRow(page, 'Northwind Logistics')).toHaveClass(/customer--delegated/);
 
-  // And the switch is a view, not a permission: back again, nothing was lost.
-  await page.getByRole('button', { name: 'Technical', exact: true }).click();
-  await expect(page.getByText('Capability inspector', { exact: true })).toBeVisible();
-  await expect(page.getByText('active · v1')).toBeVisible();
+  // The grant is reachable without a panel, anchored to the pill.
+  await pill.click();
+  await expect(page.getByRole('dialog', { name: 'Delegated authority' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Revoke now' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog', { name: 'Delegated authority' })).toBeHidden();
 });
 
 /**
- * An approval that reads `nextAction · base r1 mandate v1 · draft` is a database
- * row. The person deciding whether to commit somebody else's edit needs a
- * sentence; the revision and mandate provenance are what make the *audit*
- * legible and belong with the rest of the instrumentation.
+ * The approval is anchored to the record it would change, so the row stays on
+ * screen and uncovered while the decision is made — which is the argument for a
+ * popover over both a modal and a permanent panel.
  */
-test('an approval reads as a sentence in user mode, not as a record', async ({ page }) => {
+test('the approval appears on the record, reads as a sentence, and commits in one press', async ({ page }) => {
   await page.goto('/');
   await openMandateLayer(page);
-  await customerRow(page, 'Northwind Logistics').locator('.customer__pick input').click();
+  const row = customerRow(page, 'Northwind Logistics');
+  await row.locator('.customer__pick input').click();
   await page.getByRole('button', { name: /^Delegate/ }).click();
   await runSimulatedCaller(page, 'mandate_stage_customer_update', {
     customerId: 'c-northwind',
@@ -191,33 +190,34 @@ test('an approval reads as a sentence in user mode, not as a record', async ({ p
     mandateVersion: '1',
   });
 
-  const staged = panelByTitle(page, 'Staged changes');
-  await expect(staged.getByText('base r1')).toBeVisible();
-  await expect(staged.getByText('nextAction', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Product', exact: true }).click();
 
-  await page.getByRole('button', { name: 'User', exact: true }).click();
+  const review = row.getByRole('button', { name: /to review/ });
+  await expect(review).toBeVisible();
+  await review.click();
 
-  await expect(staged.getByText('Next action', { exact: true })).toBeVisible();
-  await expect(staged.getByText('the agent staged this')).toBeVisible();
-  await expect(staged.getByText('base r1')).toBeHidden();
-  await expect(staged.getByText('mandate v1')).toBeHidden();
-  await expect(staged.getByText('nextAction', { exact: true })).toBeHidden();
+  const pop = page.getByRole('dialog', { name: 'Review staged changes' });
+  await expect(pop).toContainText('The agent staged this');
+  await expect(pop).toContainText('Next action');
+  // The audit's provenance is not what an approver needs.
+  await expect(pop).not.toContainText('base r');
+  await expect(pop).not.toContainText('mandate v');
 
-  // Validation is a step in the mechanism, not a decision: one button.
-  await expect(staged.getByRole('button', { name: 'Validate', exact: true })).toBeHidden();
+  await pop.getByRole('button', { name: 'Apply', exact: true }).click();
 
-  // The one state that must stop somebody has to say what it means — and
-  // pressing Apply is what surfaces it, since there is nothing else to press.
-  await page.getByRole('button', { name: 'Simulate external update' }).click();
-  await staged.getByRole('button', { name: /^Apply / }).click();
-  await expect(staged.getByText(/the record moved on/)).toBeVisible();
-  await expect(page.getByText(/APPLIED THIS SESSION/i)).toBeHidden();
+  // The popover put itself away, the record carries the value, and there is
+  // nothing left to review — one press, no separate validate step.
+  await expect(row.getByRole('button', { name: /to review/ })).toBeHidden();
+  await expect(pop).toBeHidden();
+  await expect(row.locator('.fields').getByText('Book the exec sync')).toBeVisible();
 });
 
-test('in user mode one button checks and commits, and says so', async ({ page }) => {
+/** The record moving underneath is the one moment the check was worth showing. */
+test('a stale approval refuses to commit and says why', async ({ page }) => {
   await page.goto('/');
   await openMandateLayer(page);
-  await customerRow(page, 'Northwind Logistics').locator('.customer__pick input').click();
+  const row = customerRow(page, 'Northwind Logistics');
+  await row.locator('.customer__pick input').click();
   await page.getByRole('button', { name: /^Delegate/ }).click();
   await runSimulatedCaller(page, 'mandate_stage_customer_update', {
     customerId: 'c-northwind',
@@ -225,13 +225,11 @@ test('in user mode one button checks and commits, and says so', async ({ page })
     value: 'Active',
     mandateVersion: '1',
   });
-  await page.getByRole('button', { name: 'User', exact: true }).click();
+  await page.getByRole('button', { name: 'Simulate external update' }).click();
+  await page.getByRole('button', { name: 'Product', exact: true }).click();
 
-  const staged = panelByTitle(page, 'Staged changes');
-  await expect(staged.getByText('Applying checks these against the record first.')).toBeVisible();
-  await staged.getByRole('button', { name: /^Apply / }).click();
-
-  // One press, no prior Validate, and the value is in the CRM.
-  await expect(staged.getByText('applied', { exact: true })).toBeVisible();
-  await expect(customerRow(page, 'Northwind Logistics').getByText('Active')).toBeVisible();
+  await row.getByRole('button', { name: /to review/ }).click();
+  const pop = page.getByRole('dialog', { name: 'Review staged changes' });
+  await pop.getByRole('button', { name: 'Apply', exact: true }).click();
+  await expect(pop.getByText(/record changed underneath|blocked/i)).toBeVisible();
 });

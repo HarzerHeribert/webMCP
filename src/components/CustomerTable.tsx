@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useMode } from '../lib/mode';
+import { RowApproval } from './MinimalLayer';
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
 import type { Customer, CustomerField } from '../../server/core/types';
@@ -96,16 +98,20 @@ function CustomerRow({
   onToggle(): void;
 }) {
   const { session } = useSession();
+  const { mode } = useMode();
+  const row = useRef<HTMLLIElement | null>(null);
   const staged = session.changes.filter(
     (c) => c.customerId === customer.id && c.state !== 'APPLIED',
   );
 
   return (
     <li
+      ref={row}
       className={[
         'customer',
         selected ? 'customer--selected' : '',
         delegatedFields ? 'customer--delegated' : '',
+        mode === 'minimal' && staged.length > 0 ? 'customer--awaiting' : '',
       ].join(' ')}
     >
       <div className="customer__head">
@@ -123,6 +129,7 @@ function CustomerRow({
             delegated
           </span>
         )}
+        {mode === 'minimal' && <RowApproval customerId={customer.id} />}
       </div>
 
       <dl className="fields">

@@ -17,19 +17,19 @@ function ModeSwitch() {
   const { mode, setMode } = useMode();
   return (
     <div className="modeswitch" role="group" aria-label="Who the interface is showing">
-      {(['user', 'technical'] as const).map((m) => (
+      {(['minimal', 'technical'] as const).map((m) => (
         <button
           key={m}
           className={`modeswitch__opt${mode === m ? ' modeswitch__opt--on' : ''}`}
           aria-pressed={mode === m}
           onClick={() => setMode(m)}
           title={
-            m === 'user'
-              ? 'What a person actually lives with: the grant, the work, the commit.'
+            m === 'minimal'
+              ? 'The product: a pill that cannot be hidden, and a popover at each moment that needs one.'
               : 'Everything a reviewer needs: the compiled tool contract, a caller, the audit.'
           }
         >
-          {m === 'user' ? 'User' : 'Technical'}
+          {m === 'minimal' ? 'Product' : 'Technical'}
         </button>
       ))}
     </div>
