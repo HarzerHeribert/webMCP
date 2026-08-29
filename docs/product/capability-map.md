@@ -135,10 +135,23 @@ Phase M7 — The demo, and the polish that carries it
 ☐ Add browser tests for delegation, inspector narrowing, co-edit, conflict, rebase, apply, and reset.
 ☐ Add a guided demo mode that walks the three-minute script from `docs/09_DEMO_AND_SUBMISSION.md`.
 ☐ GATE: a fresh reset replays the whole demo with no manual repair.
+☐ Verify the demo runs in a browser without the WebMCP flag, through the simulated caller. (SUBMISSION: judges may not have the flag)
+
+Phase M7B — Submission artifacts
+
+> `https://webmcp.devpost.com/` — deadline 2026-09-03 13:00 PDT. Judged on WebMCP
+> leverage, execution as a coherent product, potential impact, and ambition.
+
+☑ Publish an OSS licence visible in the repository's About section. (SUBMISSION)
+    EVIDENCE: `LICENSE` (MIT) at the repository root.
+☐ Write the README as the submission's text description: why WebMCP fits, what the human and the agent can do together that was not previously feasible, and the implementation approach. (SUBMISSION)
+☐ Write the <3-minute video script, beat by beat, against the running demo. (SUBMISSION)
+☐ Record the limitations honestly: no identity attestation, no production CRM, no model. (D-009, `docs/09`)
 
 Phase M8 — Deployment
 
 ☐ Choose and record the deployment target and the storage adapter it uses. (D-010 does not cover this; record in `docs/12_DECISIONS.md`)
 ☐ Deploy one HTTPS origin, with a deterministic reset and no credentials in the repo.
+☐ Verify the live URL works in Chrome with WebMCP enabled **and** degrades correctly where it is not. (SUBMISSION)
 ☐ Verify no cross-session leakage and no internal error text on the deployed origin.
 ☐ Record deployed URL, commit SHA, browser and version, and the stated limitations.
