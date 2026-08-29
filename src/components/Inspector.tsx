@@ -46,6 +46,19 @@ export function Inspector() {
           </div>
         )}
 
+        {webmcp.status === 'registered' && !webmcp.probe.canUnregister && (
+          <div className="callout webmcp-callout">
+            <div className="callout__body">
+              <span className="callout__title">This browser cannot withdraw a registration</span>
+              <code>{webmcp.probe.where}</code> offers <code>registerTool</code> and nothing
+              to undo it, so tools registered under an earlier mandate stay visible to the
+              agent. The list below is the surface the current mandate authorises — and it
+              is the one that decides: a call against a withdrawn tool is refused by the
+              server, not by this page.
+            </div>
+          </div>
+        )}
+
         <ToolGroup
           title="Registered"
           tools={registered}

@@ -87,6 +87,26 @@ CRM notes are treated as untrusted external content and rendered as such. One
 seeded record contains a prompt-injection attempt; it changes no authority,
 because authority does not come from text.
 
+## Verified in a real browser
+
+Chrome 152 with `--enable-features=WebMCP`, driving the page's own registered
+tools through `document.modelContext.executeTool` — not a simulation:
+
+- before delegating, two read-only tools are registered; after, five;
+- the `mandate_stage_customer_update` schema an agent reads carries
+  `customerId: ["c-northwind"]`, `field: ["status","nextAction"]`,
+  `mandateVersion: 1` — exactly the scope the human granted;
+- a real tool call stages a change, and it appears in the interface;
+- a call naming an undelegated customer is refused `OUT_OF_SCOPE` by the server.
+
+Everything measured about the shipping API — including that it lives on
+`document`, not `navigator`, and that Chrome offers **no way to unregister a
+tool** — is written up in
+[`docs/20_WEBMCP_FIELD_NOTES.md`](docs/20_WEBMCP_FIELD_NOTES.md). That last
+finding would break a design where the schema is the security boundary. It does
+not break this one, and the reason is the whole point: a tool that outlives its
+mandate is still refused by the server.
+
 ## Implementation
 
 One npm project, one origin.

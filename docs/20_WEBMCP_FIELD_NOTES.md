@@ -59,7 +59,27 @@ mc.executeTool(tool, JSON.stringify({ x: 'hi' })) // works
 The first argument is the `RegisteredTool` from `getTools()`, not its name.
 This matters only for driving it from the page; an agent calls it itself.
 
-## 5. **There is no way to unregister a tool**
+## 5. `inputSchema` comes back as a JSON **string**
+
+`getTools()[n].inputSchema` is a `String`, not an object. Reading it with
+`schema.properties?.customerId?.enum` silently yields `undefined` — it has to be
+`JSON.parse`d first. A probe that forgets this concludes the schema carries
+nothing.
+
+Parsed, it is exactly what the page registered. With one customer and two fields
+delegated, the tool an agent sees carries:
+
+```json
+{ "customerId":     { "enum": ["c-northwind"] },
+  "field":          { "enum": ["status", "nextAction"] },
+  "mandateVersion": { "const": 1 } }
+```
+
+**This is the product's central claim, verified in a real browser:** the schema
+an agent reads is a live readout of what the human delegated, narrowed to
+exactly that scope and nothing wider.
+
+## 6. **There is no way to unregister a tool**
 
 No `unregisterTool`, `removeTool`, `clearTools`, `setTools`, or
 `provideContext`. And re-registering the same name is **ignored** — the first
@@ -88,7 +108,7 @@ So the honest claim, and the one the interface makes, is:
 - and neither fact changes what a caller can actually do, because that was never
   decided on the client.
 
-## 6. Consequences for the code
+## 7. Consequences for the code
 
 - `adapter.ts` prefers `provideContext` when a browser offers it (atomic
   replace, the shape MCP-001 wants) and falls back to `registerTool`.

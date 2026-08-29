@@ -29,8 +29,12 @@ interface ModelContextTool {
 type ToolHandle = (() => void) | { remove?: () => void } | void;
 
 interface ModelContextApi {
+  /** The shape most write-ups describe. Chrome 152 does not have it. */
   provideContext?(context: { tools: ModelContextTool[] }): void;
-  registerTool?(tool: ModelContextTool): ToolHandle;
+  /** What Chrome 152 actually has. Returns a promise; ignores a repeat name. */
+  registerTool?(tool: ModelContextTool): ToolHandle | Promise<void>;
+  getTools?(): unknown;
+  executeTool?(tool: unknown, args: string): unknown;
 }
 
 declare global {
@@ -86,12 +90,22 @@ export interface WebMcpProbe {
   methods: string[];
   /** One of the registration methods this adapter knows how to drive. */
   usable: boolean;
+  /**
+   * Whether a registration can be withdrawn again.
+   *
+   * False on Chrome 152, which offers `registerTool` and nothing to undo it —
+   * no unregister, no clear, and a repeat name is ignored rather than replacing
+   * the entry. The interface must not imply a withdrawal it cannot perform.
+   * Enforcement is unaffected: a stale tool's calls are still refused by the
+   * server. See `docs/20_WEBMCP_FIELD_NOTES.md`.
+   */
+  canUnregister: boolean;
 }
 
 /** Feature detection, and nothing more. Never throws. */
 export function probeWebMcp(): WebMcpProbe {
   const found = findApi();
-  if (!found) return { present: false, where: null, methods: [], usable: false };
+  if (!found) return { present: false, where: null, methods: [], usable: false, canUnregister: false };
   const { api, where } = found;
   let methods: string[] = [];
   try {
@@ -111,9 +125,9 @@ export function probeWebMcp(): WebMcpProbe {
   } catch {
     /* an exotic proxy: presence still counts */
   }
-  const usable =
-    typeof api.provideContext === 'function' || typeof api.registerTool === 'function';
-  return { present: true, where, methods, usable };
+  const canProvide = typeof api.provideContext === 'function';
+  const usable = canProvide || typeof api.registerTool === 'function';
+  return { present: true, where, methods, usable, canUnregister: canProvide };
 }
 
 /** Kept for callers that only need the yes/no. */
@@ -150,9 +164,18 @@ export function registerWebMcpTools(tools: WebMcpTool[], signal?: AbortSignal): 
         }
       };
     } else if (typeof api.registerTool === 'function') {
+      // Chrome 152 returns a promise here and offers nothing to undo the
+      // registration; other browsers may return a handle. Keep whatever comes
+      // back and call it only if it looks like one — an unhandled rejection
+      // from a promise would otherwise take the page down.
       const handles = tools.map((tool) => {
         try {
-          return api.registerTool!(tool);
+          const h = api.registerTool!(tool);
+          if (h && typeof (h as Promise<void>).then === 'function') {
+            (h as Promise<void>).catch(() => {});
+            return undefined;
+          }
+          return h;
         } catch {
           return undefined;
         }
@@ -161,7 +184,9 @@ export function registerWebMcpTools(tools: WebMcpTool[], signal?: AbortSignal): 
         for (const handle of handles) {
           try {
             if (typeof handle === 'function') handle();
-            else if (handle && typeof handle.remove === 'function') handle.remove();
+            else if (handle && typeof (handle as { remove?: () => void }).remove === 'function') {
+              (handle as { remove: () => void }).remove();
+            }
           } catch {
             /* best-effort teardown */
           }

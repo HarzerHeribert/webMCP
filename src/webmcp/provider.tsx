@@ -42,7 +42,7 @@ export interface WebMcpState {
   invoke(name: string, input: Record<string, unknown>): Promise<ToolResult>;
 }
 
-const noProbe: WebMcpProbe = { present: false, where: null, methods: [], usable: false };
+const noProbe: WebMcpProbe = { present: false, where: null, methods: [], usable: false, canUnregister: false };
 
 const idleInvoke: WebMcpState['invoke'] = async () => ({
   ok: false,
