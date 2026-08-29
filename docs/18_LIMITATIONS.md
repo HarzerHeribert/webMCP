@@ -44,12 +44,26 @@ tool implementations the browser would, with arguments a human types. It decides
 nothing. It exists because WebMCP is behind a flag and the demo must not depend
 on a judge having it enabled.
 
-## Persistence
+## Persistence, and the budget around it
 
 Sessions are anonymous, seeded, and disposable. In production they live in
-Upstash Redis with a one-hour TTL; locally they live in process memory. Nothing
-is durable and nothing is meant to be. Applied changes are immutable *within a
-session* and vanish with it.
+Upstash Redis with a thirty-minute TTL; locally they live in process memory.
+Nothing is durable and nothing is meant to be. Applied changes are immutable
+*within a session* and vanish with it.
+
+The demo is a public URL on a free tier, so three bounds keep it available:
+one session cannot grow without limit (280 characters per field value, 50 staged
+changes, 300 timeline events, oldest dropped), one caller cannot open more than
+twenty sessions per half hour, and no new session is created once the store
+holds four thousand.
+
+**None of that is a security boundary**, and it is not offered as one. The
+fingerprint is `x-forwarded-for`, which is spoofable, and rotating addresses
+defeats it entirely. It exists so that ordinary crawling, an accidental loop, or
+one bored person cannot fill the store before a judge opens it. The failure it
+prevents is "the demo is unavailable", not "an attacker got in". A store that
+cannot be measured admits rather than refuses, so a Redis outage degrades the
+demo instead of closing it.
 
 ## Discovery timing
 

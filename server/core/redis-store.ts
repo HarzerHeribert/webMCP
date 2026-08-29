@@ -6,7 +6,9 @@ import type { Session } from './types';
  * integration and a dependency here would be larger than the code it replaces.
  *
  * Sessions are anonymous and disposable, so they carry a TTL and clean
- * themselves up. This exists because Vercel functions are stateless (D-011) and
+ * themselves up. Thirty minutes: ten times what the demo needs, and short
+ * enough that a public URL on a free tier reclaims abandoned sessions faster
+ * than anyone can accumulate them. This exists because Vercel functions are stateless (D-011) and
  * the product's central claim — that revoking authority actually removes it —
  * requires the server to be the one holding the state.
  */
@@ -15,7 +17,7 @@ export class RedisSessionStore implements SessionStore {
   #token: string;
   #ttlSeconds: number;
 
-  constructor(url: string, token: string, ttlSeconds = 3600) {
+  constructor(url: string, token: string, ttlSeconds = 1800) {
     this.#url = url.replace(/\/$/, '');
     this.#token = token;
     this.#ttlSeconds = ttlSeconds;
@@ -57,5 +59,18 @@ export class RedisSessionStore implements SessionStore {
 
   async delete(id: string): Promise<void> {
     await this.#command('DEL', this.#key(id));
+  }
+
+  /** Increment a counter, giving it a TTL on first write so it expires by
+   *  itself. Used by the quota; see `quota.ts`. */
+  async incr(key: string, ttlSeconds: number): Promise<number> {
+    const n = Number(await this.#command('INCR', key));
+    if (n === 1) await this.#command('EXPIRE', key, ttlSeconds);
+    return n;
+  }
+
+  async count(key: string): Promise<number> {
+    const raw = await this.#command('GET', key);
+    return typeof raw === 'string' ? Number(raw) || 0 : 0;
   }
 }

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { createApp, notFoundJson } from './app';
+import { redisQuota, unlimited } from './core/quota';
 import { MemorySessionStore } from './core/store';
 import { RedisSessionStore } from './core/redis-store';
 
@@ -39,8 +40,12 @@ if (!store) {
   );
 }
 
+// The budget only exists when there is a shared store to count in. On process
+// memory there is nothing to protect and nothing to coordinate.
+const quota = store ? redisQuota(store) : unlimited;
+
 const app = new Hono()
-  .route('/api', createApp(store ?? new MemorySessionStore()))
+  .route('/api', createApp(store ?? new MemorySessionStore(), quota))
   .notFound(notFoundJson);
 
 /**

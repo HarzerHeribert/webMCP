@@ -33,6 +33,23 @@ export const systemClock: Clock = { now: () => Date.now() };
 
 export const DEFAULT_MANDATE_TTL_MS = 10 * 60 * 1000;
 
+/**
+ * Hard bounds on how large one session can get.
+ *
+ * The demo is public and the store is a free tier. Without these, one script
+ * staging long values in a loop grows a single session without limit until the
+ * store is full and no judge can open one. Each is generous for a three-minute
+ * demo and absurd for anything else.
+ */
+export const LIMITS = {
+  /** A CRM field. The longest seeded value is 27 characters. */
+  valueChars: 280,
+  /** Distinct staged changes. The demo uses two. */
+  changes: 50,
+  /** Timeline events kept. Older ones are dropped, oldest first. */
+  timeline: 300,
+} as const;
+
 export class MandateService {
   #store: SessionStore;
   #clock: Clock;
@@ -251,6 +268,12 @@ export class MandateService {
     if (!(CUSTOMER_FIELDS as readonly string[]).includes(input.field)) {
       throw errors.badRequest(`Unknown field "${input.field}".`, 'Use a field from the schema.');
     }
+    if (input.after.length > LIMITS.valueChars) {
+      throw errors.badRequest(
+        `That value is ${input.after.length} characters; the limit is ${LIMITS.valueChars}.`,
+        'Send a value a person would actually type into a CRM field.',
+      );
+    }
     const now = this.#clock.now();
 
     // One staged change per (customer, field). A second stage on the same target
@@ -277,6 +300,13 @@ export class MandateService {
       );
       await this.#store.put(session);
       return { session, change: existing };
+    }
+
+    if (session.changes.filter((c) => c.state !== 'APPLIED').length >= LIMITS.changes) {
+      throw errors.badRequest(
+        `This session already has ${LIMITS.changes} staged changes.`,
+        'Apply or discard some before staging more.',
+      );
     }
 
     const change: Change = {
@@ -561,6 +591,12 @@ export class MandateService {
       ...extra,
     };
     session.timeline.push(event);
+    // The timeline is the only unbounded structure here: it grows with every
+    // action forever. Keep the newest and drop the rest, so a session cannot
+    // grow without limit no matter how long someone drives it.
+    if (session.timeline.length > LIMITS.timeline) {
+      session.timeline.splice(0, session.timeline.length - LIMITS.timeline);
+    }
   }
 
   async #logRefusal(session: Session, tool: string, e: unknown, customerId?: string): Promise<void> {

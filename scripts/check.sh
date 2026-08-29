@@ -12,16 +12,23 @@ run() {
 }
 [ -f package.json ] || { echo "check: no package.json yet — nothing to gate"; exit 0; }
 
-# The deployed function is a committed bundle. If it has drifted from its source,
-# production is running code nobody reviewed — which is exactly how the API
-# shipped broken while every local check was green.
+# The deployed function is a committed bundle. If it is stale relative to its
+# source, production runs code nobody reviewed — which is how the API shipped
+# broken while every local check was green.
+#
+# Compare the rebuild against the file as it was, not against git: diffing
+# against HEAD flags any uncommitted work in progress and the warning stops
+# meaning anything.
 printf '\033[1m» api bundle is current\033[0m\n'
-if npm run --silent build:api >/dev/null 2>&1 && git diff --quiet -- api/index.js; then
+before="$(mktemp)"; cp api/index.js "$before" 2>/dev/null || true
+if npm run --silent build:api >/dev/null 2>&1 && cmp -s "$before" api/index.js; then
   printf '  \033[32mok\033[0m\n\n'
 else
-  printf '  \033[31mFAILED — api/index.js differs from server/vercel-entry.ts; commit the rebuild\033[0m\n\n'
+  printf '  \033[31mFAILED — api/index.js was stale; it has been rebuilt, commit it\033[0m\n\n'
   fail=1
 fi
+rm -f "$before"
+
 run "typecheck"   npm run --silent typecheck
 run "lint"        npm run --silent lint
 run "unit + integration" npm run --silent test

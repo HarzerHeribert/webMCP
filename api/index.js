@@ -2354,6 +2354,14 @@ var counter = 0;
 var uid = (prefix) => `${prefix}-${(++counter).toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 var systemClock = { now: () => Date.now() };
 var DEFAULT_MANDATE_TTL_MS = 10 * 60 * 1e3;
+var LIMITS = {
+  /** A CRM field. The longest seeded value is 27 characters. */
+  valueChars: 280,
+  /** Distinct staged changes. The demo uses two. */
+  changes: 50,
+  /** Timeline events kept. Older ones are dropped, oldest first. */
+  timeline: 300
+};
 var MandateService = class {
   #store;
   #clock;
@@ -2527,6 +2535,12 @@ var MandateService = class {
     if (!CUSTOMER_FIELDS.includes(input.field)) {
       throw errors.badRequest(`Unknown field "${input.field}".`, "Use a field from the schema.");
     }
+    if (input.after.length > LIMITS.valueChars) {
+      throw errors.badRequest(
+        `That value is ${input.after.length} characters; the limit is ${LIMITS.valueChars}.`,
+        "Send a value a person would actually type into a CRM field."
+      );
+    }
     const now = this.#clock.now();
     const existing = session.changes.find(
       (c) => c.customerId === input.customerId && c.field === input.field && c.state !== "APPLIED"
@@ -2549,6 +2563,12 @@ var MandateService = class {
       );
       await this.#store.put(session);
       return { session, change: existing };
+    }
+    if (session.changes.filter((c) => c.state !== "APPLIED").length >= LIMITS.changes) {
+      throw errors.badRequest(
+        `This session already has ${LIMITS.changes} staged changes.`,
+        "Apply or discard some before staging more."
+      );
     }
     const change = {
       id: uid("ch"),
@@ -2795,6 +2815,9 @@ var MandateService = class {
       ...extra
     };
     session.timeline.push(event);
+    if (session.timeline.length > LIMITS.timeline) {
+      session.timeline.splice(0, session.timeline.length - LIMITS.timeline);
+    }
   }
   async #logRefusal(session, tool, e, customerId) {
     const code = e instanceof MandateError ? e.envelope.code : "BAD_REQUEST";
@@ -2832,6 +2855,53 @@ var MemorySessionStore = class {
   }
 };
 
+// server/core/quota.ts
+var unlimited = {
+  admit: async () => {
+  },
+  admitted: async () => {
+  }
+};
+var DEFAULT_LIMITS = {
+  // A judge reloading, resetting and re-reading is a handful. Twenty is room to
+  // be curious; a thousand is a script.
+  perFingerprint: 20,
+  windowSeconds: 60 * 30,
+  // At ~15 KB a session, 4,000 live sessions is well inside a 30 MB tier even
+  // if every one of them is driven to its size ceiling.
+  globalSessions: 4e3
+};
+function redisQuota(store2, limits = DEFAULT_LIMITS) {
+  return {
+    async admit(fingerprint) {
+      let used = 0;
+      let live = 0;
+      try {
+        used = await store2.incr(`q:fp:${fingerprint}`, limits.windowSeconds);
+        live = await store2.count("q:live");
+      } catch {
+        return;
+      }
+      if (used > limits.perFingerprint) {
+        throw new Error(
+          `This address has opened ${limits.perFingerprint} demo sessions recently. Reuse the one you have \u2014 "Reset demo" restores the seed without a new session.`
+        );
+      }
+      if (live >= limits.globalSessions) {
+        throw new Error(
+          "The demo store is at capacity right now. Sessions expire after thirty minutes, so this clears on its own shortly."
+        );
+      }
+    },
+    async admitted() {
+      try {
+        await store2.incr("q:live", 60 * 30);
+      } catch {
+      }
+    }
+  };
+}
+
 // server/app.ts
 var SESSION_HEADER = "x-mandate-session";
 function view(session) {
@@ -2857,7 +2927,7 @@ var notFoundJson = (c) => c.json(
   },
   404
 );
-function createApp(store2 = new MemorySessionStore()) {
+function createApp(store2 = new MemorySessionStore(), quota2 = unlimited) {
   const service = new MandateService(store2);
   const app2 = new Hono2();
   app2.notFound(notFoundJson);
@@ -2876,7 +2946,25 @@ function createApp(store2 = new MemorySessionStore()) {
     if (!id) throw new MandateError({ code: "BAD_REQUEST", message: "Missing session.", recoverable: false }, 400);
     return id;
   };
-  app2.post("/session", async (c) => c.json(view(await service.createSession())));
+  app2.post("/session", async (c) => {
+    const fingerprint = (c.req.header("x-forwarded-for") ?? "local").split(",")[0].trim();
+    try {
+      await quota2.admit(fingerprint);
+    } catch (e) {
+      throw new MandateError(
+        {
+          code: "BAD_REQUEST",
+          message: e instanceof Error ? e.message : "Too many sessions.",
+          recoverable: true,
+          recovery: "Reuse the session you have, or try again in a few minutes."
+        },
+        429
+      );
+    }
+    const session = await service.createSession();
+    await quota2.admitted();
+    return c.json(view(session));
+  });
   app2.get("/session", async (c) => c.json(view(await service.read(sid(c)))));
   app2.post("/session/reset", async (c) => c.json(view(await service.reset(sid(c)))));
   app2.post("/selection", async (c) => {
@@ -2940,7 +3028,7 @@ var RedisSessionStore = class _RedisSessionStore {
   #url;
   #token;
   #ttlSeconds;
-  constructor(url, token, ttlSeconds = 3600) {
+  constructor(url, token, ttlSeconds = 1800) {
     this.#url = url.replace(/\/$/, "");
     this.#token = token;
     this.#ttlSeconds = ttlSeconds;
@@ -2977,6 +3065,17 @@ var RedisSessionStore = class _RedisSessionStore {
   async delete(id) {
     await this.#command("DEL", this.#key(id));
   }
+  /** Increment a counter, giving it a TTL on first write so it expires by
+   *  itself. Used by the quota; see `quota.ts`. */
+  async incr(key, ttlSeconds) {
+    const n = Number(await this.#command("INCR", key));
+    if (n === 1) await this.#command("EXPIRE", key, ttlSeconds);
+    return n;
+  }
+  async count(key) {
+    const raw2 = await this.#command("GET", key);
+    return typeof raw2 === "string" ? Number(raw2) || 0 : 0;
+  }
 };
 
 // server/vercel-entry.ts
@@ -2987,7 +3086,8 @@ if (!store) {
     `[mandate] no Upstash credentials (KV_REST_API_URL / UPSTASH_REDIS_REST_URL). Falling back to process memory: sessions will not survive between invocations. Store-shaped env keys present: ${seen.length ? seen.join(", ") : "none"}. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or the KV_REST_API_* pair) to persist.`
   );
 }
-var app = new Hono2().route("/api", createApp(store ?? new MemorySessionStore())).notFound(notFoundJson);
+var quota = store ? redisQuota(store) : unlimited;
+var app = new Hono2().route("/api", createApp(store ?? new MemorySessionStore(), quota)).notFound(notFoundJson);
 var fetchHandler = (request) => app.fetch(request);
 var GET = fetchHandler;
 var POST = fetchHandler;

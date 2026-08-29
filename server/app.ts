@@ -3,6 +3,7 @@ import { compileCapabilities, NEVER_REGISTERED } from './core/capabilities';
 import { MandateError } from './core/errors';
 import { MandateService } from './core/service';
 import { MemorySessionStore, type SessionStore } from './core/store';
+import { unlimited, type Quota } from './core/quota';
 import type { Session } from './core/types';
 import { CUSTOMER_FIELDS, CUSTOMER_STATUSES, DELEGATABLE_FIELDS } from './core/types';
 
@@ -64,7 +65,7 @@ export const notFoundJson = (c: Context) =>
     404,
   );
 
-export function createApp(store: SessionStore = new MemorySessionStore()) {
+export function createApp(store: SessionStore = new MemorySessionStore(), quota: Quota = unlimited) {
   const service = new MandateService(store);
   const app = new Hono();
 
@@ -88,7 +89,28 @@ export function createApp(store: SessionStore = new MemorySessionStore()) {
     return id;
   };
 
-  app.post('/session', async (c) => c.json(view(await service.createSession())));
+  app.post('/session', async (c) => {
+    // Creating a session is the only route that allocates storage without any
+    // prior state, so it is the only one worth budgeting. `x-forwarded-for` is
+    // spoofable and this is not pretending otherwise — see `core/quota.ts`.
+    const fingerprint = (c.req.header('x-forwarded-for') ?? 'local').split(',')[0].trim();
+    try {
+      await quota.admit(fingerprint);
+    } catch (e) {
+      throw new MandateError(
+        {
+          code: 'BAD_REQUEST',
+          message: e instanceof Error ? e.message : 'Too many sessions.',
+          recoverable: true,
+          recovery: 'Reuse the session you have, or try again in a few minutes.',
+        },
+        429,
+      );
+    }
+    const session = await service.createSession();
+    await quota.admitted();
+    return c.json(view(session));
+  });
   app.get('/session', async (c) => c.json(view(await service.read(sid(c)))));
   app.post('/session/reset', async (c) => c.json(view(await service.reset(sid(c)))));
 
