@@ -51,7 +51,7 @@ done
 
 printf '\n\033[1m=== file overlap ===\033[0m\n'
 overlap=$(for n in "${NAMES[@]}"; do
-    git -C ".worktrees/$n" status --porcelain 2>/dev/null | awk -v W="$n" '{print $NF, W}'
+    git -C ".worktrees/$n" status --porcelain 2>/dev/null | ignore_generated | awk -v W="$n" '{print $NF, W}'
   done | sort | awk '{f[$1]=f[$1]" "$2} END{for(k in f){if(split(f[k],a," ")>1)print "  "k" ->"f[k]}}')
 if [ -n "$overlap" ]; then
   printf '\033[33m%s\033[0m\n' "$overlap"
