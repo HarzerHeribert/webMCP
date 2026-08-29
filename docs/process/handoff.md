@@ -67,9 +67,12 @@ Verification tools worth knowing:
    Chrome so the real registration path is on camera.
 2. **Submit on Devpost**: live URL, repo, video, description (the README is
    written to be that text).
-3. An independent Fable verifier was run against the live origin in flagged
-   Chrome; if its findings are not yet folded in, they are the first thing to
-   deal with.
+3. An independent Fable verifier drove the live origin in flagged Chrome and
+   returned **submittable**: every demo beat and every claimed enforcement
+   behaviour works there. Its three findings (gate copy naming the wrong API
+   location, the guide claiming the conflict beat after a revoke, and panels
+   clipping text with no scroll affordance) are fixed as of `245e88c`'s
+   successor. Re-run it after any material change.
 
 ## Known gaps, honestly
 
