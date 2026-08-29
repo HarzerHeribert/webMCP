@@ -150,7 +150,10 @@ Phase M7B — Submission artifacts
 
 Phase M8 — Deployment
 
-☐ Choose and record the deployment target and the storage adapter it uses. (D-010 does not cover this; record in `docs/12_DECISIONS.md`)
+☑ Choose and record the deployment target and the storage adapter it uses.
+    EVIDENCE: D-011 in `docs/12_DECISIONS.md` — Vercel, one origin, Upstash Redis behind `SessionStore`.
+☐ Implement `RedisSessionStore` behind the existing `SessionStore` port, with the in-memory adapter still used for tests and local dev.
+☐ Add the Vercel function entry and build config so `/api/*` and the static client share one origin.
 ☐ Deploy one HTTPS origin, with a deterministic reset and no credentials in the repo.
 ☐ Verify the live URL works in Chrome with WebMCP enabled **and** degrades correctly where it is not. (SUBMISSION)
 ☐ Verify no cross-session leakage and no internal error text on the deployed origin.
