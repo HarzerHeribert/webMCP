@@ -97,7 +97,7 @@ Phase M3 — WebMCP surface and inspector
 ☑ Register `mandate_get_workspace` and `mandate_get_capabilities` as read-only tools. (WEBMCP CONTRACT)
     EVIDENCE: manual: both read-only tools are registered with no mandate present.
 ☑ Derive every tool's input schema from the current mandate, so the schema narrows as scope narrows. (MCP-002)
-    EVIDENCE: manual: delegating `status` on one customer narrows the customerId and field enums to exactly that pair; narrowing again re-derives them.
+    EVIDENCE: manual: delegating `status` on one record narrows the resourceId and field enums to exactly that pair; narrowing again re-derives them.
 ☑ Never register an apply, delete, mandate-administration, export-all, or raw-data tool. (SEC-004)
     EVIDENCE: `app.test.ts > no compiled tool descriptor's name matches /apply/i`; `NEVER_REGISTERED` is rendered as an explicit absent-by-design section.
 ☑ Render a capability inspector that mirrors the registered tools' name, description, inputs, and availability. (D-005)
@@ -109,7 +109,7 @@ Phase M3 — WebMCP surface and inspector
 
 Phase M4 — Staging tools and shared edits
 
-☑ Register `mandate_stage_customer_update` accepting an absolute in-scope field value. (WEBMCP CONTRACT)
+☑ Register the host's compiled stage tool, accepting an absolute in-scope field value. (WEBMCP CONTRACT)
     EVIDENCE: manual: staged an absolute value on a delegated customer through the tool implementation.
 ☑ Register `mandate_validate_changes`. (WEBMCP CONTRACT)
     EVIDENCE: manual: registered and callable while a mandate is active.
@@ -220,3 +220,5 @@ Phase M9 — Telling it (submission surface)
     EVIDENCE: `RowApproval` in `src/components/MinimalLayer.tsx` — the field is a label not a schema key, the state says "the record moved on — redo this" rather than `stale`, the base-revision and mandate-version provenance stays with the audit, and one button checks and commits. Two browser tests cover the commit and the refusal.
 ☑ Record a submission video, under three minutes, on the flagged path. (SUBMISSION)
     EVIDENCE: `demo/mandate-demo.mp4` — 2:50, 1600×1000, recorded in Chrome 152 with `--enable-features=WebMCP`; every agent action is a real `document.modelContext.executeTool` call and the recorder refuses to film otherwise. Pipeline and its sync model in `docs/21_DEMO_VIDEO.md`.
+☑ Show that the mechanism is not a CRM feature.
+    EVIDENCE: `server/core/domains.ts` — two hosts. `Customer` no longer exists; a `Resource` carries `values: Record<string, string>`, `policy.ts` takes the delegatable set from the session's domain, and `capabilities.ts` compiles the enums, the prose and the tool's own name from it (`mandate_stage_account_update` in Relay CRM, `mandate_stage_service_update` in Northstar Deploy). All 35 unit and integration tests passed through the refactor unchanged, which is the evidence that the enforcement core was always generic. `scripts/verify-live.mjs` checks the rename and the new host's undelegatable field on the deployed origin.

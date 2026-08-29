@@ -1,13 +1,17 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:50**, 1600×1000, H.264 + AAC, ~13 MB. Under the
-challenge's three-minute limit with 10 seconds to spare — anything added from
+`demo/mandate-demo.mp4` — **2:47**, 1600×1000, H.264 + AAC, ~13 MB. Under the
+challenge's three-minute limit with 13 seconds to spare — anything added from
 here needs something else trimmed.
 
-It opens on the problem rather than on the software: three cards from
+It opens on the problem rather than on the software: two cards from
 `demo/cards.html`, in the product's own tokens, driven by the same beat clock.
-It closes by flipping the header's switch to **Product** — the instrument puts
-itself away and what is left is the host plus a pill.
+A third card once showed the compiled schema; it was cut because the software
+shows the real one twenty seconds later, and telling before showing is what a
+three-minute budget cannot afford.
+It closes on a *second* host application — the same layer installed into a
+deployment console, where the compiled tool has renamed itself — in the product
+form, which is the shortest way to say that none of this was ever about CRMs.
 
 Nothing in it is staged footage. Every agent action is a real
 `document.modelContext.executeTool` call against the tools the page registered,

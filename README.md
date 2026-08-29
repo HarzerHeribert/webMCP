@@ -121,8 +121,8 @@ Chrome 152 with `--enable-features=WebMCP` (equivalently
 tools through `document.modelContext.executeTool` — not a simulation:
 
 - before delegating, two read-only tools are registered; after, five;
-- the `mandate_stage_customer_update` schema an agent reads carries
-  `customerId: ["c-northwind"]`, `field: ["status","nextAction"]`,
+- the `mandate_stage_account_update` schema an agent reads carries
+  `resourceId: ["c-northwind"]`, `field: ["status","nextAction"]`,
   `mandateVersion: 1` — exactly the scope the human granted;
 - a real tool call stages a change, and it appears in the interface;
 - a call naming an undelegated customer is refused `OUT_OF_SCOPE` by the server.
@@ -146,6 +146,7 @@ server/core/     the authoritative domain: sessions, mandates, changes,
   capabilities.ts  the capability compiler: mandate → tool descriptors
   store.ts         the storage port (in-memory adapter for the demo)
 server/app.ts    the Hono service; human routes and tool routes, one service
+server/core/domains.ts  what the host application *is*, as data
 src/webmcp/      the only place the WebMCP API is touched
 src/components/  the workbench
 ```

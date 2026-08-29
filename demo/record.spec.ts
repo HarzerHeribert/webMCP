@@ -24,6 +24,8 @@ const script: { beats: { id: string; caption: string; say: string }[] } = JSON.p
 const line = (id: string) => script.beats.find((b) => b.id === id)!.caption;
 
 const V1 = 1;
+/** The CRM host's compiled name for the mutating tool (`domains.ts` noun). */
+const STAGE = 'mandate_stage_account_update';
 
 test('record the demo', async ({ page }) => {
   // Playwright starts the video when the page is created, a moment before this
@@ -37,7 +39,7 @@ test('record the demo', async ({ page }) => {
   await page.goto(cards);
   await page.waitForTimeout(700);
 
-  for (const [n, id] of [['1', 'card-key'], ['2', 'card-sentence'], ['3', 'card-gap']] as const) {
+  for (const [n, id] of [['1', 'card-key'], ['2', 'card-sentence']] as const) {
     await beat(page, id, '', async () => {
       await page.evaluate((card) => document.body.setAttribute('data-card', card), n);
       for (const step of ['1', '2', '3']) {
@@ -91,7 +93,7 @@ test('record the demo', async ({ page }) => {
 
   await beat(page, 'compiled', line('compiled'), async () => {
     await point(page, inspector);
-    const row = inspector.locator('li.webmcp-tool').filter({ hasText: 'mandate_stage_customer_update' });
+    const row = inspector.locator('li.webmcp-tool').filter({ hasText: STAGE });
     await row.locator('details').evaluate((el) => ((el as HTMLDetailsElement).open = true));
     await point(page, row);
   });
@@ -99,8 +101,8 @@ test('record the demo', async ({ page }) => {
   await click(page, page.getByRole('button', { name: 'Dismiss' }));
 
   await beat(page, 'stage', line('stage'), async () => {
-    await agentCall(page, 'mandate_stage_customer_update', {
-      customerId: 'c-northwind',
+    await agentCall(page, STAGE, {
+      resourceId: 'c-northwind',
       field: 'status',
       value: 'Active',
       mandateVersion: V1,
@@ -109,8 +111,8 @@ test('record the demo', async ({ page }) => {
   });
 
   await beat(page, 'refuse', line('refuse'), async () => {
-    await agentCall(page, 'mandate_stage_customer_update', {
-      customerId: 'c-kestrel',
+    await agentCall(page, STAGE, {
+      resourceId: 'c-kestrel',
       field: 'status',
       value: 'Active',
       mandateVersion: V1,
@@ -122,8 +124,8 @@ test('record the demo', async ({ page }) => {
     await point(page, customerRow(page, 'Atlas Freight'));
     // A *different* refusal from the one above, or the beat proves nothing new:
     // Atlas is inside the mandate, and `arr` still is not. Scope is two-dimensional.
-    await agentCall(page, 'mandate_stage_customer_update', {
-      customerId: 'c-atlas',
+    await agentCall(page, STAGE, {
+      resourceId: 'c-atlas',
       field: 'arr',
       value: '999999',
       mandateVersion: V1,
@@ -136,8 +138,8 @@ test('record the demo', async ({ page }) => {
     await click(page, authority.getByRole('button', { name: 'Narrow scope' }));
     await click(page, authority.getByRole('button', { name: 'nextAction', exact: true }));
     await click(page, authority.getByRole('button', { name: 'Publish narrowed mandate' }));
-    await agentCall(page, 'mandate_stage_customer_update', {
-      customerId: 'c-northwind',
+    await agentCall(page, STAGE, {
+      resourceId: 'c-northwind',
       field: 'status',
       value: 'Churned',
       mandateVersion: V1,
@@ -147,8 +149,8 @@ test('record the demo', async ({ page }) => {
 
   await beat(page, 'revoke', line('revoke'), async () => {
     await click(page, panelByTitle(page, 'Authority').getByRole('button', { name: 'Revoke now' }));
-    await agentCall(page, 'mandate_stage_customer_update', {
-      customerId: 'c-northwind',
+    await agentCall(page, STAGE, {
+      resourceId: 'c-northwind',
       field: 'status',
       value: 'Churned',
       mandateVersion: V1,
@@ -185,13 +187,32 @@ test('record the demo', async ({ page }) => {
     await page.waitForTimeout(600);
   });
 
+  await beat(page, 'hosts', line('hosts'), async () => {
+    // The genericity claim, pressed rather than asserted. `customerRow` is
+    // scoped to the CRM's collection name, so the row is located directly.
+    await click(page, page.getByRole('button', { name: 'Northstar Deploy', exact: true }));
+    await page.waitForTimeout(1200);
+    await point(page, page.locator('.customers li').filter({ hasText: 'checkout-api' }));
+    await page.waitForTimeout(900);
+
+    // And the tool the agent is offered has renamed itself.
+    await click(page, page.getByRole('button', { name: 'Technical', exact: true }));
+    await page.waitForTimeout(700);
+    const rail = page.getByRole('button', { name: 'Open the Mandate capability layer' });
+    if (await rail.isVisible().catch(() => false)) await click(page, rail);
+    const insp = panelByLabel(page, 'Capability inspector');
+    const renamed = insp.locator('li.webmcp-tool').filter({ hasText: 'mandate_stage_service_update' });
+    await renamed.scrollIntoViewIfNeeded();
+    await point(page, renamed);
+  });
+
   await beat(page, 'close', line('close'), async () => {
-    // There is no panel to close any more. Dismissing the popover *is* the
-    // closing gesture, and what is left is the host plus a pill — which is the
-    // strongest available statement of D-002.
-    await page.keyboard.press('Escape');
+    // Close on the *second* host, in the product form: an ordinary application
+    // with a pill in the corner, which is the strongest statement of D-002 and
+    // of the fact that none of this was ever about CRMs.
+    await click(page, page.getByRole('button', { name: 'Product', exact: true }));
     await page.waitForTimeout(1400);
-    await point(page, customerRow(page, 'Meridian Health'));
+    await point(page, page.locator('.customers li').filter({ hasText: 'event-ingest' }));
     await page.waitForTimeout(900);
     await caption(page, 'Mandate — human intent, compiled into a live WebMCP contract');
   });

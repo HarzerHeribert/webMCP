@@ -29,7 +29,7 @@ ok(page.status === 200 && html.includes('<div id="root">'), 'the client is serve
 // 2. session creation on the same origin
 const a = await api('/session', { method: 'POST' });
 const sidA = a.json.session?.id;
-ok(a.status === 200 && a.json.session?.customers?.length === 6, 'POST /api/session seeds six accounts', sidA);
+ok(a.status === 200 && a.json.session?.resources?.length === 6, 'POST /api/session seeds six accounts', sidA);
 ok(a.json.capabilities?.length === 5, 'five tool descriptors compiled', `${a.json.capabilities?.length}`);
 
 // 3. THE ONE THAT MATTERS: does the session survive a later, probably-different invocation?
@@ -42,9 +42,9 @@ ok(reread.status === 200 && reread.json.session?.id === sidA,
 // 4. cross-session isolation
 const b = await api('/session', { method: 'POST' });
 const sidB = b.json.session.id;
-await api('/selection', { method: 'POST', sid: sidA, body: { customerIds: ['c-atlas'] } });
+await api('/selection', { method: 'POST', sid: sidA, body: { resourceIds: ['c-atlas'] } });
 const bView = await api('/session', { sid: sidB });
-ok(bView.json.session.selectedCustomerIds.length === 0, "session B cannot see session A's selection");
+ok(bView.json.session.selectedResourceIds.length === 0, "session B cannot see session A's selection");
 
 // 5. a forged id is refused, and says nothing internal
 const forged = await api('/session', { sid: 's-does-not-exist' });
@@ -53,12 +53,12 @@ ok(forged.status === 404, 'a forged session id is refused', `${forged.status}`);
 ok(!leaks, 'the refusal discloses nothing internal', JSON.stringify(forged.json.error?.code));
 
 // 6. the agent path is enforced server-side
-await api('/mandate', { method: 'POST', sid: sidA, body: { customerIds: ['c-atlas'], allowedFields: ['status'] } });
+await api('/mandate', { method: 'POST', sid: sidA, body: { resourceIds: ['c-atlas'], allowedFields: ['status'] } });
 const outOfScope = await api('/tools/stage', { method: 'POST', sid: sidA,
-  body: { customerId: 'c-kestrel', field: 'status', value: 'Active', mandateVersion: 1 } });
+  body: { resourceId: 'c-kestrel', field: 'status', value: 'Active', mandateVersion: 1 } });
 ok(outOfScope.json.error?.code === 'OUT_OF_SCOPE', 'an undelegated customer is refused OUT_OF_SCOPE', `${outOfScope.status}`);
 const staleVersion = await api('/tools/stage', { method: 'POST', sid: sidA,
-  body: { customerId: 'c-atlas', field: 'status', value: 'Active', mandateVersion: 99 } });
+  body: { resourceId: 'c-atlas', field: 'status', value: 'Active', mandateVersion: 99 } });
 ok(staleVersion.json.error?.code === 'POLICY_CHANGED', 'a stale mandate version is refused POLICY_CHANGED');
 
 // 7. there is no apply tool, and no apply route
@@ -71,4 +71,23 @@ ok(!names.some((n) => /apply/i.test(n)), 'no compiled tool is named apply', name
 await api('/session/reset', { method: 'POST', sid: sidA });
 const after = await api('/session', { sid: sidA });
 ok(after.json.session.mandate === null && after.json.session.changes.length === 0 &&
-   after.json.session.customers[0].status === 'At risk', 'reset restores the seed and clears authority');
+   after.json.session.resources[0].values.status === 'At risk', 'reset restores the seed and clears authority');
+
+// 9. the mechanism is not a CRM feature: the same compiler, a different host
+const deploy = await api('/session/host', { method: 'POST', sid: sidA, body: { domainId: 'deploy' } });
+const deployNames = (deploy.json.capabilities ?? []).map((d) => d.name);
+ok(
+  deploy.status === 200 && deploy.json.schema?.domain?.product === 'Northstar Deploy',
+  'the session can be moved to a different host application',
+  deploy.json.schema?.domain?.product,
+);
+ok(
+  deployNames.includes('mandate_stage_service_update') &&
+    !deployNames.includes('mandate_stage_account_update'),
+  'the mutating tool is renamed by the host, not hard-coded',
+  deployNames.join(', '),
+);
+const oosDeploy = await api('/tools/stage', { method: 'POST', sid: sidA,
+  body: { resourceId: 's-checkout', field: 'secretsRef', value: 'x', mandateVersion: 1 } });
+ok(oosDeploy.status === 403 || oosDeploy.json.error?.code === 'NO_ACTIVE_MANDATE',
+   "the new host's undelegatable field is refused too", oosDeploy.json.error?.code);

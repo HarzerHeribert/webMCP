@@ -41,7 +41,7 @@ the short version is that it is `document.modelContext`, and probing only
 browser that has it.
 
 - registration is real: two read-only tools before delegating, five after;
-- the schema an agent reads is the live scope — `customerId` enum exactly
+- the schema an agent reads is the live scope — `resourceId` enum exactly
   `["c-northwind"]`, `field` enum exactly `["status","nextAction"]`,
   `mandateVersion` `const 1`;
 - a real `executeTool` staged a change that appeared in the UI;
@@ -68,7 +68,9 @@ is the agent's own report.
   page's access permissions, so I need action-time confirmation."* The human
   clicked it.
 - **In scope** it staged `c-northwind`/`status`/`Active` at `mandateVersion: 1`
-  and got `{"ok": true, "staged": true}`.
+  and got `{"ok": true, "staged": true}`. (That run predates the multi-host
+  work, so it quotes the tool as `mandate_stage_customer_update`; the CRM host
+  now compiles the same tool as `mandate_stage_account_update`.)
 - **Out of scope, twice, for different reasons.** `c-kestrel` returned
   `OUT_OF_SCOPE` with `allowedCustomerIds: ["c-northwind","c-atlas"]`; Atlas's
   `arr` returned `OUT_OF_SCOPE` with `allowedFields: ["status","nextAction"]`.

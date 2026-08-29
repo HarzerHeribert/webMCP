@@ -1,18 +1,18 @@
 {
-  "card-key": 10.261,
-  "card-sentence": 10.581,
-  "card-gap": 12.651,
+  "card-key": 9.365,
+  "card-sentence": 13.632,
   "host": 9.749,
   "select": 8.96,
   "delegate": 4.053,
   "compiled": 14.251,
-  "stage": 8.576,
+  "stage": 8.448,
   "refuse": 6.976,
-  "injection": 9.92,
-  "narrow": 11.627,
+  "injection": 9.195,
+  "narrow": 11.563,
   "revoke": 7.445,
-  "noapply": 6.293,
+  "noapply": 5.995,
   "apply": 3.968,
-  "usermode": 13.397,
-  "close": 12.587
+  "usermode": 12.373,
+  "hosts": 14.507,
+  "close": 8.256
 }
