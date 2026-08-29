@@ -56,6 +56,13 @@ browser that has it.
 
 ## What was not verified
 
+**The ChatGPT desktop app's built-in browser.** The challenge names it as a test
+surface and it supports WebMCP out of the box, but no run inside it is recorded
+here. The page detects it and states the site-tools remedy (`docs/20`, §7); what
+is unverified is a live registration on that host. A run in ChatGPT's *mobile*
+in-app browser did happen, and correctly reported no WebMCP — site tools are
+desktop-only.
+
 **A real model driving it.** Every tool call above was issued by the page or by
 hand through `executeTool`, not by an agent choosing to make it. Nothing in this
 repo calls a model, by design (`docs/12_DECISIONS.md`).

@@ -12,6 +12,29 @@ Relay CRM is the host demo. The compiler is the product.
 
 ---
 
+## Opening it
+
+**Live — https://webmcp-weld.vercel.app**
+
+Two hosts expose WebMCP to a page today, and Mandate reports which one it is in
+rather than assuming:
+
+- **the ChatGPT desktop app's built-in browser**, where WebMCP arrives as *site
+  tools*, supported out of the box. It needs the latest app version,
+  `Settings › Browser › Permissions › Enable site tools`, and GPT-5.6 Sol or
+  Terra — site tools are disabled on Luna. They are **not** available in the
+  ChatGPT mobile app.
+- **Chrome**, with `chrome://flags/#enable-webmcp-testing` — equivalently
+  `--enable-features=WebMCP`, the form this repo measured against Chrome 152.
+  The API only appears on a secure origin.
+
+Anywhere else the layer refuses to present itself as live, says what is missing
+*for the host you are actually in*, and offers a built-in simulated caller that
+runs the same tool implementations with arguments you type. Every enforcement
+claim below holds on that path too, because none of it is decided on the client.
+
+---
+
 ## The problem
 
 An agent that can act inside your web app needs authority. Today that authority
@@ -93,7 +116,8 @@ because authority does not come from text.
 
 ## Verified in a real browser
 
-Chrome 152 with `--enable-features=WebMCP`, driving the page's own registered
+Chrome 152 with `--enable-features=WebMCP` (equivalently
+`chrome://flags/#enable-webmcp-testing`), driving the page's own registered
 tools through `document.modelContext.executeTool` — not a simulation:
 
 - before delegating, two read-only tools are registered; after, five;

@@ -88,3 +88,51 @@ test('the guide walks back when authority is withdrawn, instead of naming a beat
   await expect(guide).toContainText('2/8');
   await expect(guide).toContainText(/Delegate/i);
 });
+
+/**
+ * The gate is what a judge sees when WebMCP is missing, and the challenge names
+ * the ChatGPT desktop app's built-in browser as a place to test. Site tools are
+ * absent from the mobile app entirely and switchable off on the desktop one, so
+ * "relaunch Chrome with a flag" is advice a reader inside ChatGPT cannot act on.
+ */
+test.describe('inside the ChatGPT app, the gate gives advice that works there', () => {
+  test.use({
+    userAgent:
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 ChatGPT/1.2026.8 Electron/33',
+  });
+
+  test('the desktop app is told about site tools, not about a Chrome flag', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Open the Mandate capability layer' }).click();
+
+    await expect(
+      page.getByRole('heading', { name: 'ChatGPT has not exposed site tools to this page.' }),
+    ).toBeVisible();
+    await expect(page.getByText('Enable site tools')).toBeVisible();
+    // The Chrome remedy is useless here and must not be the instruction given.
+    await expect(page.getByText('enable-webmcp-testing')).toBeHidden();
+
+    // The demo is still reachable, which is the whole point of the gate.
+    await page.getByRole('button', { name: 'Run the demo with the simulated caller' }).click();
+    await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
+  });
+});
+
+test.describe('the ChatGPT mobile app is told the truth: there is nothing to turn on', () => {
+  test.use({
+    userAgent:
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 ChatGPT/1.2026.8 Mobile/15E148',
+  });
+
+  test('it names the desktop app rather than a setting that does not exist', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Open the Mandate capability layer' }).click();
+
+    await expect(
+      page.getByRole('heading', { name: "ChatGPT's site tools are desktop-only." }),
+    ).toBeVisible();
+    await expect(page.getByText('Enable site tools')).toBeHidden();
+    await page.getByRole('button', { name: 'Run the demo with the simulated caller' }).click();
+    await expect(page.getByRole('heading', { name: 'Authority', exact: true })).toBeVisible();
+  });
+});

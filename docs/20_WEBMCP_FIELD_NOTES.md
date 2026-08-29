@@ -115,3 +115,38 @@ So the honest claim, and the one the interface makes, is:
 - When only `registerTool` exists, the adapter reports `canUnregister: false`
   and the interface says so rather than implying a withdrawal it cannot perform.
 - Nothing about enforcement changes in either case.
+
+## 7. The other host: ChatGPT's built-in browser
+
+Chrome behind a flag is not the only door, and it is not the one the challenge
+leads with. WebMCP also ships in **the ChatGPT desktop app's built-in browser**,
+where it is a product feature named **site tools** rather than an experiment.
+That changes what "no WebMCP here" means, and therefore what the gate should
+say. Sourced from `https://learn.chatgpt.com/docs/webmcp` and the challenge's
+own instructions, not measured here:
+
+- it is the **desktop app only**. The mobile app has no site tools, so there is
+  nothing a reader there can switch on — the honest advice is "open it on
+  desktop", not "check your settings";
+- it requires the latest app version;
+- the user can turn it off: `Settings › Browser › Permissions › Enable site
+  tools`;
+- it depends on the model — **GPT-5.6 Sol** or **Terra**; site tools are
+  disabled on **Luna**;
+- when it is on, an arrow appears in the address bar;
+- the API is the same `document.modelContext.registerTool`, and the documented
+  detection is `typeof document.modelContext?.registerTool === "function"` —
+  which is what `adapter.ts` already does.
+
+The challenge names the Chrome flag as `chrome://flags/#enable-webmcp-testing`.
+`--enable-features=WebMCP` is the equivalent this repo actually measured; both
+are named wherever the page or the docs tell someone how to enable it.
+
+### What this changed in the product
+
+The gate used to give one remedy — relaunch Chrome with a flag — to everybody,
+including a judge reading it inside the ChatGPT app, where it is not something
+they can do. `src/webmcp/host.ts` now picks the remedy from the host, and
+`src/components/MandateLayer.tsx` states it. The detection is a **hint for copy
+only**: `adapter.ts` still decides what is live by asking the browser, so a
+wrong guess costs specificity and nothing else.

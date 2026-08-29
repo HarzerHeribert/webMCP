@@ -26,6 +26,15 @@ means "every line has evidence recorded", not "nothing is left" — see below.
 to unregister a tool**. All measured in Chrome 152 and written up in
 `docs/20_WEBMCP_FIELD_NOTES.md` — **read that before touching `src/webmcp/`.**
 
+**1b. There are two WebMCP hosts, not one.** Chrome behind a flag
+(`chrome://flags/#enable-webmcp-testing`, or `--enable-features=WebMCP`), and
+**the ChatGPT desktop app's built-in browser**, where it is a product feature
+called *site tools* — gated on app version, on `Settings › Browser ›
+Permissions › Enable site tools`, and on the model (Sol or Terra; disabled on
+Luna), and **absent from the mobile app**. `docs/20_WEBMCP_FIELD_NOTES.md` §7.
+`src/webmcp/host.ts` picks which remedy the gate names; it is a hint for copy
+only, and `adapter.ts` still decides what is live by asking the browser.
+
 **2. Vercel does not bundle `api/*.ts`.** It transpiles the entry and leaves
 relative imports as runtime paths that were never shipped. The function is
 therefore bundled by `scripts/build-api.mjs` into a **committed** `api/index.js`,

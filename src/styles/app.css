@@ -681,3 +681,16 @@ h1, h2, h3, p { margin: 0; }
     radial-gradient(farthest-side at 50% 0, rgba(16, 24, 40, 0.13), rgba(16, 24, 40, 0)) top / 100% 7px no-repeat scroll,
     radial-gradient(farthest-side at 50% 100%, rgba(16, 24, 40, 0.13), rgba(16, 24, 40, 0)) bottom / 100% 7px no-repeat scroll;
 }
+
+/* The gate's remedy list — only ever a few short lines, so it stays visually
+   part of the paragraph it follows rather than becoming its own block. */
+.gate__list {
+  margin: calc(var(--s2) * -1) 0 0;
+  padding-left: var(--s5);
+  display: grid;
+  gap: var(--s1);
+  font-size: var(--t-base);
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.gate__list strong { color: var(--text); font-weight: 600; }
