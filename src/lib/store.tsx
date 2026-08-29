@@ -39,6 +39,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [revisionPulse, setRevisionPulse] = useState(0);
   const lastRevision = useRef<number>(0);
 
+  // A cheap signature of everything the interface renders. The expiry poll
+  // returns an identical payload most of the time, and replacing state anyway
+  // re-rendered the entire workbench several times a second — which is what
+  // "the UI feels unresponsive" actually was.
+  const signature = (v: ClientSession) =>
+    [
+      v.session.revision,
+      v.session.mandateVersion,
+      v.session.mandate?.status ?? '-',
+      v.session.selectedCustomerIds.join(','),
+      v.session.changes.length,
+      v.session.changes.map((c) => `${c.id}:${c.version}:${c.state}`).join(','),
+      v.session.timeline.length,
+      v.capabilities.map((d) => d.availability).join(','),
+    ].join('|');
+
+  const lastSignature = useRef<string>('');
+
   const absorb = useCallback((next: unknown) => {
     if (!next || typeof next !== 'object' || !('session' in next)) return;
     const v = next as ClientSession;
@@ -46,6 +64,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       lastRevision.current = v.session.revision;
       setRevisionPulse((n) => n + 1);
     }
+    const sig = signature(v);
+    if (sig === lastSignature.current) return;
+    lastSignature.current = sig;
     setView(v);
   }, []);
 
@@ -110,7 +131,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // claiming authority that the server has already let lapse.
   useEffect(() => {
     if (!view?.session.mandate || view.session.mandate.status !== 'ACTIVE') return;
-    const id = setInterval(() => void refresh(), 1000);
+    // Expiry is a clock event, so this only has to be frequent enough that the
+    // panel is not visibly stale. Every second was four network round trips per
+    // countdown tick's worth of churn for no added truth.
+    const id = setInterval(() => void refresh(), 2500);
     return () => clearInterval(id);
   }, [view?.session.mandate?.status, view?.session.mandate?.version, refresh, view?.session.mandate]);
 

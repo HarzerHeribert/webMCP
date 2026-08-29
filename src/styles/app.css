@@ -174,14 +174,6 @@ h1, h2, h3, p { margin: 0; }
 }
 .layer .panel--rail { margin: 0 0 var(--s2); max-height: 158px; }
 
-@media (max-width: 1240px) {
-  .workbench,
-  .workbench:has(.layer-rail) { grid-template-columns: 1fr; }
-  .layer-rail { flex-direction: row; align-self: auto; padding: var(--s3); }
-  .layer-rail__label, .layer-rail__status { writing-mode: horizontal-tb; }
-  .layer__grid { grid-template-columns: 1fr; }
-  .layer .panel--rail { max-height: 240px; }
-}
 .column { display: flex; flex-direction: column; gap: var(--s4); min-height: 0; }
 
 /* The column is the height of the viewport and never scrolls itself. One panel
@@ -197,20 +189,12 @@ h1, h2, h3, p { margin: 0; }
   max-height: 172px;
 }
 .panel--rail .panel__body { overflow-y: auto; }
-@media (max-width: 1180px) {
-  .panel--rail { max-height: 260px; }
-}
 .panel--fill { flex: 1 1 auto; min-height: 132px; }
 /* A fill panel is shrunk below its content by design, so its body must be the
    thing that scrolls. Without this the content overflows the panel instead, and
    the column scrolls the panel's own header out of view — losing the label that
    says what the thing is. */
 .panel--fill > .panel__body { overflow-y: auto; min-height: 0; }
-
-@media (max-width: 1240px) {
-  .column--fit { overflow: visible; }
-  .panel--fill { flex: 0 0 auto; }
-}
 
 /* ── header ───────────────────────────────────────────────────────────────── */
 .header {
@@ -601,4 +585,83 @@ h1, h2, h3, p { margin: 0; }
   background: var(--surface-2); border: 1px solid var(--line-hair);
   border-radius: var(--r-sm); padding: var(--s2) var(--s3); align-self: stretch;
   overflow-wrap: anywhere;
+}
+
+
+/* ═══ RESPONSIVE ══════════════════════════════════════════════════════════
+   Three shapes, in one place. They used to be scattered through this file and
+   contradicted each other — a stale `overflow: visible` on a still
+   height-constrained column is what made the layer render *on top of* the
+   account list in ChatGPT's in-app browser.
+
+   The seam between host and layer is the point of the design, so it is the
+   last thing to give way: the layer's own two columns collapse first, and only
+   below 1000px does the workbench stack.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── medium: two regions, layer stacked inside ────────────────────────────
+   ~1300px is the common judging shape. Stacking the whole workbench there
+   produced a very tall, very narrow page: technically fine, horrible to look
+   at, and it threw away the one distinction the design exists to make. */
+@media (max-width: 1360px) {
+  .workbench { grid-template-columns: minmax(290px, 0.82fr) minmax(390px, 1.18fr); }
+  .layer__grid { grid-template-columns: 1fr; }
+  .layer__note { display: none; }
+  .fields { columns: 150px; }
+  .layer .panel--rail { max-height: 148px; }
+  .panel--fill { min-height: 108px; }
+}
+
+/* ── narrow: one column, and the page scrolls ─────────────────────────────
+   The viewport-height layout is switched off *completely* here. Half-switching
+   it — visible overflow on a column still sized to `1fr` — is what produced the
+   overlap. */
+@media (max-width: 1000px) {
+  html, body, #root { height: auto; min-height: 100%; }
+  .app { height: auto; grid-template-rows: auto auto auto; }
+
+  .workbench,
+  .workbench:has(.layer-rail) { grid-template-columns: 1fr; padding-bottom: 76px; }
+  .workbench:not(:has(.layer-rail)) { padding-bottom: var(--s4); }
+
+  .column--fit { overflow: visible; }
+  .panel--fill { flex: 0 0 auto; }
+  .panel--fill > .panel__body,
+  .panel__body--scroll { overflow-y: visible; }
+  .panel--rail,
+  .layer .panel--rail { max-height: none; margin-inline: 0; }
+
+  .layer__grid { grid-template-columns: 1fr; }
+  .layer { scroll-margin-top: var(--s3); }
+  .host__note { display: none; }
+
+  /* Closed, the rail is a bar pinned to the foot of the viewport — one tap
+     away instead of a scroll past the whole account list. */
+  .layer-rail {
+    position: sticky; bottom: var(--s3); z-index: 5;
+    flex-direction: row; align-self: auto; justify-content: flex-start;
+    padding: var(--s3) var(--s4); gap: var(--s3);
+    box-shadow: var(--shadow-raise);
+  }
+  .layer-rail::after {
+    content: 'Open'; margin-left: auto;
+    font-size: var(--t-sm); font-weight: 600; color: var(--primary);
+  }
+  .layer-rail--active::after { color: var(--authority); }
+  .layer-rail__label, .layer-rail__status { writing-mode: horizontal-tb; }
+}
+
+/* ── narrowest: the instrument row will not shrink, so let it wrap ────────
+   Its readouts are all `nowrap` by design — a revision that reflows mid-demo
+   is worse than one that wraps — so below this the row wraps rather than
+   pushing the whole page sideways. */
+@media (max-width: 1100px) {
+  .header {
+    height: auto; flex-wrap: wrap;
+    gap: var(--s2) var(--s3); padding: var(--s3) var(--s4);
+  }
+  .header__meta { margin-left: 0; width: 100%; gap: var(--s4); flex-wrap: wrap; }
+  .header__instruments { margin-left: auto; }
+  .demo-guide { flex-wrap: wrap; height: auto; }
+  .panel__head { flex-wrap: wrap; }
 }

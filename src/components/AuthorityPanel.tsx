@@ -298,7 +298,9 @@ function NarrowForm({ onDone }: { onDone(): void }) {
 function useCountdown(expiresAt: number) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 250);
+    // One tick a second. The meter's width is a CSS transition, so it stays
+    // smooth without re-rendering the panel four times a second.
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
   const left = Math.max(0, expiresAt - now);

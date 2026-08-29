@@ -37,21 +37,88 @@ declare global {
   interface Navigator {
     modelContext?: ModelContextApi;
   }
-}
-
-function getApi(): ModelContextApi | undefined {
-  if (typeof navigator === 'undefined') return undefined;
-  try {
-    return navigator.modelContext ?? undefined;
-  } catch {
-    return undefined;
+  interface Document {
+    modelContext?: ModelContextApi;
   }
 }
 
+/**
+ * Where the host might have put it.
+ *
+ * The specification says `navigator.modelContext`, and this looked only there —
+ * which is how a run inside ChatGPT's in-app browser reported "no WebMCP" while
+ * that browser was reaching for `document.modelContext`. An embedder is free to
+ * hang the object somewhere else, and a page that checks one location cannot
+ * tell "absent" from "somewhere I did not look".
+ */
+const LOCATIONS: { label: string; read: () => unknown }[] = [
+  { label: 'navigator.modelContext', read: () => globalThis.navigator?.modelContext },
+  { label: 'window.modelContext', read: () => (globalThis as Record<string, unknown>).modelContext },
+  { label: 'document.modelContext', read: () => globalThis.document?.modelContext },
+];
+
+function findApi(): { api: ModelContextApi; where: string } | undefined {
+  for (const location of LOCATIONS) {
+    try {
+      const found = location.read();
+      if (found && typeof found === 'object') {
+        return { api: found as ModelContextApi, where: location.label };
+      }
+    } catch {
+      /* a cross-origin or throwing accessor is simply not it */
+    }
+  }
+  return undefined;
+}
+
+function getApi(): ModelContextApi | undefined {
+  return findApi()?.api;
+}
+
+/** What the page can actually see, for detection and for saying so out loud. */
+export interface WebMcpProbe {
+  /** A model-context object was found in some form, somewhere. */
+  present: boolean;
+  /** Which location it came from, for the same diagnostic reason as `methods`. */
+  where: string | null;
+  /** Method names found on it — reported so an unfamiliar shape is diagnosable
+   *  rather than silently indistinguishable from an absent API. */
+  methods: string[];
+  /** One of the registration methods this adapter knows how to drive. */
+  usable: boolean;
+}
+
 /** Feature detection, and nothing more. Never throws. */
+export function probeWebMcp(): WebMcpProbe {
+  const found = findApi();
+  if (!found) return { present: false, where: null, methods: [], usable: false };
+  const { api, where } = found;
+  let methods: string[] = [];
+  try {
+    const own = Object.getOwnPropertyNames(api);
+    const proto = Object.getPrototypeOf(api) as object | null;
+    const inherited = proto && proto !== Object.prototype ? Object.getOwnPropertyNames(proto) : [];
+    methods = [...new Set([...own, ...inherited])]
+      .filter((k) => k !== 'constructor')
+      .filter((k) => {
+        try {
+          return typeof (api as unknown as Record<string, unknown>)[k] === 'function';
+        } catch {
+          return false;
+        }
+      })
+      .sort();
+  } catch {
+    /* an exotic proxy: presence still counts */
+  }
+  const usable =
+    typeof api.provideContext === 'function' || typeof api.registerTool === 'function';
+  return { present: true, where, methods, usable };
+}
+
+/** Kept for callers that only need the yes/no. */
 export function isWebMcpAvailable(): boolean {
-  const api = getApi();
-  return !!api && (typeof api.provideContext === 'function' || typeof api.registerTool === 'function');
+  return probeWebMcp().usable;
 }
 
 const noop = () => {};

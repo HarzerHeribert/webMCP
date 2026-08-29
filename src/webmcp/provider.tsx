@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { ReactNode } from 'react';
 import type { ToolDescriptor } from '../../server/core/capabilities';
 import { useSession, useStore } from '../lib/store';
-import { isWebMcpAvailable, registerWebMcpTools } from './adapter';
-import type { WebMcpTool } from './adapter';
+import { probeWebMcp, registerWebMcpTools } from './adapter';
+import type { WebMcpProbe, WebMcpTool } from './adapter';
 import { createToolImplementations } from './tools';
 import type { ToolImplementations, ToolResult } from './tools';
 
@@ -32,11 +32,17 @@ export interface WebMcpState {
    *  the tool set this provider registers whenever a browser exists to
    *  register it with. */
   descriptors: ToolDescriptor[];
+  /** What the page could actually see on `navigator.modelContext`. Reported so
+   *  an unfamiliar shape is diagnosable instead of being indistinguishable from
+   *  no API at all — which is what a judge in an unfamiliar browser hits. */
+  probe: WebMcpProbe;
   /** Runs a tool's real implementation directly — the same function a live
    *  WebMCP call would run — so the simulated caller is not a fake. Refuses
    *  anything not currently in `descriptors`. */
   invoke(name: string, input: Record<string, unknown>): Promise<ToolResult>;
 }
+
+const noProbe: WebMcpProbe = { present: false, where: null, methods: [], usable: false };
 
 const idleInvoke: WebMcpState['invoke'] = async () => ({
   ok: false,
@@ -48,6 +54,7 @@ const fallback: WebMcpState = {
   statusLabel: 'starting',
   toolNames: [],
   descriptors: [],
+  probe: noProbe,
   invoke: idleInvoke,
 };
 
@@ -89,6 +96,7 @@ export function WebMcpProvider({ children }: { children: ReactNode }) {
     statusLabel: 'starting',
     toolNames: [],
     descriptors: [],
+  probe: noProbe,
   });
 
   // MCP-001: register through the one adapter, only when the API is
@@ -96,6 +104,26 @@ export function WebMcpProvider({ children }: { children: ReactNode }) {
   // surviving a narrowing is exactly the failure this effect exists to
   // prevent, since it re-runs (cleanup, then re-register) every time
   // `registered` changes identity.
+  // A host can inject `navigator.modelContext` after first paint. Detecting
+  // once and settling on "unavailable" would then be permanently wrong, and
+  // indistinguishable — to the user — from a browser that truly has no WebMCP.
+  // Re-probe for a few seconds, then stop.
+  const [probeTick, setProbeTick] = useState(0);
+  useEffect(() => {
+    if (probeWebMcp().present) return;
+    let ticks = 0;
+    const id = setInterval(() => {
+      ticks += 1;
+      if (probeWebMcp().present || ticks >= 16) {
+        clearInterval(id);
+        setProbeTick((n) => n + 1);
+      } else {
+        setProbeTick((n) => n + 1);
+      }
+    }, 300);
+    return () => clearInterval(id);
+  }, []);
+
   useEffect(() => {
     const tools: WebMcpTool[] = registered.map((d) => ({
       name: d.name,
@@ -112,20 +140,24 @@ export function WebMcpProvider({ children }: { children: ReactNode }) {
       },
     }));
 
-    const available = isWebMcpAvailable();
+    const probe = probeWebMcp();
+    const available = probe.usable;
     const cleanup = available ? registerWebMcpTools(tools) : () => {};
 
     setState({
       status: available ? 'registered' : 'unavailable',
       statusLabel: available
         ? `${tools.length} tool${tools.length === 1 ? '' : 's'} registered`
-        : 'unavailable',
+        : probe.present
+          ? 'present, but this page cannot register with it'
+          : 'unavailable',
       toolNames: available ? tools.map((t) => t.name) : [],
       descriptors: registered,
+      probe,
     });
 
     return cleanup;
-  }, [registered, toolImpls]);
+  }, [registered, toolImpls, probeTick]);
 
   // The simulated caller's entry point. Deliberately checked against the
   // compiled `registered` set rather than `toolNames`, so it keeps working

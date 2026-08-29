@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useSession, useStore } from '../lib/store';
 import { useWebMcp } from '../webmcp/provider';
 
@@ -40,6 +40,15 @@ export function MandateLayer({ children }: { children: ReactNode }) {
 
   // Only rising edges open it, so closing it stays closed. Gated, nothing
   // auto-opens: there is no capability surface to reveal.
+  // Stacked on a narrow viewport the layer opens *below* the account list, so
+  // opening it looks like nothing happened until you scroll. Bring it into view.
+  const panel = useRef<HTMLElement | null>(null);
+  const wasOpen = useRef(false);
+  useLayoutEffect(() => {
+    if (open && !wasOpen.current) panel.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    wasOpen.current = open;
+  }, [open]);
+
   const prev = useRef({ selected: 0, active: false, staged: 0, error: false });
   useEffect(() => {
     const now = { selected, active: Boolean(active), staged, error: Boolean(lastError) };
@@ -77,7 +86,7 @@ export function MandateLayer({ children }: { children: ReactNode }) {
 
   if (gated) {
     return (
-      <section className="layer layer--gated" aria-label="Mandate requires WebMCP">
+      <section ref={panel} className="layer layer--gated" aria-label="Mandate requires WebMCP">
         <header className="layer__chrome">
           <span className="layer__name">Mandate</span>
           <span className="layer__kind layer__kind--muted">WebMCP capability layer</span>
@@ -95,11 +104,30 @@ export function MandateLayer({ children }: { children: ReactNode }) {
             <span className="chip__dot" />
             WEBMCP_UNAVAILABLE
           </span>
-          <h2 className="gate__title">This browser has no WebMCP.</h2>
+          <h2 className="gate__title">
+            {webmcp.probe.present
+              ? 'This browser exposes WebMCP in a shape this page cannot use.'
+              : 'This browser has no WebMCP.'}
+          </h2>
           <p className="gate__body">
             Mandate compiles a human&apos;s delegation into WebMCP tools that the page
-            registers. With no <code>navigator.modelContext</code> there is nothing to
-            register into, so the layer does not claim to be live.
+            registers.{' '}
+            {webmcp.probe.present ? (
+              <>
+                <code>navigator.modelContext</code> is here, but it offers neither{' '}
+                <code>provideContext</code> nor <code>registerTool</code>
+                {webmcp.probe.methods.length > 0 && (
+                  <> — what it does offer is <code>{webmcp.probe.methods.join(', ')}</code></>
+                )}
+                . Rather than guess at an unfamiliar shape, the layer does not claim to be
+                live.
+              </>
+            ) : (
+              <>
+                With no <code>navigator.modelContext</code> there is nothing to register
+                into, so the layer does not claim to be live.
+              </>
+            )}
           </p>
           <p className="gate__body">
             Enable <code>#web-machine-learning-model-context</code> in{' '}
@@ -120,7 +148,7 @@ export function MandateLayer({ children }: { children: ReactNode }) {
   }
 
   return (
-    <section className="layer" aria-label="Mandate, the WebMCP capability layer">
+    <section ref={panel} className="layer" aria-label="Mandate, the WebMCP capability layer">
       <header className="layer__chrome">
         <span className="layer__name">Mandate</span>
         <span className="layer__kind">WebMCP capability layer</span>
