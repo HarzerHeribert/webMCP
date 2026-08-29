@@ -203,8 +203,35 @@ test('an approval reads as a sentence in user mode, not as a record', async ({ p
   await expect(staged.getByText('mandate v1')).toBeHidden();
   await expect(staged.getByText('nextAction', { exact: true })).toBeHidden();
 
-  // The one state that must stop somebody has to say what it means.
+  // Validation is a step in the mechanism, not a decision: one button.
+  await expect(staged.getByRole('button', { name: 'Validate', exact: true })).toBeHidden();
+
+  // The one state that must stop somebody has to say what it means — and
+  // pressing Apply is what surfaces it, since there is nothing else to press.
   await page.getByRole('button', { name: 'Simulate external update' }).click();
-  await staged.getByRole('button', { name: 'Validate', exact: true }).click();
+  await staged.getByRole('button', { name: /^Apply / }).click();
   await expect(staged.getByText(/the record moved on/)).toBeVisible();
+  await expect(page.getByText(/APPLIED THIS SESSION/i)).toBeHidden();
+});
+
+test('in user mode one button checks and commits, and says so', async ({ page }) => {
+  await page.goto('/');
+  await openMandateLayer(page);
+  await customerRow(page, 'Northwind Logistics').locator('.customer__pick input').click();
+  await page.getByRole('button', { name: /^Delegate/ }).click();
+  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
+    customerId: 'c-northwind',
+    field: 'status',
+    value: 'Active',
+    mandateVersion: '1',
+  });
+  await page.getByRole('button', { name: 'User', exact: true }).click();
+
+  const staged = panelByTitle(page, 'Staged changes');
+  await expect(staged.getByText('Applying checks these against the record first.')).toBeVisible();
+  await staged.getByRole('button', { name: /^Apply / }).click();
+
+  // One press, no prior Validate, and the value is in the CRM.
+  await expect(staged.getByText('applied', { exact: true })).toBeVisible();
+  await expect(customerRow(page, 'Northwind Logistics').getByText('Active')).toBeVisible();
 });

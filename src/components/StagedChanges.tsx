@@ -52,6 +52,8 @@ const FIELD_LABEL: Record<string, string> = {
 export function StagedChanges() {
   const { session } = useSession();
   const { run } = useStore();
+  const { mode } = useMode();
+  const plain = mode === 'user';
 
   const pending = session.changes.filter((c) => c.state !== 'APPLIED');
   const applied = session.changes.filter((c) => c.state === 'APPLIED');
@@ -63,15 +65,17 @@ export function StagedChanges() {
       <div className="panel__head">
         <h2 className="panel__title">Staged changes</h2>
         <span className="panel__count">{pending.length}</span>
-        <div className="panel__actions">
-          <button
-            className="btn btn--sm"
-            disabled={pending.length === 0}
-            onClick={() => void run(() => api.validate())}
-          >
-            Validate
-          </button>
-        </div>
+        {!plain && (
+          <div className="panel__actions">
+            <button
+              className="btn btn--sm"
+              disabled={pending.length === 0}
+              onClick={() => void run(() => api.validate())}
+            >
+              Validate
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="panel__body panel__body--flush panel__body--scroll">
@@ -106,18 +110,40 @@ export function StagedChanges() {
           </span>
           <span className="commit__sub">
             {anyStale
-              ? 'Stale work must be rebased before it can be applied.'
+              ? plain
+                ? 'The record changed underneath this. Bring it up to date first.'
+                : 'Stale work must be rebased before it can be applied.'
               : pending.length === 0
                 ? 'Nothing to commit.'
                 : allValidated
                   ? `${pending.length} validated change${pending.length === 1 ? '' : 's'} ready to commit.`
-                  : 'Validate the staged changes first.'}
+                  : plain
+                    ? 'Applying checks these against the record first.'
+                    : 'Validate the staged changes first.'}
           </span>
         </div>
         <button
           className="btn btn--primary"
-          disabled={!allValidated}
-          onClick={() => void run(() => api.apply(session.revision))}
+          disabled={plain ? pending.length === 0 || anyStale : !allValidated}
+          onClick={() =>
+            void run(async () => {
+              // One button for a person. Validation is a step in the mechanism,
+              // not a decision anybody makes — nobody means "check it but do
+              // not do it". It still runs first, and it is the only moment the
+              // distinction was ever worth showing: if the record moved
+              // underneath, stop here rather than let the server refuse with
+              // "validate the staged changes first", which is advice about a
+              // button this mode does not have. The rows now say what happened.
+              if (plain && !allValidated) {
+                const checked = await api.validate();
+                const blocked = checked.session.changes.some(
+                  (c) => c.state !== 'APPLIED' && c.state !== 'VALIDATED',
+                );
+                if (blocked) return checked;
+              }
+              return api.apply(session.revision);
+            })
+          }
         >
           Apply {pending.length > 0 ? pending.length : ''} change{pending.length === 1 ? '' : 's'}
         </button>
