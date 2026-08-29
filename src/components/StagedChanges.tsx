@@ -1,4 +1,5 @@
 import { api } from '../lib/api';
+import { useMode } from '../lib/mode';
 import { useSession, useStore } from '../lib/store';
 import type { Change } from '../../server/core/types';
 
@@ -17,6 +18,35 @@ const STATE_CHIP: Record<Change['state'], { cls: string; label: string }> = {
   VALIDATED: { cls: 'chip--ok', label: 'validated' },
   STALE: { cls: 'chip--warn', label: 'stale' },
   APPLIED: { cls: 'chip--settled', label: 'applied' },
+};
+
+/**
+ * The same four states, said to somebody who is about to approve them.
+ *
+ * `draft` / `validated` / `stale` are the state machine's own names, and they
+ * are the right names in technical mode because the inspector and the timeline
+ * use them too. They are the wrong names on an approval: a person deciding
+ * whether to commit somebody else's edit needs to know whether it is safe, not
+ * which enum member it is. `stale` in particular is the one state that should
+ * stop somebody, and "stale" does not read as "this would overwrite work you
+ * have not seen".
+ */
+const STATE_PLAIN: Record<Change['state'], { cls: string; label: string }> = {
+  DRAFT: { cls: 'chip--settled', label: 'not checked yet' },
+  VALIDATED: { cls: 'chip--ok', label: 'checked · safe to apply' },
+  STALE: { cls: 'chip--warn', label: 'the record moved on — redo this' },
+  APPLIED: { cls: 'chip--settled', label: 'applied' },
+};
+
+/** Field keys are the schema's nouns, and in technical mode they have to match
+ *  the enum the inspector shows. On an approval they are just jargon. */
+const FIELD_LABEL: Record<string, string> = {
+  status: 'Status',
+  nextAction: 'Next action',
+  owner: 'Owner',
+  renewalDate: 'Renewal date',
+  arr: 'ARR',
+  notes: 'Notes',
 };
 
 export function StagedChanges() {
@@ -99,8 +129,10 @@ export function StagedChanges() {
 function ChangeRow({ change }: { change: Change }) {
   const { session } = useSession();
   const { run } = useStore();
+  const { mode } = useMode();
+  const plain = mode === 'user';
   const customer = session.customers.find((c) => c.id === change.customerId);
-  const state = STATE_CHIP[change.state];
+  const state = (plain ? STATE_PLAIN : STATE_CHIP)[change.state];
   const both = change.touchedBy.length > 1;
 
   return (
@@ -108,7 +140,9 @@ function ChangeRow({ change }: { change: Change }) {
       <div className="change__top">
         <span className="change__target">
           {customer?.name}
-          <span className="change__field mono">{change.field}</span>
+          <span className={`change__field${plain ? ' change__field--plain' : ' mono'}`}>
+            {plain ? (FIELD_LABEL[change.field] ?? change.field) : change.field}
+          </span>
         </span>
         <span className={`chip ${state.cls}`}>
           <span className="chip__dot" />
@@ -132,11 +166,19 @@ function ChangeRow({ change }: { change: Change }) {
         ) : (
           <span className={`chip chip--${change.touchedBy[0]}`}>
             <Provenance actor={change.touchedBy[0]} />
-            {change.touchedBy[0] === 'human' ? 'human' : 'agent'}
+            {plain
+              ? change.touchedBy[0] === 'human'
+                ? 'you staged this'
+                : 'the agent staged this'
+              : change.touchedBy[0]}
           </span>
         )}
-        <span className="dim mono">base r{change.baseRevision}</span>
-        {change.mandateVersion !== null && (
+        {/* Provenance for the audit, not for the approver: which revision a
+            change was based on and which mandate authorised it are what make
+            the conflict and rebase story legible, and they are noise to
+            somebody deciding whether to commit it. */}
+        {!plain && <span className="dim mono">base r{change.baseRevision}</span>}
+        {!plain && change.mandateVersion !== null && (
           <span className="dim mono">mandate v{change.mandateVersion}</span>
         )}
         {change.state !== 'APPLIED' && (

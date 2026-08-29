@@ -729,3 +729,11 @@ h1, h2, h3, p { margin: 0; }
    thing user mode is meant to be without. */
 .layer__kind { white-space: nowrap; }
 .layer:has(.layer__grid--user) .layer__note { display: none; }
+
+/* The field name on an approval row is prose, not a schema key, so it drops the
+   monospace and the chip treatment the technical view gives it. */
+.change__field--plain {
+  font-family: var(--sans); font-size: var(--t-sm); color: var(--text-2);
+  background: none; border: 0; padding: 0;
+}
+.change__field--plain::before { content: '· '; color: var(--text-3); }

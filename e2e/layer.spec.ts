@@ -172,3 +172,39 @@ test('user mode drops the instrumentation without touching what is enforced', as
   await expect(page.getByText('Capability inspector', { exact: true })).toBeVisible();
   await expect(page.getByText('active · v1')).toBeVisible();
 });
+
+/**
+ * An approval that reads `nextAction · base r1 mandate v1 · draft` is a database
+ * row. The person deciding whether to commit somebody else's edit needs a
+ * sentence; the revision and mandate provenance are what make the *audit*
+ * legible and belong with the rest of the instrumentation.
+ */
+test('an approval reads as a sentence in user mode, not as a record', async ({ page }) => {
+  await page.goto('/');
+  await openMandateLayer(page);
+  await customerRow(page, 'Northwind Logistics').locator('.customer__pick input').click();
+  await page.getByRole('button', { name: /^Delegate/ }).click();
+  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
+    customerId: 'c-northwind',
+    field: 'nextAction',
+    value: 'Book the exec sync',
+    mandateVersion: '1',
+  });
+
+  const staged = panelByTitle(page, 'Staged changes');
+  await expect(staged.getByText('base r1')).toBeVisible();
+  await expect(staged.getByText('nextAction', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'User', exact: true }).click();
+
+  await expect(staged.getByText('Next action', { exact: true })).toBeVisible();
+  await expect(staged.getByText('the agent staged this')).toBeVisible();
+  await expect(staged.getByText('base r1')).toBeHidden();
+  await expect(staged.getByText('mandate v1')).toBeHidden();
+  await expect(staged.getByText('nextAction', { exact: true })).toBeHidden();
+
+  // The one state that must stop somebody has to say what it means.
+  await page.getByRole('button', { name: 'Simulate external update' }).click();
+  await staged.getByRole('button', { name: 'Validate', exact: true }).click();
+  await expect(staged.getByText(/the record moved on/)).toBeVisible();
+});
