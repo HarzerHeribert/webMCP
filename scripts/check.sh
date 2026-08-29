@@ -14,6 +14,9 @@ run() {
 run "typecheck"   npm run --silent typecheck
 run "lint"        npm run --silent lint
 run "unit + integration" npm run --silent test
-[ "$FULL" = 1 ] && run "browser" npm run --silent test:e2e
+if [ "$FULL" = 1 ]; then
+  run "build"   npm run --silent build
+  run "browser" npm run --silent test:e2e
+fi
 if [ "$fail" -ne 0 ]; then printf '\033[31mGATE RED\033[0m\n'; else printf '\033[32mGATE GREEN\033[0m%s\n' "$([ "$FULL" = 1 ] || echo '  (browser tests not run — pass --full)')"; fi
 exit "$fail"
