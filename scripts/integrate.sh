@@ -74,6 +74,9 @@ for n in "${NAMES[@]}"; do
   # package — a tests-only worker has no tracked changes at all.
   git -C "$wt" ls-files --others --exclude-standard | while read -r f; do
     [ -n "$f" ] || continue
+    # A worktree's node_modules is a symlink this script planted; it is not a
+    # deliverable, and copying it into main would replace the real directory.
+    case "$f" in node_modules|node_modules/*) continue ;; esac
     mkdir -p "$(dirname "./$f")"; cp "$wt/$f" "./$f"
     printf '  copied   %-24s %s\n' "$n" "$f"
   done
