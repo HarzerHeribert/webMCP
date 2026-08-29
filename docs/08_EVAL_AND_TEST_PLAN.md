@@ -1,0 +1,3 @@
+# Test plan
+
+Layers: unit (capability/policy/state), integration (forged inputs and latest-policy enforcement), browser (delegation, inspector, co-edit, reset, conflict/rebase/apply), and fixed WebMCP agent evals. Minimum cases: no mandate read; selected-not-delegated write rejected; allowed status stage; other customer/field rejected; revoke after discovery → POLICY_CHANGED; human change visible on next read; external revision conflict/rebase; apply request finds no tool; injected CRM note changes no authority. Record success, unauthorized attempts, recoveries, tool calls, and visible results; compare one run to a broad generic-tool baseline.

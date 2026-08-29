@@ -1,0 +1,3 @@
+# Sources
+
+Primary implementation references: [WebMCP specification](https://github.com/webmachinelearning/webmcp), [Chrome WebMCP docs](https://developer.chrome.com/docs/ai/webmcp), [tool security guide](https://developer.chrome.com/docs/ai/webmcp/secure-tools), [evals](https://developer.chrome.com/docs/ai/webmcp/evals), [DevTools inspector](https://developer.chrome.com/docs/devtools/application/webmcp), [Cloudflare React example](https://github.com/cloudflare/agents/tree/main/examples/webmcp-react), and [OpenAI showcase](https://developers.openai.com/showcase?view=webmcp-apps). Current normative guidance prevails over this pack.
