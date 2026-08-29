@@ -1,9 +1,13 @@
-# Mandate
+# WebMCP Mandate Compiler
 
-**Mandate turns a human's explicit, temporary browser-session intent into a live,
-bounded WebMCP capability surface.**
+**A compiler from human intent to a live, bounded WebMCP tool contract.**
 
-Relay CRM is the host demo. Mandate is the product.
+A person says what an agent may touch, on which records, for how long. That
+sentence is compiled into the page's WebMCP capability surface — tool schemas
+derived from the mandate, narrowing when it narrows, gone when it is revoked —
+and the server enforces the same mandate on every call that arrives.
+
+Relay CRM is the host demo. The compiler is the product.
 
 ---
 

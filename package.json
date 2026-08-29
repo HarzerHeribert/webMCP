@@ -1,5 +1,5 @@
 {
-  "name": "mandate",
+  "name": "webmcp-mandate-compiler",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,0 +1,84 @@
+/* The guide rail — `docs/17_DEMO_SCRIPT.md` walked one beat at a time.
+ *
+ * It sits directly under the header and reads like a continuation of the
+ * instrument: same surfaces, same type scale, no imagery. Amber is used in
+ * exactly one place (the Delegate badge) because the token file reserves it
+ * for delegated authority — everywhere else here is `--text-2`/`--text-3`. */
+
+.demo-guide {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  height: 34px;
+  padding: 0 var(--s4);
+  background: var(--surface-sunk);
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+/* Progress — a segmented rail, not a number. Never amber: it marks position,
+   it does not claim authority. */
+.demo-guide__rail {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: none;
+}
+.demo-guide__dot {
+  width: 13px;
+  height: 3px;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  transition: background var(--transition);
+}
+.demo-guide__dot--done { background: var(--text-3); }
+.demo-guide__dot--current { background: var(--text-2); }
+
+.demo-guide__badge {
+  flex: none;
+  margin-left: var(--s1);
+}
+.demo-guide__step {
+  flex: none;
+  font-size: var(--t-xs);
+}
+
+.demo-guide__copy {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding-left: var(--s2);
+  border-left: 1px solid var(--line-hair);
+  color: var(--text-2);
+  font-size: var(--t-sm);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-guide__dismiss { flex: none; }
+
+/* Dismissed: a quiet way back in, not a full-height row. */
+.demo-guide--collapsed {
+  height: 20px;
+  padding: 0 var(--s4);
+  background: transparent;
+  border-bottom: 1px solid var(--line-hair);
+}
+.demo-guide__reopen {
+  font-size: var(--t-xs);
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: color var(--transition);
+}
+.demo-guide__reopen:hover { color: var(--text-2); }
+
+@media (max-width: 720px) {
+  .demo-guide__rail { display: none; }
+}

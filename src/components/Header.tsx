@@ -19,8 +19,8 @@ export function Header() {
   return (
     <header className="header">
       <div className="brand">
-        <span className="brand__mark">Mandate</span>
-        <span className="brand__host">host demo · Relay CRM</span>
+        <span className="brand__mark">Mandate Compiler</span>
+        <span className="brand__host">WebMCP · host demo: Relay CRM</span>
       </div>
 
       <span className={`chip ${authority.tone}`}>

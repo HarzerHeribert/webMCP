@@ -167,7 +167,8 @@ Phase M7 — The demo, and the polish that carries it
 ☑ Write the fixed eval script: the nine minimum cases from `docs/08_EVAL_AND_TEST_PLAN.md`.
     EVIDENCE: `tests/unit/service.test.ts` + `tests/integration/app.test.ts` — all nine `docs/08` cases as named deterministic tests, plus session isolation and expiry.
 ☐ Add browser tests for delegation, inspector narrowing, co-edit, conflict, rebase, apply, and reset.
-☐ Add a guided demo mode that walks the three-minute script from `docs/09_DEMO_AND_SUBMISSION.md`.
+☑ Add a guided demo mode that walks the three-minute script from `docs/09_DEMO_AND_SUBMISSION.md`.
+    EVIDENCE: `src/components/DemoGuide.tsx` — eight beats derived from session state, never from clicks, so it follows the user rather than leading them; dismissible and persistent; manual: walked all eight forward and two backward (revoke drops it to Delegate, discard drops it to Stage).
 ☐ GATE: a fresh reset replays the whole demo with no manual repair.
 ☐ Verify the demo runs in a browser without the WebMCP flag, through the simulated caller. (SUBMISSION: judges may not have the flag)
 
