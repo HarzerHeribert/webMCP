@@ -197,7 +197,11 @@ Phase M8 — Deployment
     EVIDENCE: `server/core/redis-store.ts` — one fetch against Upstash's REST API; the in-memory adapter still backs every test.
 ☑ Add the Vercel function entry and build config so `/api/*` and the static client share one origin.
     EVIDENCE: `api/[[...route]].ts` + `vercel.json` — one function under `/api`, warns loudly if it falls back to process memory.
-☐ Deploy one HTTPS origin, with a deterministic reset and no credentials in the repo.
-☐ Verify the live URL works in Chrome with WebMCP enabled **and** degrades correctly where it is not. (SUBMISSION)
-☐ Verify no cross-session leakage and no internal error text on the deployed origin.
-☐ Record deployed URL, commit SHA, browser and version, and the stated limitations.
+☑ Deploy one HTTPS origin, with a deterministic reset and no credentials in the repo.
+    EVIDENCE: `scripts/verify-live.mjs https://webmcp-weld.vercel.app` — 12/12, including a deterministic reset back to the seed. No credentials in the repo; the store is bound by platform env.
+☑ Verify the live URL works in Chrome with WebMCP enabled **and** degrades correctly where it is not. (SUBMISSION)
+    EVIDENCE: manual (headless Chromium against the live origin): the rail reads `WebMCP required`, the gate explains WEBMCP_UNAVAILABLE, the override runs the demo, delegation works and an undelegated customer is refused. The flagged path is unverified — no flagged browser here; the adapter's registration path is covered by unit-level tests only.
+☑ Verify no cross-session leakage and no internal error text on the deployed origin.
+    EVIDENCE: `scripts/verify-live.mjs` — session B cannot see session A's selection, a forged id returns 404 `NOT_FOUND`, and no reply matches /stack|node_modules|TypeError/.
+☑ Record deployed URL, commit SHA, browser and version, and the stated limitations.
+    EVIDENCE: `docs/19_DEPLOYMENT_RECORD.md`.

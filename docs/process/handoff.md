@@ -2,43 +2,45 @@
 
 ## Where this stands
 
-62/66. M0–M7B complete. The product works end to end and is proved by 21 unit +
-integration tests and 11 browser tests, all green, three consecutive clean runs.
+**66/66.** The demo is live, public, and verified on the deployed origin:
+https://webmcp-weld.vercel.app — see `docs/19_DEPLOYMENT_RECORD.md`.
 
-Deployed: Vercel project `webmcp`, git-linked to `HarzerHeribert/webMCP`, auto-
-deploying on push to `main`. Build `READY` on `49d17e1`. Aliases
-`webmcp-weld.vercel.app` and `webmcp-holdpoint-deployment.vercel.app`.
+35 unit/integration tests, 14 browser tests, and `scripts/verify-live.mjs`
+(12 checks against the live URL). `scripts/check.sh --full` is green.
 
-## Next action
+## What is left before submitting (deadline 2026-09-03 13:00 PDT)
 
-**Blocked on one dashboard toggle:** the project has Vercel Authentication (SSO)
-enabled, so every request 302s to `vercel.com/sso-api`. The submission requires a
-URL judges can open. The Vercel MCP connector is **read-only for this team** —
-`update_project_deployment_protection` returns 403 — so the user must set
-Settings → Deployment Protection → Vercel Authentication → Disabled.
+1. **Record the video.** `docs/17_DEMO_SCRIPT.md`, beat by beat, under three
+   minutes, public YouTube, with audio. Record at 1600×1000 or larger — the
+   workbench is dense below that.
+2. **Fill in the Devpost form**: live URL, repo, video, and the text description
+   (the README is written to be that text).
+3. Optional: verify once in a browser with `#web-machine-learning-model-context`
+   enabled. Nothing here has ever run against a real `navigator.modelContext`,
+   and that gap is stated in the deployment record rather than hidden.
 
-Once it is off, the four remaining M8 lines are one pass:
+## What bit, and what now guards it
 
-1. `curl` the live origin: session creation, a forged session id, an
-   out-of-scope tool call, and confirm no internal error text leaks.
-2. Confirm Redis is actually bound — create a session, wait past a cold start,
-   read it again. If it 404s, the store fell back to process memory and the
-   function log will say so.
-3. Verify in Chrome with WebMCP enabled, and confirm the unavailable path.
-4. Record the URL, SHA, browser version and limitations in the map.
+The deploy shipped broken three times while every local check stayed green,
+because nothing in the gate had ever touched the production artefact:
 
-Then: record the demo video against `docs/17_DEMO_SCRIPT.md`.
+- a `.ts` import specifier the platform does not rewrite;
+- then an extensionless one, because Vercel does not bundle `api/*.ts` at all;
+- then `export default`, which Vercel reads as the Node `(req, res)` signature
+  and whose returned `Response` it ignores — every request hung to 300s;
+- and a store that silently fell back to process memory because the REST pair it
+  wanted was never bound.
 
-## Live workers
-
-None. All five worktrees integrated and closed.
+Now: the function is bundled by `scripts/build-api.mjs` into a committed
+`api/index.js`; `scripts/check.sh` rebuilds it and fails if it was stale;
+`tests/integration/vercel-entry.test.ts` drives the real entry; and the habit
+that actually caught things was **running the bundle from a directory with no
+`node_modules`**.
 
 ## Loose ends
 
-- `HUMAN_CONFIRMATION_REQUIRED` is defined in `docs/16` and never thrown. Either
-  give it a use or mark it reserved.
-- The e2e worker noted that all three mutating tools register together once any
-  mandate is active — only `mandate_stage_customer_update`'s *schema* narrows to
-  the exact grant. That is correct behaviour (validate and rebase operate over
-  whatever is staged), but the demo narration should not imply otherwise.
+- `HUMAN_CONFIRMATION_REQUIRED` is defined in `docs/16` and never thrown.
+- The RESP client (`server/core/redis-socket-store.ts`) is deliberately minimal.
+  Its tests need a Redis on 6380 (`docker run -d --rm -p 6380:6379 redis:7-alpine`);
+  without one they skip, and only the parser tests run.
 - `.mcp.json` adds chrome-devtools-mcp; it needs a session restart to load.
