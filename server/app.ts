@@ -97,7 +97,12 @@ export function createApp(store: SessionStore = new MemorySessionStore()) {
 
   /** Human-only, by construction. There is no `/tools/apply`, and the service
    *  exposes no method this route could share with the agent path. */
-  app.post('/changes/apply', async (c) => c.json(view(await service.applyAsHuman(sid(c)))));
+  app.post('/changes/apply', async (c) => {
+    const body = await c.req
+      .json<{ expectedRevision?: number }>()
+      .catch((): { expectedRevision?: number } => ({}));
+    return c.json(view(await service.applyAsHuman(sid(c), body.expectedRevision)));
+  });
 
   app.post('/simulate/external-update', async (c) =>
     c.json(view(await service.simulateExternalUpdate(sid(c)))),
@@ -105,12 +110,19 @@ export function createApp(store: SessionStore = new MemorySessionStore()) {
 
   // ── agent path: exactly the registered tools, nothing more ───────────────
   app.post('/tools/stage', async (c) => {
-    const body = await c.req.json<{ customerId: string; field: never; value: string; mandateVersion: number }>();
+    const body = await c.req.json<{
+      customerId: string;
+      field: never;
+      value: string;
+      mandateVersion: number;
+      changeVersion?: number;
+    }>();
     const { session } = await service.stageAsAgent(sid(c), {
       customerId: body.customerId,
       field: body.field,
       after: body.value,
       mandateVersion: body.mandateVersion,
+      changeVersion: body.changeVersion,
     });
     return c.json(view(session));
   });

@@ -84,7 +84,7 @@ export function StagedChanges() {
         <button
           className="btn btn--authority"
           disabled={!allValidated}
-          onClick={() => void run(() => api.apply())}
+          onClick={() => void run(() => api.apply(session.revision))}
         >
           Apply {pending.length > 0 ? pending.length : ''} change{pending.length === 1 ? '' : 's'}
         </button>

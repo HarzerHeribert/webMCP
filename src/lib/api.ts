@@ -71,7 +71,9 @@ export const api = {
   discard: (changeId: string) => call(`/changes/${changeId}`, { method: 'DELETE' }),
   validate: () => post('/changes/validate'),
   rebase: () => post('/changes/rebase'),
-  apply: () => post('/changes/apply'),
+  /** Carries the revision the human was looking at. If the record moved between
+   *  the last render and the click, apply refuses rather than committing over it. */
+  apply: (expectedRevision: number) => post('/changes/apply', { expectedRevision }),
   simulateExternalUpdate: () => post('/simulate/external-update'),
 };
 
@@ -82,8 +84,13 @@ export const api = {
  * reading the call site.
  */
 export const agentApi = {
-  stage: (customerId: string, field: string, value: string, mandateVersion: number) =>
-    post('/tools/stage', { customerId, field, value, mandateVersion }),
+  stage: (
+    customerId: string,
+    field: string,
+    value: string,
+    mandateVersion: number,
+    changeVersion?: number,
+  ) => post('/tools/stage', { customerId, field, value, mandateVersion, changeVersion }),
   validate: (mandateVersion: number) => post('/tools/validate', { mandateVersion }),
   rebase: (mandateVersion: number) => post('/tools/rebase', { mandateVersion }),
 };

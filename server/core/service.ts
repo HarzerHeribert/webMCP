@@ -196,6 +196,10 @@ export class MandateService {
       field: CustomerField;
       after: string;
       mandateVersion: number;
+      /** The change version the caller believes it is editing. Optional on a
+       *  first stage; naming a version that no longer exists is refused, which
+       *  is how a co-edit race stops being a silent last-writer-wins. */
+      changeVersion?: number;
     },
   ): Promise<{ session: Session; change: Change }> {
     const session = await this.read(id);
@@ -208,6 +212,21 @@ export class MandateService {
     } catch (e) {
       await this.#logRefusal(session, 'mandate_stage_customer_update', e, input.customerId);
       throw e;
+    }
+    if (input.changeVersion !== undefined) {
+      const target = session.changes.find(
+        (c) => c.customerId === input.customerId && c.field === input.field && c.state !== 'APPLIED',
+      );
+      if (target && target.version !== input.changeVersion) {
+        const e = errors.changeVersionConflict(
+          `This change was edited to version ${target.version} after the call was ` +
+            `made against version ${input.changeVersion}.`,
+          'Read the workspace again and re-issue the update against the current value.',
+          { changeId: target.id, calledVersion: input.changeVersion, currentVersion: target.version },
+        );
+        await this.#logRefusal(session, 'mandate_stage_customer_update', e, input.customerId);
+        throw e;
+      }
     }
     const result = await this.#stage(session, 'agent', input.mandateVersion, input);
     this.#log(
@@ -412,7 +431,7 @@ export class MandateService {
    * that calls it. SEC-004 is enforced by the shape of the code, not by a check
    * inside it.
    */
-  async applyAsHuman(id: string): Promise<Session> {
+  async applyAsHuman(id: string, expectedRevision?: number): Promise<Session> {
     const session = await this.read(id);
     const pending = session.changes.filter((c) => c.state !== 'APPLIED');
     if (pending.length === 0) {
@@ -424,6 +443,40 @@ export class MandateService {
         `${notReady.length} staged change(s) are not validated.`,
         'Validate the staged changes first; apply only commits validated work.',
         { changeIds: notReady.map((c) => c.id) },
+      );
+    }
+
+    // VALIDATED is a claim about a moment, not a permit. The world can move
+    // between validating and applying — and apply is the one irreversible act
+    // here, so it re-checks rather than trusting the flag it was handed.
+    if (expectedRevision !== undefined && expectedRevision !== session.revision) {
+      throw errors.revisionConflict(
+        `The record moved to revision ${session.revision} while this apply was being prepared.`,
+        'Validate again to see what changed, then rebase and apply.',
+        { expectedRevision, currentRevision: session.revision },
+      );
+    }
+    const stale = pending.filter((c) => c.baseRevision !== session.revision);
+    if (stale.length > 0) {
+      for (const c of stale) {
+        c.state = 'STALE';
+        c.validationMessage =
+          `Validated against revision ${c.baseRevision}; the record is now at revision ${session.revision}.`;
+      }
+      this.#log(
+        session,
+        'CONFLICT',
+        'system',
+        `Apply refused: ${stale.length} change(s) were validated against an older revision.`,
+        'Nothing was committed. Rebase keeps the intended value and re-bases it on the current record.',
+      );
+      await this.#store.put(session);
+      throw errors.revisionConflict(
+        `${stale.length} change(s) were validated against revision ` +
+          `${stale[0].baseRevision}, but the record is now at revision ${session.revision}. ` +
+          'Nothing was committed.',
+        'Rebase the staged changes: the intended value is kept and re-based on the current record.',
+        { staleChangeIds: stale.map((c) => c.id), currentRevision: session.revision },
       );
     }
 

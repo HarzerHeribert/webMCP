@@ -100,6 +100,13 @@ export function compileCapabilities(session: Session): ToolDescriptor[] {
             'any other value, so a call made before the human narrowed or ' +
             'revoked the mandate fails rather than slipping through.',
         },
+        changeVersion: {
+          type: 'integer',
+          description:
+            'When editing a change that is already staged, the version you read. ' +
+            'Omit when staging a new one. If a human edited it in between, the ' +
+            'call is refused rather than quietly overwriting their edit.',
+        },
       },
       ['customerId', 'field', 'value', 'mandateVersion'],
     ),
