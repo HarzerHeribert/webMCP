@@ -29,7 +29,7 @@ export function StagedChanges() {
   const anyStale = pending.some((c) => c.state === 'STALE');
 
   return (
-    <section className="panel panel--fill">
+    <section className="panel">
       <div className="panel__head">
         <h2 className="panel__title">Staged changes</h2>
         <span className="panel__count">{pending.length}</span>

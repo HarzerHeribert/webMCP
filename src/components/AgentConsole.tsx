@@ -69,7 +69,7 @@ export function AgentConsole() {
   }
 
   return (
-    <section className="panel">
+    <section className="panel panel--fill">
       <div className="panel__head">
         <span className="panel__title">Simulated caller</span>
         <span className="panel__count">{tools.length} callable</span>

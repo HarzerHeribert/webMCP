@@ -7,8 +7,7 @@ import {
   readout,
   readToolSchema,
   runSimulatedCaller,
-  toolRow,
-} from './helpers.ts';
+  toolRow, openMandateLayer } from './helpers.ts';
 
 /**
  * THE GATE: reset must replay the whole demo, in one uninterrupted run, with
@@ -22,8 +21,9 @@ import {
 
 test('reset replays the whole demo end to end, with no manual repair', async ({ page }) => {
   await page.goto('/');
-  const customers = panelByTitle(page, 'Relay CRM · Customers');
-  await expect(customers.getByRole('heading', { name: 'Relay CRM · Customers' })).toBeVisible();
+  await openMandateLayer(page);
+  const customers = panelByTitle(page, 'Accounts');
+  await expect(customers.getByRole('heading', { name: 'Accounts' })).toBeVisible();
 
   const authority = panelByTitle(page, 'Authority');
   const staged = panelByTitle(page, 'Staged changes');

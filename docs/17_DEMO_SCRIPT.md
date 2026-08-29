@@ -11,24 +11,34 @@ unchanged — say so on camera rather than hiding it.
 
 ---
 
-**0:00 — The problem, over the workbench.** Relay CRM, six accounts, nothing
-delegated. Header reads *No authority*. "An agent that can act in this app needs
-authority. Today that means an API key scoped to everything, forever. Here is
-the sentence people actually mean instead."
+**0:00 — An ordinary CRM.** Relay CRM at full width, six accounts, no Mandate
+anywhere on screen — just a docked rail on the right edge reading *Mandate ·
+not in use*. "This is a CRM. Mandate is not part of it; it is a layer installed
+into it, and right now it is doing nothing."
 
-**0:15 — Selection is not authority.** Click Northwind and Atlas. The rows get a
+**0:10 — The problem.** "An agent that can act in this app needs authority.
+Today that means an API key scoped to everything, forever. Here is the sentence
+people actually mean instead."
+
+**0:18 — Open the layer.** Click the rail. If the browser has no WebMCP the layer
+refuses to pretend: it names `WEBMCP_UNAVAILABLE`, says there is nothing to
+register into, and offers the simulated caller as an explicit override. Say so on
+camera — the dependency is the point. With the flag enabled, the layer simply
+opens.
+
+**0:30 — Selection is not authority.** Click Northwind and Atlas. The rows get a
 cool rail and the counter says two selected. The Authority panel says: *selecting
 proposes a scope; it grants nothing.* Point at the capability inspector: still
 two read-only tools. **Nothing appeared.**
 
-**0:30 — Delegate.** Choose `status` and `nextAction`, ten minutes, Delegate.
+**0:40 — Delegate.** Choose `status` and `nextAction`, ten minutes, Delegate.
 Three things change at once and the camera should catch all three: the rows take
 the amber authority ring, the Authority panel states the exact scope as chips
 with a countdown, and the inspector gains `mandate_stage_customer_update` — whose
 customer enum is *those two ids* and whose field enum is *those two fields*.
 "The tool schema is a readout of what the human just decided."
 
-**0:50 — The agent stages.** Through the tool surface, stage Northwind's status
+**0:55 — The agent stages.** Through the tool surface, stage Northwind's status
 to *Active* and its next action. The changes appear in the shared list with the
 agent's dashed mark, base revision, and mandate version. Nothing has been
 committed.
@@ -70,6 +80,10 @@ act in the product has no agent path at any layer."
 **2:35 — The human applies.** Re-delegate briefly if needed, validate, and press
 Apply — in its own bar, on its own surface, disabled until the work is valid.
 The record advances a revision and the applied values land in Relay CRM.
+
+**2:40 — Close the layer.** Shut Mandate. Relay CRM is a plain CRM again — and
+the rail stays amber and still says *active · v1*, because live authority is the
+one thing this interface will not hide. Re-open it.
 
 **2:45 — The timeline.** Scroll it once, slowly. Mandate granted, tools
 registered, agent staged, refusal, human edit, conflict, rebase, revoke, human

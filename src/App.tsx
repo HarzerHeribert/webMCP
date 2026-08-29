@@ -7,24 +7,28 @@ import { Inspector } from './components/Inspector.tsx';
 import { Timeline } from './components/Timeline.tsx';
 import { AgentConsole } from './components/AgentConsole.tsx';
 import { DemoGuide } from './components/DemoGuide.tsx';
+import { MandateLayer } from './components/MandateLayer.tsx';
 import { useStore } from './lib/store.tsx';
 import { WebMcpProvider } from './webmcp/provider.tsx';
 
 /**
- * One workbench, three columns, left to right in the order the story runs:
- * what the authority applies to, the authority itself and the tool surface it
- * compiles into, and the work that surface produced — ending in the one
- * human-only commit and the record of everything that led to it.
+ * Two regions, and the seam between them is the whole point.
  *
- * The simulated caller sits directly above the staged changes it produces, so
- * running a tool and watching the result land are one glance apart. Each column
- * is exactly the viewport's height; the panels that can grow without bound are
- * the ones that scroll, so nothing that matters ever leaves the screen.
+ * **Left is the host.** Relay CRM is somebody else's CRM: its own wordmark, its
+ * own chrome, its own record list. Mandate did not build it and does not own it.
  *
- * The timeline is a full-width rail beneath all three, because its rows are
- * sentences. In a 400px column every one of them wrapped; across the whole
- * workbench they read as a list of things that happened — which is what the
- * demo closes on.
+ * **Right is the product**, and it can be closed. Everything Mandate
+ * contributes lives inside one bounded, labelled pane — the delegation surface,
+ * the tool contract it compiles, a way to exercise that contract, the shared
+ * staged work, and the audit of all of it. Shut it and Relay CRM is an ordinary
+ * CRM again, which is the clearest possible statement of
+ * `docs/12_DECISIONS.md` D-002: the host is not the product.
+ *
+ * Inside the layer the order is the order the story runs: the authority and the
+ * tool surface it compiles into, then the work that surface produced, ending in
+ * the one human-only commit and the record of everything that led to it. The
+ * simulated caller sits directly above the staged changes it produces, so
+ * running a tool and watching the result land are one glance apart.
  */
 export function App() {
   const { view, loading } = useStore();
@@ -43,20 +47,34 @@ export function App() {
         <Header />
         <DemoGuide />
         <main className="workbench">
-          <div className="column column--fit">
-            <CustomerTable />
-          </div>
-          <div className="column column--fit">
-            <AuthorityPanel />
-            <Inspector />
-          </div>
-          <div className="column column--fit">
-            <ConflictPanel />
-            <AgentConsole />
-            <StagedChanges />
-          </div>
+          <section className="host" aria-label="Relay CRM, the host application">
+            <header className="host__chrome">
+              <span className="host__mark" aria-hidden>
+                R
+              </span>
+              <span className="host__name">Relay CRM</span>
+              <span className="host__note">The host application. Mandate did not build this.</span>
+            </header>
+            <div className="column column--fit">
+              <CustomerTable />
+            </div>
+          </section>
+
+          <MandateLayer>
+            <div className="layer__grid">
+              <div className="column column--fit">
+                <AuthorityPanel />
+                <Inspector />
+              </div>
+              <div className="column column--fit">
+                <ConflictPanel />
+                <AgentConsole />
+                <StagedChanges />
+              </div>
+            </div>
+            <Timeline />
+          </MandateLayer>
         </main>
-        <Timeline />
       </div>
     </WebMcpProvider>
   );

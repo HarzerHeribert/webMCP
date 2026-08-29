@@ -16,9 +16,16 @@ export async function readout(page: Page, label: string): Promise<string> {
 
 /** Scope a locator to the panel whose `<h2>` title matches exactly, so a
  *  customer or timeline entry that happens to share text with another panel
- *  can't be picked up by accident. */
+ *  can't be picked up by accident.
+ *
+ *  `section.panel`, not `section`: the host region and the Mandate layer are
+ *  themselves `<section>` elements that *contain* the panels, so a bare
+ *  `section` filter matched the container as well as the panel and every
+ *  subsequent query became ambiguous. */
 export function panelByTitle(page: Page, title: string) {
-  return page.locator('section').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
+  return page
+    .locator('section.panel')
+    .filter({ has: page.getByRole('heading', { name: title, exact: true }) });
 }
 
 /**
@@ -28,7 +35,7 @@ export function panelByTitle(page: Page, title: string) {
  * This is the equivalent scope-by-exact-text for those two panels.
  */
 export function panelByLabel(page: Page, title: string) {
-  return page.locator('section').filter({ has: page.getByText(title, { exact: true }) });
+  return page.locator('section.panel').filter({ has: page.getByText(title, { exact: true }) });
 }
 
 /** The `<li class="webmcp-tool">` row for one named tool inside the
@@ -82,7 +89,7 @@ export async function runSimulatedCaller(
  *  name so "Northwind" doesn't also match "Northwind Logistics Europe" or
  *  the like. */
 export function customerRow(page: Page, name: string) {
-  return panelByTitle(page, 'Relay CRM · Customers')
+  return panelByTitle(page, 'Accounts')
     .getByRole('listitem')
     .filter({ has: page.getByText(name, { exact: true }) });
 }
@@ -102,4 +109,28 @@ export async function editFieldAsHuman(row: Locator, fieldLabel: string, value: 
     await input.fill(value);
     await input.press('Enter');
   }
+}
+
+/**
+ * The Mandate layer starts closed: Relay CRM is an ordinary CRM until someone
+ * asks for the layer. Open it the way a user does. Selecting a customer opens
+ * it too, so this is a no-op once a selection exists.
+ */
+export async function openMandateLayer(page: Page): Promise<void> {
+  // Wait for the app to boot first. An `isVisible()` check against a page still
+  // showing "Opening a session…" answers false and silently does nothing, which
+  // leaves the layer closed and every later assertion failing somewhere else.
+  await page.waitForSelector('.workbench');
+
+  const rail = page.getByRole('button', { name: 'Open the Mandate capability layer' });
+  await rail.waitFor({ state: 'visible' });
+  await rail.click();
+
+  // Chromium here has no `navigator.modelContext`, so the layer gates itself and
+  // offers the simulated caller as a deliberate override. Take it — exactly the
+  // path a judge without the flag walks. With the flag, no gate appears.
+  const go = page.getByRole('button', { name: 'Run the demo with the simulated caller' });
+  if (await go.isVisible().catch(() => false)) await go.click();
+
+  await page.getByRole('heading', { name: 'Authority', exact: true }).waitFor({ state: 'visible' });
 }

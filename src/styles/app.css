@@ -33,10 +33,154 @@ h1, h2, h3, p { margin: 0; }
 }
 .workbench {
   display: grid;
-  grid-template-columns: minmax(430px, 1.16fr) minmax(380px, 0.98fr) minmax(400px, 1.02fr);
+  grid-template-columns: minmax(400px, 0.92fr) minmax(760px, 2.06fr);
   gap: var(--s4);
-  padding: var(--s4) var(--s4) 0;
+  padding: var(--s4);
   min-height: 0;
+}
+/* Closed, the host gets the whole workbench and Relay CRM is just a CRM. */
+.workbench:has(.layer-rail) { grid-template-columns: minmax(0, 1fr) 46px; }
+
+/* ── the host: somebody else's CRM ────────────────────────────────────────
+   Plain. Neutral. Deliberately unremarkable — it is the application Mandate is
+   installed into, not the thing being pitched, and it should look like software
+   that already existed this morning. */
+.host { display: flex; flex-direction: column; gap: var(--s3); min-height: 0; }
+.host__chrome {
+  display: flex; align-items: center; gap: var(--s2);
+  padding: 0 var(--s1);
+}
+.host__mark {
+  width: 22px; height: 22px; border-radius: 6px; flex: none;
+  background: #334155; color: #fff;
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 700; letter-spacing: -0.02em;
+}
+.host__name { font-size: var(--t-md); font-weight: 620; letter-spacing: -0.01em; }
+.host__crumb {
+  font-size: var(--t-sm); color: var(--text-3);
+  padding-left: var(--s2); border-left: 1px solid var(--line-strong);
+}
+.host__note {
+  margin-left: auto; font-size: var(--t-xs); color: var(--text-3); text-align: right;
+}
+
+/* ── the layer: the product ───────────────────────────────────────────────
+   One bounded pane with its own ground, its own chrome and a hairline of
+   authority along its top edge. Everything Mandate contributes is inside it, so
+   "what is the product and what is the host" is answered by looking. */
+.layer {
+  display: flex; flex-direction: column; gap: var(--s3);
+  min-height: 0;
+  padding: var(--s3) var(--s3) var(--s1);
+  background: #e8edf5;
+  border: 1px solid #d3dbe6;
+  border-top: 2px solid var(--authority-fill);
+  border-radius: var(--r-lg);
+}
+.layer__chrome {
+  display: flex; align-items: baseline; gap: var(--s2);
+  padding: 0 var(--s1) 0 var(--s2);
+}
+.layer__name {
+  font-size: var(--t-md); font-weight: 680; letter-spacing: -0.015em; color: var(--text);
+}
+.layer__kind {
+  font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--authority);
+  background: var(--authority-wash); border: 1px solid var(--authority-edge);
+  border-radius: var(--r-pill); padding: 2px 8px;
+}
+.layer__note {
+  margin-left: auto; font-size: var(--t-xs); color: var(--text-2); text-align: right;
+  max-width: 46ch; line-height: 1.4;
+}
+.layer__close { margin-left: var(--s3); align-self: center; }
+.layer--gated .layer__close { margin-left: auto; }
+.layer__kind--muted {
+  color: var(--text-2); background: var(--surface-3); border-color: var(--line-strong);
+}
+
+/* ── the gate ─────────────────────────────────────────────────────────────
+   What the layer says instead of pretending to be live. It states the missing
+   dependency, how to satisfy it, and the one deliberate way past it. */
+.layer--gated { border-top-color: #e0a58a; }
+.gate {
+  flex: 0 1 auto; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: flex-start; gap: var(--s3);
+  max-width: 62ch;
+  margin: auto; padding: var(--s8) var(--s6);
+  background: var(--surface-1); border: 1px solid var(--line);
+  border-radius: var(--r-lg); box-shadow: var(--shadow-panel);
+}
+.gate__code { align-self: flex-start; }
+.gate__title {
+  font-size: var(--t-xl); font-weight: 620; letter-spacing: -0.02em; line-height: 1.2;
+}
+.gate__body { font-size: var(--t-base); line-height: 1.6; color: var(--text-2); }
+.gate__body code {
+  font-family: var(--mono); font-size: 12px; background: var(--surface-3);
+  padding: 1px 5px; border-radius: 4px; color: var(--text);
+}
+.gate__go { margin-top: var(--s2); }
+.gate__foot { font-size: var(--t-sm); color: var(--text-3); }
+
+/* ── the closed rail ──────────────────────────────────────────────────────
+   A docked edge tab, the way an installed extension announces itself. It is
+   never merely absent: with a mandate live it turns amber and names the
+   version, because an interface that could hide granted authority would be
+   lying about the one thing this product asks to be trusted on. */
+.layer-rail {
+  align-self: stretch;
+  display: flex; flex-direction: column; align-items: center; gap: var(--s3);
+  padding: var(--s4) 0;
+  background: var(--surface-1);
+  border: 1px solid var(--line);
+  border-top: 2px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-panel);
+  transition: background var(--transition), border-color var(--transition);
+}
+.layer-rail:hover { background: var(--surface-2); border-color: var(--line-strong); }
+.layer-rail__dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); flex: none;
+}
+.layer-rail__label {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-size: var(--t-sm); font-weight: 680; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-2);
+}
+.layer-rail__status {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-size: var(--t-xs); color: var(--text-3); font-family: var(--mono);
+}
+/* Gated: present, explicable, and visibly not offering anything. */
+.layer-rail--gated { border-top-color: #e0a58a; }
+.layer-rail--gated .layer-rail__dot { background: var(--warn); }
+.layer-rail--gated .layer-rail__status { color: var(--warn); }
+
+.layer-rail--active {
+  background: var(--authority-wash);
+  border-color: var(--authority-edge);
+  border-top-color: var(--authority-fill);
+}
+.layer-rail--active:hover { background: #fdf3d9; }
+.layer-rail--active .layer-rail__dot { background: var(--authority-fill); }
+.layer-rail--active .layer-rail__label,
+.layer-rail--active .layer-rail__status { color: var(--authority); }
+.layer__grid {
+  display: grid; grid-template-columns: minmax(340px, 1fr) minmax(360px, 1.06fr);
+  gap: var(--s3); min-height: 0; flex: 1 1 auto;
+}
+.layer .panel--rail { margin: 0 0 var(--s2); max-height: 158px; }
+
+@media (max-width: 1240px) {
+  .workbench,
+  .workbench:has(.layer-rail) { grid-template-columns: 1fr; }
+  .layer-rail { flex-direction: row; align-self: auto; padding: var(--s3); }
+  .layer-rail__label, .layer-rail__status { writing-mode: horizontal-tb; }
+  .layer__grid { grid-template-columns: 1fr; }
+  .layer .panel--rail { max-height: 240px; }
 }
 .column { display: flex; flex-direction: column; gap: var(--s4); min-height: 0; }
 
@@ -57,9 +201,13 @@ h1, h2, h3, p { margin: 0; }
   .panel--rail { max-height: 260px; }
 }
 .panel--fill { flex: 1 1 auto; min-height: 132px; }
+/* A fill panel is shrunk below its content by design, so its body must be the
+   thing that scrolls. Without this the content overflows the panel instead, and
+   the column scrolls the panel's own header out of view — losing the label that
+   says what the thing is. */
+.panel--fill > .panel__body { overflow-y: auto; min-height: 0; }
 
-@media (max-width: 1180px) {
-  .workbench { grid-template-columns: 1fr; }
+@media (max-width: 1240px) {
   .column--fit { overflow: visible; }
   .panel--fill { flex: 0 0 auto; }
 }
@@ -270,7 +418,10 @@ h1, h2, h3, p { margin: 0; }
    tallest cell, so one wrapping value left a dead gap beside it. Columns flow
    on their own, so a long "next action" pushes nothing sideways. */
 .fields {
-  column-count: 3; column-gap: var(--s4);
+  /* Column *width*, not count: with the layer closed the host is twice as wide,
+     and a fixed three columns spread five fields across a metre of screen. */
+  columns: 175px; column-gap: var(--s5);
+  max-width: 1000px;
   margin: 0 0 var(--s3) 29px;
 }
 .field { break-inside: avoid; padding-bottom: var(--s2); }

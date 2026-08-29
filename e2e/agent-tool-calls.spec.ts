@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { customerRow, panelByTitle, readout, runSimulatedCaller } from './helpers.ts';
+import { customerRow, panelByTitle, readout, runSimulatedCaller, openMandateLayer } from './helpers.ts';
 
 /**
  * The agent path, driven through the real UI rather than a raw request: the
@@ -10,7 +10,8 @@ import { customerRow, panelByTitle, readout, runSimulatedCaller } from './helper
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await expect(panelByTitle(page, 'Relay CRM · Customers').getByRole('heading', { name: 'Relay CRM · Customers' })).toBeVisible();
+  await openMandateLayer(page);
+  await expect(panelByTitle(page, 'Accounts').getByRole('heading', { name: 'Accounts' })).toBeVisible();
 });
 
 test('the simulated caller stages an in-scope change, and is refused out of scope by customer and by field', async ({ page }) => {

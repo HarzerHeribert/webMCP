@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { panelByTitle, readout } from './helpers.ts';
+import { panelByTitle, readout, openMandateLayer } from './helpers.ts';
 
 /**
  * The human flow that exists today: select → delegate → the scope chips read
@@ -15,11 +15,12 @@ import { panelByTitle, readout } from './helpers.ts';
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await expect(panelByTitle(page, 'Relay CRM · Customers').getByRole('heading', { name: 'Relay CRM · Customers' })).toBeVisible();
+  await openMandateLayer(page);
+  await expect(panelByTitle(page, 'Accounts').getByRole('heading', { name: 'Accounts' })).toBeVisible();
 });
 
 test('select, delegate, stage a human edit, validate, apply, then reset returns to the seed', async ({ page }) => {
-  const customers = panelByTitle(page, 'Relay CRM · Customers');
+  const customers = panelByTitle(page, 'Accounts');
   const authority = panelByTitle(page, 'Authority');
   const staged = panelByTitle(page, 'Staged changes');
 
@@ -69,7 +70,7 @@ test('select, delegate, stage a human edit, validate, apply, then reset returns 
 });
 
 test('a customer that is selected but not delegated is refused on the agent path', async ({ page }) => {
-  const customers = panelByTitle(page, 'Relay CRM · Customers');
+  const customers = panelByTitle(page, 'Accounts');
   const authority = panelByTitle(page, 'Authority');
 
   const atlasRow = customers.getByRole('listitem').filter({ hasText: 'Atlas Freight' });

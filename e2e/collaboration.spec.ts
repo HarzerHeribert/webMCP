@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { customerRow, editFieldAsHuman, panelByTitle, readout, runSimulatedCaller } from './helpers.ts';
+import { customerRow, editFieldAsHuman, panelByTitle, readout, runSimulatedCaller, openMandateLayer } from './helpers.ts';
 
 /**
  * The shared workspace: a human edit and an agent edit landing on the same
@@ -9,7 +9,8 @@ import { customerRow, editFieldAsHuman, panelByTitle, readout, runSimulatedCalle
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await expect(panelByTitle(page, 'Relay CRM · Customers').getByRole('heading', { name: 'Relay CRM · Customers' })).toBeVisible();
+  await openMandateLayer(page);
+  await expect(panelByTitle(page, 'Accounts').getByRole('heading', { name: 'Accounts' })).toBeVisible();
 });
 
 test('a human edit on a field the agent already staged co-edits the same change, marked with both provenance', async ({ page }) => {

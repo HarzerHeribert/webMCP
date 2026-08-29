@@ -33,6 +33,11 @@ lives — the selection, the draft, the page they are looking at.
 
 Mandate makes delegation a first-class, visible, temporary act inside the page:
 
+0. **The layer is not the app.** Relay CRM runs at full width with Mandate shut;
+   a docked rail is all that remains. Without WebMCP the layer will not even
+   present itself as live — it names what is missing and offers the built-in
+   simulated caller as an explicit override, because a capability layer with no
+   `navigator.modelContext` has nothing to compile into.
 1. **Selection proposes.** Clicking customers in Relay CRM narrows what you
    *could* delegate. It grants nothing, and the interface says so — a selected
    row and a delegated row never look the same.

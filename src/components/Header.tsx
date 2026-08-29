@@ -20,7 +20,9 @@ export function Header() {
     <header className="header">
       <div className="brand">
         <span className="brand__mark">Mandate Compiler</span>
-        <span className="brand__host">WebMCP · host demo: Relay CRM</span>
+        <span className="brand__host">
+          A human&apos;s delegation, compiled into a live WebMCP tool contract
+        </span>
       </div>
 
       <span className={`chip ${authority.tone}`}>

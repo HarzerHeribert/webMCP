@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { panelByLabel, panelByTitle, readout, readToolSchema, toolRow } from './helpers.ts';
+import { panelByLabel, panelByTitle, readout, readToolSchema, toolRow, openMandateLayer } from './helpers.ts';
 
 /**
  * The capability inspector: `docs/15_DESIGN_SYSTEM.md`'s claim that the
@@ -9,7 +9,8 @@ import { panelByLabel, panelByTitle, readout, readToolSchema, toolRow } from './
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await expect(panelByTitle(page, 'Relay CRM · Customers').getByRole('heading', { name: 'Relay CRM · Customers' })).toBeVisible();
+  await openMandateLayer(page);
+  await expect(panelByTitle(page, 'Accounts').getByRole('heading', { name: 'Accounts' })).toBeVisible();
 });
 
 test('the inspector narrows exactly to what the mandate grants, and reverts to withheld on revoke', async ({ page }) => {
@@ -40,7 +41,7 @@ test('the inspector narrows exactly to what the mandate grants, and reverts to w
   }
 
   // ── delegate `status` on Atlas Freight ──────────────────────────────────
-  const atlasRow = panelByTitle(page, 'Relay CRM · Customers').getByRole('listitem').filter({ hasText: 'Atlas Freight' });
+  const atlasRow = panelByTitle(page, 'Accounts').getByRole('listitem').filter({ hasText: 'Atlas Freight' });
   await atlasRow.getByRole('checkbox', { name: 'Select Atlas Freight' }).click();
   await authority.getByRole('button', { name: 'nextAction', exact: true }).click(); // leave only `status` delegated
   await authority.getByRole('button', { name: /^Delegate \d+ fields? on \d+ customers?$/ }).click();

@@ -37,7 +37,7 @@ export function CustomerTable() {
   return (
     <section className="panel panel--fill">
       <div className="panel__head">
-        <h2 className="panel__title">Relay CRM · Customers</h2>
+        <h2 className="panel__title">Accounts</h2>
         <span className="panel__count">{session.customers.length}</span>
         <div className="panel__actions">
           <span className="dim" style={{ fontSize: 'var(--t-xs)' }}>
