@@ -1,0 +1,209 @@
+/* Capability inspector + simulated caller (`src/components/Inspector.tsx`,
+ * `src/components/AgentConsole.tsx`).
+ *
+ * Layout and type only — every color here is either an existing `.chip`/
+ * `.callout` variant from `app.css` or a bare token from `tokens.css`.
+ * Nothing below invents a new hue, and nothing here uses `--authority` except
+ * through the existing `.chip--scope` variant, which is already the app's one
+ * legitimate use of it. */
+
+/* Bounded, and pinned to that bound (`flex-shrink: 0`), so a long capability
+ * schedule scrolls inside this panel rather than contesting flex space with
+ * its neighbours (`AuthorityPanel`, `AgentConsole`) in the shared scrolling
+ * column — this panel never asks the column's flex layout for more room than
+ * this fixed budget, so it never takes room from theirs. */
+.webmcp-inspector-panel {
+  flex-shrink: 0;
+}
+.webmcp-inspector-body {
+  max-height: 260px;
+}
+
+.webmcp-callout {
+  margin-bottom: var(--s4);
+}
+.webmcp-note {
+  margin-bottom: var(--s2);
+}
+
+.webmcp-group + .webmcp-group {
+  margin-top: var(--s4);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line-hair);
+}
+.webmcp-group__title {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-size: var(--t-xs);
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin: 0 0 var(--s2);
+}
+
+.webmcp-tools {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.webmcp-tool {
+  padding: var(--s3);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--surface-2);
+}
+.webmcp-tool__head {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.webmcp-tool__name {
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+.webmcp-tool__desc {
+  margin: 0 0 4px;
+  font-size: var(--t-sm);
+  color: var(--text-2);
+  line-height: 1.45;
+}
+.webmcp-tool__reason {
+  margin: 0 0 6px;
+  font-size: var(--t-xs);
+  line-height: 1.4;
+}
+.webmcp-tool__schema-toggle summary {
+  cursor: pointer;
+  font-size: var(--t-xs);
+  color: var(--text-3);
+  user-select: none;
+}
+.webmcp-tool__schema-toggle summary:hover {
+  color: var(--text-2);
+}
+.webmcp-tool__schema-toggle[open] summary {
+  margin-bottom: 6px;
+}
+.webmcp-tool__schema {
+  margin: 0;
+  padding: var(--s2);
+  background: var(--surface-sunk);
+  border-radius: var(--r-sm);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--text-2);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.webmcp-absent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.webmcp-absent__row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  padding: 5px var(--s3);
+  border-radius: var(--r-sm);
+  background: var(--surface-sunk);
+}
+.webmcp-absent__name {
+  font-size: var(--t-sm);
+  color: var(--text-3);
+  flex: none;
+}
+.webmcp-absent__reason {
+  font-size: var(--t-xs);
+  line-height: 1.4;
+}
+
+/* ── simulated caller ────────────────────────────────────────────────────── */
+.webmcp-console {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.webmcp-console__banner {
+  align-items: flex-start;
+}
+.webmcp-console__picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.webmcp-console__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s3);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r);
+  background: var(--surface-sunk);
+}
+.webmcp-console__hint {
+  margin: 0;
+}
+.webmcp-console__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.webmcp-console__label {
+  font-size: 9.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-weight: 600;
+}
+.webmcp-console__input {
+  width: 100%;
+  padding: 5px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  font-size: var(--t-sm);
+  color: var(--text);
+  font-family: var(--mono);
+}
+.webmcp-console__input:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
+}
+.webmcp-console__result {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: var(--s2);
+  border-top: 1px solid var(--line-hair);
+}
+.webmcp-console__result pre {
+  margin: 0;
+  padding: var(--s2);
+  background: var(--surface-sunk);
+  border-radius: var(--r-sm);
+  font-size: 10.5px;
+  line-height: 1.5;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.webmcp-console__result--error pre {
+  border: 1px solid var(--danger-wash);
+}
+.webmcp-console__result--ok pre {
+  border: 1px solid var(--ok-wash);
+}

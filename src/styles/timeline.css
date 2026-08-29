@@ -1,0 +1,88 @@
+/* Timeline + Conflict panel — new classes only, tokens only.
+ *
+ * The timeline is the demo's closing beat: a long, dense, scannable log.
+ * Provenance (human / agent / system) is carried by mark *shape*, never by
+ * colour alone — see `.prov` in app.css for the human/agent convention;
+ * `.prov--system` below adds the third shape. State colour (conflict = warn,
+ * refusal = danger, applied = settled, mandate = authority) is a second
+ * signal on top of a text label, never the only one. */
+
+/* ── provenance: the third mark ──────────────────────────────────────────── */
+.prov--system { color: var(--text-3); }
+
+/* ── timeline legend ──────────────────────────────────────────────────────── */
+.tl-legend {
+  display: flex; gap: var(--s4); padding: var(--s2) var(--s4);
+  border-bottom: 1px solid var(--line-hair); font-size: var(--t-xs); color: var(--text-3);
+}
+.tl-legend__item { display: flex; align-items: center; gap: 6px; }
+
+/* ── timeline rows ────────────────────────────────────────────────────────── */
+.tl-list { list-style: none; margin: 0; padding: 0; }
+
+.tl-row {
+  display: grid;
+  grid-template-columns: 32px 14px 1fr;
+  align-items: start;
+  gap: var(--s2);
+  padding: 6px var(--s4);
+  border-bottom: 1px solid var(--line-hair);
+  border-left: 2px solid transparent;
+}
+.tl-row:last-child { border-bottom: none; }
+
+/* Left rail accents mirror the state-colour rules: conflict = warn, refusal =
+ * danger, applied/rebased = settled/ok, mandate lifecycle = authority. */
+.tl-row--authority { border-left-color: var(--authority); }
+.tl-row--warn { border-left-color: var(--warn); }
+.tl-row--danger { border-left-color: var(--danger); }
+.tl-row--ok { border-left-color: var(--ok); }
+.tl-row--settled { border-left-color: var(--settled); }
+.tl-row--agent { border-left-color: var(--agent); }
+
+.tl-time { text-align: right; font-size: 10px; padding-top: 2px; white-space: nowrap; }
+.tl-mark { display: flex; align-items: center; justify-content: center; padding-top: 2px; }
+
+.tl-main { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tl-line { display: flex; align-items: baseline; gap: var(--s2); flex-wrap: wrap; }
+.tl-summary { font-size: var(--t-sm); color: var(--text); line-height: 1.4; min-width: 0; }
+.tl-line .chip { margin-left: auto; flex: none; }
+
+.tl-wire { display: flex; gap: 5px; flex-wrap: wrap; }
+
+/* Detail: collapsed by default, native disclosure so it costs nothing when closed. */
+.tl-detail { font-size: var(--t-xs); }
+.tl-detail > summary {
+  cursor: pointer; color: var(--text-3); list-style: none; width: fit-content;
+}
+.tl-detail > summary::-webkit-details-marker { display: none; }
+.tl-detail > summary::before { content: '▸ detail'; }
+.tl-detail[open] > summary::before { content: '▾ detail'; }
+.tl-detail-body {
+  margin: 4px 0 0; padding: var(--s2); background: var(--surface-sunk);
+  border: 1px solid var(--line-hair); border-radius: var(--r-sm);
+  font-size: 10.5px; line-height: 1.5; color: var(--text-2);
+  white-space: pre-wrap; word-break: break-word;
+  max-height: 160px; overflow-y: auto;
+}
+
+/* ── conflict panel: recovery block ──────────────────────────────────────── */
+.cp-recovery { display: flex; flex-direction: column; gap: 6px; margin-top: var(--s3); }
+.cp-recovery__label {
+  font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; font-weight: 600;
+}
+.cp-recovery p { margin: 0; font-size: var(--t-sm); line-height: 1.5; color: var(--text-2); }
+
+/* ── external-update simulator: a demo instrument, visibly not a product surface ── */
+.sim-strip {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  border: 1px dashed var(--line-strong); border-radius: var(--r);
+  background: var(--surface-sunk);
+}
+.sim-strip__label {
+  font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--text-3); font-weight: 600; flex: none;
+}
+.sim-strip__hint { font-size: var(--t-xs); color: var(--text-3); line-height: 1.4; flex: 1; min-width: 0; }
+.sim-strip__btn { flex: none; }

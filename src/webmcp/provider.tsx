@@ -1,37 +1,163 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { ToolDescriptor } from '../../server/core/capabilities.ts';
+import { useSession, useStore } from '../lib/store.tsx';
+import { isWebMcpAvailable, registerWebMcpTools } from './adapter.ts';
+import type { WebMcpTool } from './adapter.ts';
+import { createToolImplementations } from './tools.ts';
+import type { ToolImplementations, ToolResult } from './tools.ts';
+
+export type { ToolResult } from './tools.ts';
 
 /**
- * CONTRACT — owned by the `webmcp` worker. This stub exists so the shell
- * compiles before that worker lands; the worker replaces this file wholesale.
- *
- * The only module in the application permitted to touch `navigator.modelContext`
- * is `src/webmcp/adapter.ts`. Everything else consumes this hook.
+ * CONTRACT — `Header.tsx` reads `status`, `statusLabel`, `toolNames`, and
+ * `descriptors` only; those four fields are load-bearing and keep their shape.
+ * `invoke` is new: it is what lets `AgentConsole` call the exact function this
+ * provider would hand a real browser, whether or not one is actually
+ * listening (MCP-001's "only when the API is available" governs the browser
+ * registration below, not this in-process call path).
  */
-
 export interface WebMcpState {
-  /** `registered` once tools are live; `unavailable` when the browser has no
-   *  WebMCP API, which must still leave a fully usable human interface. */
+  /** `registered` once the compiled, in-scope tool set has been handed to a
+   *  real `navigator.modelContext`; `unavailable` when the browser has no
+   *  WebMCP API at all, which must still leave a fully usable interface. */
   status: 'idle' | 'registered' | 'unavailable';
   statusLabel: string;
-  /** The names actually passed to the browser, so the inspector can prove it
-   *  mirrors reality rather than re-deriving it. */
+  /** The names actually passed to the browser. Empty whenever `status` is not
+   *  `registered` — nothing was actually handed to a browser to be live. */
   toolNames: string[];
-  /** The compiled descriptors the registration was built from. */
+  /** The compiled descriptors currently marked `registered` by
+   *  `compileCapabilities` — exactly the entries from
+   *  `useSession().capabilities` the inspector must mirror (M3), and exactly
+   *  the tool set this provider registers whenever a browser exists to
+   *  register it with. */
   descriptors: ToolDescriptor[];
+  /** Runs a tool's real implementation directly — the same function a live
+   *  WebMCP call would run — so the simulated caller is not a fake. Refuses
+   *  anything not currently in `descriptors`. */
+  invoke(name: string, input: Record<string, unknown>): Promise<ToolResult>;
 }
+
+const idleInvoke: WebMcpState['invoke'] = async () => ({
+  ok: false,
+  error: { code: 'BAD_REQUEST', message: 'WebMCP provider not mounted.', recoverable: false },
+});
 
 const fallback: WebMcpState = {
   status: 'idle',
   statusLabel: 'starting',
   toolNames: [],
   descriptors: [],
+  invoke: idleInvoke,
 };
 
 const Ctx = createContext<WebMcpState>(fallback);
 
 export function WebMcpProvider({ children }: { children: ReactNode }) {
-  return <Ctx.Provider value={fallback}>{children}</Ctx.Provider>;
+  const view = useSession();
+  const { refresh } = useStore();
+
+  // Tool implementations always read the *latest* session through this ref,
+  // not the one closed over when they were built — a read tool must answer
+  // with current data even between re-registrations.
+  const viewRef = useRef(view);
+  useEffect(() => {
+    viewRef.current = view;
+  }, [view]);
+
+  const toolImpls: ToolImplementations = useMemo(
+    () => createToolImplementations({ getSession: () => viewRef.current, refresh }),
+    [refresh],
+  );
+
+  const mandate = view.session.mandate;
+  // Every content change to a mandate (a fresh grant, a narrowing, a revoke)
+  // bumps `version` or flips `status`; nothing else changes what the compiler
+  // marks `registered`. Keying re-registration off this pair — rather than
+  // the `capabilities` array's identity, which is a new reference on every
+  // poll — is what keeps a healthy mandate from being torn down and rebuilt
+  // every second while nothing has actually changed.
+  const signature = `${mandate?.version ?? 0}:${mandate?.status ?? 'NONE'}`;
+
+  // Keyed on mandate identity (`signature`), not the `capabilities` array's
+  // identity, which is a fresh reference on every poll — see the comment
+  // above `signature`.
+  const registered = useMemo(() => view.capabilities.filter((d) => d.availability === 'registered'), [signature]);
+
+  const [state, setState] = useState<Omit<WebMcpState, 'invoke'>>({
+    status: 'idle',
+    statusLabel: 'starting',
+    toolNames: [],
+    descriptors: [],
+  });
+
+  // MCP-001: register through the one adapter, only when the API is
+  // available, and tear the previous registration down first — a stale tool
+  // surviving a narrowing is exactly the failure this effect exists to
+  // prevent, since it re-runs (cleanup, then re-register) every time
+  // `registered` changes identity.
+  useEffect(() => {
+    const tools: WebMcpTool[] = registered.map((d) => ({
+      name: d.name,
+      description: d.description,
+      inputSchema: d.inputSchema,
+      execute: (input: Record<string, unknown>) => {
+        const impl = toolImpls[d.name as keyof ToolImplementations];
+        return impl
+          ? impl(input)
+          : Promise.resolve({
+              ok: false,
+              error: { code: 'BAD_REQUEST', message: `No implementation for "${d.name}".`, recoverable: false },
+            } satisfies ToolResult);
+      },
+    }));
+
+    const available = isWebMcpAvailable();
+    const cleanup = available ? registerWebMcpTools(tools) : () => {};
+
+    setState({
+      status: available ? 'registered' : 'unavailable',
+      statusLabel: available
+        ? `${tools.length} tool${tools.length === 1 ? '' : 's'} registered`
+        : 'unavailable',
+      toolNames: available ? tools.map((t) => t.name) : [],
+      descriptors: registered,
+    });
+
+    return cleanup;
+  }, [registered, toolImpls]);
+
+  // The simulated caller's entry point. Deliberately checked against the
+  // compiled `registered` set rather than `toolNames`, so it keeps working
+  // when the browser has no WebMCP API at all — that is the whole point of a
+  // harness that can demonstrate the surface without one.
+  const invoke = useCallback(
+    async (name: string, input: Record<string, unknown>): Promise<ToolResult> => {
+      if (!registered.some((d) => d.name === name)) {
+        return {
+          ok: false,
+          error: {
+            code: 'BAD_REQUEST',
+            message: `"${name}" is not currently registered — it is not part of the live tool surface.`,
+            recoverable: true,
+          },
+        };
+      }
+      const impl = toolImpls[name as keyof ToolImplementations];
+      if (!impl) {
+        return {
+          ok: false,
+          error: { code: 'BAD_REQUEST', message: `No implementation for "${name}".`, recoverable: false },
+        };
+      }
+      return impl(input);
+    },
+    [registered, toolImpls],
+  );
+
+  const value = useMemo<WebMcpState>(() => ({ ...state, invoke }), [state, invoke]);
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useWebMcp(): WebMcpState {
