@@ -43,32 +43,49 @@ Implementation Order
 
 Phase M0 — Foundation
 
-☐ Build as a single npm project: Vite + React + TypeScript, one dev server, one origin.
-☐ Serve the application service from the same origin as the client under `/api`.
-☐ Provide `npm run dev`, `npm run build`, `npm run check` with no external service required.
-☐ Establish the design tokens, type scale, and colour roles from `docs/15_DESIGN_SYSTEM.md` in one stylesheet.
-☐ Create an isolated anonymous session on first load, with a session id the client carries on every call. (FR-001)
-☐ Seed each new session with deterministic Relay CRM demo data. (FR-001)
-☐ Provide a reset that restores the deterministic seed and clears all mandates and changes. (FR-001)
+☑ Build as a single npm project: Vite + React + TypeScript, one dev server, one origin.
+    EVIDENCE: `npm run build` green; one Vite project, one origin.
+☑ Serve the application service from the same origin as the client under `/api`.
+    EVIDENCE: `vite.config.ts` mounts the Hono app as dev middleware; `server/node.ts` serves both in preview.
+☑ Provide `npm run dev`, `npm run build`, `npm run check` with no external service required.
+    EVIDENCE: all three run with no external service.
+☑ Establish the design tokens, type scale, and colour roles from `docs/15_DESIGN_SYSTEM.md` in one stylesheet.
+    EVIDENCE: `src/styles/tokens.css`; authority amber is used by nothing but authority.
+☑ Create an isolated anonymous session on first load, with a session id the client carries on every call. (FR-001)
+    EVIDENCE: manual: loading the page opens `s-…` and the header shows it.
+☑ Seed each new session with deterministic Relay CRM demo data. (FR-001)
+    EVIDENCE: `smoke.test.ts > seeds a session deterministically`.
+☑ Provide a reset that restores the deterministic seed and clears all mandates and changes. (FR-001)
+    EVIDENCE: `smoke.test.ts > seeds a session deterministically and resets back to it`.
 ☐ Isolate sessions: no request may read or write another session's data. (FR-001, SEC)
 
 Phase M1 — Relay CRM, human side
 
-☐ Render the customer workbench: list, per-customer fields, and the currently selected customers.
-☐ Let the human edit a customer field directly, as a staged change, with no mandate present. (FR-005)
+☑ Render the customer workbench: list, per-customer fields, and the currently selected customers.
+    EVIDENCE: manual: six seeded customers, fields, selection state.
+☑ Let the human edit a customer field directly, as a staged change, with no mandate present. (FR-005)
+    EVIDENCE: manual: clicking a value stages a DRAFT with `actor: human`, `mandateVersion: null`.
 ☐ Show a provenance timeline of every event in the session. (FR-008)
-☐ Record session revision on the server and surface it in the header. (CON-001)
-☐ Make selection visually distinct from delegation, with persistent language. (FR-002, D-004)
+☑ Record session revision on the server and surface it in the header. (CON-001)
+    EVIDENCE: manual: header readout `r1`, pulses on change.
+☑ Make selection visually distinct from delegation, with persistent language. (FR-002, D-004)
+    EVIDENCE: manual: cool rail + checkbox for selection, amber ring + `delegated` chip for scope; legend states both.
 
 Phase M2 — Mandate: delegation and enforcement
 
-☐ Let the human create a mandate over the selected customers and a chosen field set. (FR-003)
-☐ Give every mandate an id, version, status, expiry, customer ids, and allowed fields. (FR-003)
-☐ Display the active mandate's exact scope as chips, always visible. (FR-004)
-☐ Let the human revoke a mandate, immediately. (FR-007)
+☑ Let the human create a mandate over the selected customers and a chosen field set. (FR-003)
+    EVIDENCE: manual: composer requires customers *and* fields before it will delegate.
+☑ Give every mandate an id, version, status, expiry, customer ids, and allowed fields. (FR-003)
+    EVIDENCE: `server/core/types.ts :: Mandate`; rendered in the active panel.
+☑ Display the active mandate's exact scope as chips, always visible. (FR-004)
+    EVIDENCE: manual: one chip per customer and per field, never a summary count.
+☑ Let the human revoke a mandate, immediately. (FR-007)
+    EVIDENCE: manual: revoke flips status and the tool surface withdraws in the same round trip.
 ☐ Expire a mandate at its `expiresAt` without any client action. (FR-003)
-☐ Enforce on the server: every agent-path mutation checks active, unexpired, in-scope, current-version. (SEC-002)
-☐ GATE: a customer that is selected but not delegated cannot be written through the agent path. (M2 gate, FR-002)
+☑ Enforce on the server: every agent-path mutation checks active, unexpired, in-scope, current-version. (SEC-002)
+    EVIDENCE: `server/core/policy.ts :: authorize`, called by every agent-path service method.
+☑ GATE: a customer that is selected but not delegated cannot be written through the agent path. (M2 gate, FR-002)
+    EVIDENCE: `smoke.test.ts > M2 GATE` — selected `c-kestrel`, delegated only `c-atlas`, agent stage rejected `OUT_OF_SCOPE`.
 
 Phase M3 — WebMCP surface and inspector
 

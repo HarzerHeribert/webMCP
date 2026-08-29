@@ -2,20 +2,29 @@
 
 ## Where this stands
 
-Specification pack frozen. Process scaffold (capability map, packets, worktrees,
-integrate, gate) in place. No application code yet.
+M0–M2 closed except three lines. The foundation is real: one Vite project serving
+a Hono service on one origin, the authoritative domain in `server/core/`, the
+design system in `src/styles/`, and the three panels that carry the product's
+central distinction — selection proposes, delegation grants, the server enforces.
+
+17/58 boxes.
 
 ## Next action
 
-Scaffold M0 in the main checkout — Vite + React + TS, the same-origin service,
-the design tokens, and the session/seed/reset core — then dispatch the first
-parallel batch against M1–M4.
+Batch 1, three disjoint workers:
+  `webmcp`   — the WebMCP adapter, the inspector, the simulated caller (M3, M4 tools)
+  `timeline` — the provenance timeline and the conflict/recovery panel (M1, M5 UI)
+  `tests`    — unit, integration incl. forged calls, and the browser suite (gate evidence)
+
+Then integrate all three in one `scripts/integrate.sh` call and read every diff.
 
 ## Live workers
 
-None.
+None yet.
 
 ## Loose ends
 
-- Deployment target is deliberately undecided until M8; the storage port exists
-  so that decision is not a rewrite.
+- Deployment target undecided until M8; `server/core/store.ts` is the port.
+- `.agent-runtime/shot.mjs` renders a screenshot of the running dev server —
+  the browser extension is not connected in this environment, so visual checks
+  go through Playwright.
