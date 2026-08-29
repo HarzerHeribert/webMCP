@@ -52,10 +52,16 @@ advances. Validate: `REVISION_CONFLICT`, because the staged work was based on a
 revision the world has moved past. Rebase. The intended value survives — the
 before changes, the after does not — and the timeline records it.
 
-**2:10 — Revoke, mid-flight.** Revoke the mandate. The tools disappear from the
-inspector in the same breath. Now issue a call against the version the agent
-still believes in: `POLICY_CHANGED`, refused **server-side**. "The schema was a
-courtesy. This was the enforcement."
+**2:05 — Narrow, mid-flight.** Narrow the mandate to one field. That publishes a
+new version. Now issue a call against the version the agent still believes in:
+`POLICY_CHANGED`, refused **server-side**. "The schema was a courtesy. This was
+the enforcement."
+
+**2:15 — Revoke.** Revoke the mandate. The tools disappear from the inspector in
+the same breath, and the Authority panel says what just happened rather than
+quietly reverting. The same call now gets a *different* refusal —
+`NO_ACTIVE_MANDATE`, not `POLICY_CHANGED` — because there is no longer a policy
+to have changed. Two refusals, two reasons, both from the server.
 
 **2:25 — Ask the agent to apply.** There is no apply tool. Show the inspector's
 *structurally absent* section. There is no route either. "The most consequential

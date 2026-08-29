@@ -166,11 +166,14 @@ Phase M7 — The demo, and the polish that carries it
     EVIDENCE: manual: every chip carries its label; the two rail colours are named in the customer legend; provenance uses three distinct marks, not three shades.
 ☑ Write the fixed eval script: the nine minimum cases from `docs/08_EVAL_AND_TEST_PLAN.md`.
     EVIDENCE: `tests/unit/service.test.ts` + `tests/integration/app.test.ts` — all nine `docs/08` cases as named deterministic tests, plus session isolation and expiry.
-☐ Add browser tests for delegation, inspector narrowing, co-edit, conflict, rebase, apply, and reset.
+☑ Add browser tests for delegation, inspector narrowing, co-edit, conflict, rebase, apply, and reset.
+    EVIDENCE: `e2e/` — 11 chromium tests, three consecutive clean runs: inspector narrowing, the simulated caller in and out of scope, revoke mid-flight, the injected note, co-edit, conflict/rebase, apply, and the reset gate.
 ☑ Add a guided demo mode that walks the three-minute script from `docs/09_DEMO_AND_SUBMISSION.md`.
     EVIDENCE: `src/components/DemoGuide.tsx` — eight beats derived from session state, never from clicks, so it follows the user rather than leading them; dismissible and persistent; manual: walked all eight forward and two backward (revoke drops it to Delegate, discard drops it to Stage).
-☐ GATE: a fresh reset replays the whole demo with no manual repair.
-☐ Verify the demo runs in a browser without the WebMCP flag, through the simulated caller. (SUBMISSION: judges may not have the flag)
+☑ GATE: a fresh reset replays the whole demo with no manual repair.
+    EVIDENCE: `e2e/reset-gate.spec.ts > reset replays the whole demo end to end, with no manual repair` — one uninterrupted test through delegate → narrow → stage → refusal → co-edit → conflict → rebase → apply (r1→r3) → revoke → Reset, then re-delegates and re-reads the narrowed schema with no reload.
+☑ Verify the demo runs in a browser without the WebMCP flag, through the simulated caller. (SUBMISSION: judges may not have the flag)
+    EVIDENCE: `e2e/inspector.spec.ts > no WebMCP flag is needed` — plain chromium, header reads `unavailable`, and all eleven tests drive the real tool implementations through the simulated caller.
 
 Phase M7B — Submission artifacts
 
