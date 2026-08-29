@@ -814,3 +814,157 @@ h1, h2, h3, p { margin: 0; }
   display: block; font: 700 var(--t-xs)/1 var(--mono); letter-spacing: .04em;
   margin-bottom: 4px;
 }
+
+/* ══ TWO MATERIALS ══════════════════════════════════════════════════════════
+   The host and the product should not be the same substance.
+   `docs/12_DECISIONS.md` D-002 says Mandate is a layer installed into somebody
+   else's application, and the fastest way to say that in a picture is to make
+   it out of different stuff: Relay CRM is bright enterprise white, Mandate is a
+   dark instrument panel sitting on top of it.
+
+   Every component here is already token-driven, so this is a palette rescoped
+   to a subtree rather than a rewrite. Amber stays reserved for authority, and
+   it reads far louder on this ground than it ever did on white — which is the
+   right emphasis for the one colour that means a human granted something. */
+.layer,
+.pop,
+.pill {
+  /* `body` resolved `color: var(--text)` against the light palette, and children
+     inherit that computed colour rather than re-reading the variable. Without
+     re-declaring it here, every element that does not set its own colour stays
+     near-black on the dark ground. */
+  color: var(--text);
+
+  --surface-1: #1b222d;
+  --surface-2: #212a37;
+  --surface-3: #2a3543;
+  --surface-sunk: #161c25;
+  --line: #2e3846;
+  --line-strong: #3e4b5d;
+  --line-hair: #262f3b;
+
+  --text: #eef2f8;
+  --text-2: #a8b5c6;
+  --text-3: #7b8a9d;
+  --text-inverse: #0f141b;
+
+  --primary: #62a8f2;
+  --primary-hover: #82bcf7;
+  --primary-wash: #16283c;
+  --primary-edge: #2f5a86;
+
+  --authority: #f2bb54;
+  --authority-fill: #e3a63c;
+  --authority-dim: #c99a45;
+  --authority-wash: #302516;
+  --authority-edge: #6f5729;
+
+  --human: #62a8f2;
+  --human-wash: #16283c;
+  --agent: #ab8ef5;
+  --agent-wash: #241e3d;
+
+  --ok: #55cd90;
+  --ok-wash: #14301f;
+  --warn: #f2916a;
+  --warn-wash: #341f16;
+  --danger: #f4827a;
+  --danger-wash: #341a19;
+  --settled: #8998ab;
+  --settled-wash: #262f3b;
+
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, .28), 0 2px 6px rgba(0, 0, 0, .22);
+  --shadow-raise: 0 6px 20px rgba(0, 0, 0, .38);
+  --focus: 0 0 0 2px #1b222d, 0 0 0 4px var(--primary);
+}
+
+.layer {
+  background: #10151d;
+  border-color: #2b3542;
+  border-top-color: var(--authority-fill);
+}
+.pop { background: var(--surface-1); border-color: var(--line-strong); }
+.pop .panel { background: var(--surface-1); }
+
+/* The pill floats over the host, so it carries the product's material with it
+   and is unmistakably not part of Relay CRM. */
+.pill {
+  background: #10151d; border-color: #2b3542; color: var(--text-2);
+}
+.pill:hover { border-color: var(--line-strong); }
+.pill__name { color: var(--text); }
+.pill--active {
+  background: #221a0d; border-color: var(--authority-edge); color: var(--authority);
+}
+.pill--active .pill__name { color: var(--authority); }
+.pill--active .pill__state { color: var(--authority-dim); }
+
+/* ══ THE HOST, AS SOFTWARE SOMEBODY ALREADY PAYS FOR ════════════════════════
+   Relay CRM has to read as a real product, or the claim that Mandate layers
+   onto real products is being made about a mock. Everything below is derived
+   from the seeded records — no new state, no new routes. */
+.crmbar {
+  display: flex; align-items: center; gap: var(--s6);
+  padding: var(--s3) var(--s5);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--surface-2), var(--surface-1));
+}
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat__k {
+  font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: .11em;
+  text-transform: uppercase; color: var(--text-3);
+}
+.stat__v {
+  font-size: var(--t-lg); font-weight: 650; letter-spacing: -.02em; color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.stat__v--warn { color: var(--warn); }
+
+.crmbar__filters { margin-left: auto; display: inline-flex; gap: var(--s1); }
+.filt {
+  border: 1px solid transparent; background: transparent; cursor: pointer;
+  border-radius: var(--r-pill); padding: 5px 12px;
+  font: 600 var(--t-sm)/1 var(--sans); color: var(--text-2); transition: var(--transition);
+}
+.filt:hover { background: var(--surface-3); color: var(--text); }
+.filt--on {
+  background: var(--primary-wash); border-color: var(--primary-edge); color: var(--primary);
+}
+.filt:focus-visible { outline: none; box-shadow: var(--focus); }
+
+/* Owner avatars: a CRM without faces reads as a spreadsheet. */
+.avatar {
+  width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  font: 700 11px/1 var(--sans); letter-spacing: .02em; color: #fff;
+}
+.avatar--a { background: #3b6fd4; }
+.avatar--b { background: #7a52c9; }
+.avatar--c { background: #0d8a6a; }
+.avatar--d { background: #c2683c; }
+.avatar--e { background: #476b8c; }
+
+.customer__arr {
+  margin-left: auto; font-family: var(--mono); font-size: var(--t-md);
+  font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
+}
+/* The delegated chip must stay the last thing on the row, after the money. */
+.customer__head .chip--scope { margin-left: var(--s3); }
+
+/* Three bars, filled by status. Colour is the second signal — the Health label
+   and the status field both say it in words. */
+.health { display: inline-flex; gap: 3px; align-items: flex-end; height: 14px; }
+.health__bar { width: 5px; border-radius: 1px; background: var(--line-strong); }
+.health__bar:nth-child(1) { height: 6px; }
+.health__bar:nth-child(2) { height: 10px; }
+.health__bar:nth-child(3) { height: 14px; }
+.health--active .health__bar { background: var(--ok); }
+.health--trial .health__bar:nth-child(-n + 2) { background: var(--primary); }
+.health--prospect .health__bar:nth-child(1) { background: var(--settled); }
+.health--at-risk .health__bar:nth-child(1) { background: var(--danger); }
+
+.customer { transition: background var(--transition); }
+.customer:hover { background: var(--surface-sunk); }
+.customer--selected:hover,
+.customer--delegated:hover { background: inherit; }

@@ -26,6 +26,7 @@ const LABEL: Record<CustomerField, string> = {
 export function CustomerTable() {
   const { session, schema } = useSession();
   const { run } = useStore();
+  const [filter, setFilter] = useState<string>('all');
   const selected = new Set(session.selectedCustomerIds);
   const mandate = session.mandate?.status === 'ACTIVE' ? session.mandate : null;
 
@@ -35,6 +36,16 @@ export function CustomerTable() {
     else next.add(id);
     void run(() => api.setSelection([...next]));
   };
+
+  // A real CRM tells you what you are looking at before you read a row. These
+  // are derived, never stored: the host has to behave like software somebody's
+  // revenue team already uses, or the argument about layering onto it is being
+  // made about a mock.
+  // `arr` is a preformatted display string ("€184,000"), not a number — the
+  // seed carries it the way the record would show it.
+  const pipeline = session.customers.reduce((sum, c) => sum + euros(c.arr), 0);
+  const atRisk = session.customers.filter((c) => c.status === 'At risk').length;
+  const shown = filter === 'all' ? session.customers : session.customers.filter((c) => c.status === filter);
 
   return (
     <section className="panel panel--fill">
@@ -55,9 +66,36 @@ export function CustomerTable() {
         </div>
       </div>
 
+      <div className="crmbar">
+        <div className="stat">
+          <span className="stat__k">Pipeline</span>
+          <span className="stat__v">{money(pipeline)}</span>
+        </div>
+        <div className="stat">
+          <span className="stat__k">At risk</span>
+          <span className={`stat__v${atRisk > 0 ? ' stat__v--warn' : ''}`}>{atRisk}</span>
+        </div>
+        <div className="stat">
+          <span className="stat__k">Owners</span>
+          <span className="stat__v">{new Set(session.customers.map((c) => c.owner)).size}</span>
+        </div>
+        <div className="crmbar__filters" role="group" aria-label="Filter accounts by status">
+          {['all', ...schema.statuses].map((s) => (
+            <button
+              key={s}
+              className={`filt${filter === s ? ' filt--on' : ''}`}
+              aria-pressed={filter === s}
+              onClick={() => setFilter(s)}
+            >
+              {s === 'all' ? 'All' : s}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="panel__body panel__body--flush panel__body--scroll">
         <ul className="customers">
-          {session.customers.map((customer) => (
+          {shown.map((customer) => (
             <CustomerRow
               key={customer.id}
               customer={customer}
@@ -119,10 +157,14 @@ function CustomerRow({
           <input type="checkbox" checked={selected} onChange={onToggle} />
           <span className="sr-only">Select {customer.name}</span>
         </label>
+        <span className={`avatar avatar--${hue(customer.owner)}`} aria-hidden>
+          {initials(customer.owner)}
+        </span>
         <div className="customer__ident">
           <span className="customer__name">{customer.name}</span>
           <span className="customer__segment">{customer.segment}</span>
         </div>
+        <span className="customer__arr" title="Annual recurring revenue">{customer.arr}</span>
         {delegatedFields && (
           <span className="chip chip--scope" title="This customer is inside the active mandate">
             <span className="chip__dot" />
@@ -146,6 +188,16 @@ function CustomerRow({
         <div className="field field--readonly">
           <dt className="field__label">{LABEL.arr}</dt>
           <dd className="field__value mono">{customer.arr}</dd>
+        </div>
+        <div className="field field--readonly">
+          <dt className="field__label">Health</dt>
+          <dd className="field__value">
+            <span className={`health health--${slug(customer.status)}`}>
+              <span className="health__bar" />
+              <span className="health__bar" />
+              <span className="health__bar" />
+            </span>
+          </dd>
         </div>
       </dl>
 
@@ -246,3 +298,19 @@ function EditableField({
     </div>
   );
 }
+
+/** Presentation helpers. Derived from seeded data; nothing here is stored. */
+const euros = (v: unknown) => Number(String(v ?? '').replace(/[^0-9.]/g, '')) || 0;
+
+const money = (n: number) =>
+  n >= 1_000_000 ? `€${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `€${Math.round(n / 1000)}k` : `€${n}`;
+
+const initials = (name: string) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
+
+/** Stable per-owner colour, so the same person is the same swatch every render
+ *  — an avatar that changes colour is worse than no avatar. */
+const hue = (name: string) =>
+  ['a', 'b', 'c', 'd', 'e'][[...name].reduce((h, ch) => (h + ch.charCodeAt(0)) % 5, 0)];
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z]+/g, '-');
