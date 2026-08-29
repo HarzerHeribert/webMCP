@@ -10,10 +10,10 @@ import { useStore } from './lib/store.tsx';
 import { WebMcpProvider } from './webmcp/provider.tsx';
 
 /**
- * One workbench, three columns, left to right in the order authority actually
- * flows: the human picks in Relay CRM, the middle column holds the shared work
- * and the one human-only commit, and the right column shows what that authority
- * published and everything it has caused.
+ * One workbench, three columns, left to right in the order the story runs:
+ * what the authority applies to, the authority itself and the tool surface it
+ * compiles into, and the work that surface produced — ending in the one
+ * human-only commit and the record of everything that led to it.
  */
 export function App() {
   const { view, loading } = useStore();
@@ -35,13 +35,13 @@ export function App() {
             <CustomerTable />
           </div>
           <div className="column column--scroll">
-            <ConflictPanel />
-            <StagedChanges />
-          </div>
-          <div className="column column--scroll">
             <AuthorityPanel />
             <Inspector />
             <AgentConsole />
+          </div>
+          <div className="column column--scroll">
+            <ConflictPanel />
+            <StagedChanges />
             <Timeline />
           </div>
         </main>

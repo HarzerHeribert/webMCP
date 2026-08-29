@@ -13,10 +13,8 @@
  * column — this panel never asks the column's flex layout for more room than
  * this fixed budget, so it never takes room from theirs. */
 .webmcp-inspector-panel {
-  flex-shrink: 0;
 }
 .webmcp-inspector-body {
-  max-height: 260px;
 }
 
 .webmcp-callout {

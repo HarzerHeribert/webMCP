@@ -33,7 +33,7 @@ h1, h2, h3, p { margin: 0; }
 }
 .workbench {
   display: grid;
-  grid-template-columns: minmax(380px, 1.05fr) minmax(400px, 1.15fr) minmax(360px, 0.92fr);
+  grid-template-columns: minmax(390px, 1.06fr) minmax(370px, 0.96fr) minmax(400px, 1.08fr);
   gap: var(--s3);
   padding: var(--s3);
   min-height: 0;
@@ -81,8 +81,13 @@ h1, h2, h3, p { margin: 0; }
   box-shadow: var(--shadow-panel);
   display: flex; flex-direction: column;
   min-height: 0;
+  /* Panels never shrink below their content. Without this the flex algorithm
+     compresses a panel's box under its content, and since panels do not clip,
+     the overflow lands on top of the next panel and swallows its clicks. */
+  flex: 0 0 auto;
 }
-.panel--grow { flex: 1; }
+/* Only in a column that has a definite height of its own. */
+.panel--grow { flex: 1 1 auto; }
 .panel--authority { border-color: var(--authority-edge); background:
   linear-gradient(180deg, var(--authority-wash), transparent 90px), var(--surface-1); }
 .panel__head {
