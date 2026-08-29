@@ -74,6 +74,15 @@ Verification tools worth knowing:
    clipping text with no scroll affordance) are fixed as of `245e88c`'s
    successor. Re-run it after any material change.
 
+**A defect of copy is rarely alone.** The verifier found `navigator.modelContext`
+on the gate; the same sentence was also in the capability inspector, and in the
+README — which *is* the submission's text description. `7f7b675` fixed both, and
+one worse thing beside them: the README promised that revoking makes the tools
+"disappear", which this browser cannot do (field notes §6), so a judge revoking
+in flagged Chrome could have falsified the pitch by looking at the registry. If
+you change a user-facing claim about the API, grep the whole tree for the old
+one — `docs/`, `README.md` and `src/components/` all state it independently.
+
 ## Known gaps, honestly
 
 - `HUMAN_CONFIRMATION_REQUIRED` is in `docs/16` and never thrown.
