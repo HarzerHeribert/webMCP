@@ -71,7 +71,7 @@ Verification tools worth knowing:
 
 ## What is left
 
-1. **Upload the video.** It is made: `demo/mandate-demo.mp4`, 2:46, 1600×1000,
+1. **Upload the video.** It is made: `demo/mandate-demo.mp4`, 2:50, 1600×1000,
    recorded in flagged Chrome so every agent action on camera is a real
    `document.modelContext.executeTool` call. `docs/21_DEMO_VIDEO.md` explains
    the three-command pipeline and how to re-cut it after a UI change. What is
@@ -79,9 +79,11 @@ Verification tools worth knowing:
    nobody has listened to it yet), then put it on public YouTube.
 
    It opens with three problem cards (`demo/cards.html`) and closes by flipping
-   to **User** mode, which is the answer to "why does this take two-thirds of a
-   screen?" — most of the layer is instrumentation for the argument, and the
-   switch shows the product underneath rather than claiming it exists.
+   to **Product** mode, which is the answer to "why does this take two-thirds of
+   a screen?" — most of the layer is instrumentation for the argument, and the
+   product underneath has no panel at all: a pill that cannot be hidden, and a
+   popover anchored to whatever the decision is about. The panel form that
+   existed in between was removed; the last commit carrying it is `0a66a7f`.
 2. **Submit on Devpost**: live URL, repo, video, description (the README is
    written to be that text).
 3. An independent Fable verifier drove the live origin in flagged Chrome and

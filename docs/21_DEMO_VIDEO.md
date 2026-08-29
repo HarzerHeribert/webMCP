@@ -1,12 +1,13 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:46**, 1600×1000, H.264 + AAC, ~12 MB. Under the
-challenge's three-minute limit with 14 seconds to spare.
+`demo/mandate-demo.mp4` — **2:50**, 1600×1000, H.264 + AAC, ~13 MB. Under the
+challenge's three-minute limit with 10 seconds to spare — anything added from
+here needs something else trimmed.
 
 It opens on the problem rather than on the software: three cards from
 `demo/cards.html`, in the product's own tokens, driven by the same beat clock.
-It closes by flipping the header's audience switch to **User** — the instrument
-puts itself away and what is left is the shipping shape.
+It closes by flipping the header's switch to **Product** — the instrument puts
+itself away and what is left is the host plus a pill.
 
 Nothing in it is staged footage. Every agent action is a real
 `document.modelContext.executeTool` call against the tools the page registered,

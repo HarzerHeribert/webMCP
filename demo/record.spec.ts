@@ -170,16 +170,25 @@ test('record the demo', async ({ page }) => {
   });
 
   await beat(page, 'usermode', line('usermode'), async () => {
-    await click(page, page.getByRole('button', { name: 'User', exact: true }));
-    await page.waitForTimeout(900);
+    await click(page, page.getByRole('button', { name: 'Product', exact: true }));
+    await page.waitForTimeout(1000);
     await point(page, customerRow(page, 'Northwind Logistics'));
-    await page.waitForTimeout(700);
-    await point(page, panelByTitle(page, 'Authority'));
+    await page.waitForTimeout(600);
+    // The pill is all that is left of the product on screen, and it is still
+    // saying what authority exists. Open it: the grant has somewhere to live
+    // without a panel.
+    await click(page, page.getByRole('button', { name: 'Mandate — delegated authority' }));
+    await page.waitForTimeout(600);
   });
 
   await beat(page, 'close', line('close'), async () => {
-    await click(page, page.getByRole('button', { name: 'Close the Mandate capability layer' }));
-    await page.waitForTimeout(1200);
+    // There is no panel to close any more. Dismissing the popover *is* the
+    // closing gesture, and what is left is the host plus a pill — which is the
+    // strongest available statement of D-002.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1400);
+    await point(page, customerRow(page, 'Meridian Health'));
+    await page.waitForTimeout(900);
     await caption(page, 'Mandate — human intent, compiled into a live WebMCP contract');
   });
 

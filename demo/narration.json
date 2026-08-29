@@ -74,13 +74,13 @@
     },
     {
       "id": "usermode",
-      "caption": "The same session, without the instrumentation",
-      "say": "Everything you have just seen \u2014 the inspector, the caller, the audit \u2014 is instrumentation for this explanation. Here is the product underneath. The grant, the work, and the human commit. Enforcement is identical; only the panels are gone."
+      "caption": "The product: no panel, just the pill",
+      "say": "Everything you have just seen \u2014 the inspector, the caller, the audit \u2014 is instrumentation for this explanation. The product underneath has no panel at all. A pill that cannot be hidden, and a popover wherever the decision is."
     },
     {
       "id": "close",
       "caption": "Human intent, compiled into a live WebMCP contract",
-      "say": "Shut the layer, and Relay CRM is an ordinary CRM again. Mandate turns explicit, temporary human intent into a live WebMCP contract that the server enforces on every call."
+      "say": "Shut it, and Relay CRM is an ordinary CRM again. Mandate turns explicit, temporary human intent into a live WebMCP contract that the server enforces on every call."
     }
   ]
 }
