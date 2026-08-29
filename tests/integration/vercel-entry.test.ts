@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import handler from '../../server/vercel-entry';
+import { DELETE, GET, POST } from '../../server/vercel-entry';
 
 /**
  * The deployed path, exercised the way the platform calls it.
@@ -19,9 +19,11 @@ const call = async (
   path: string,
   init: { method?: string; sid?: string; body?: unknown } = {},
 ) => {
+  const method = init.method ?? 'GET';
+  const handler = method === 'POST' ? POST : method === 'DELETE' ? DELETE : GET;
   const res = await handler(
     new Request(`${BASE}${path}`, {
-      method: init.method ?? 'GET',
+      method,
       headers: {
         'content-type': 'application/json',
         ...(init.sid ? { 'x-mandate-session': init.sid } : {}),

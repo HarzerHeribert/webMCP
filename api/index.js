@@ -2984,7 +2984,7 @@ var store = RedisSessionStore.fromEnv(process.env);
 if (!store) {
   const seen = Object.keys(process.env).filter((k) => /REDIS|KV_|UPSTASH/i.test(k)).sort();
   console.warn(
-    `[mandate] no Upstash credentials (KV_REST_API_URL / UPSTASH_REDIS_REST_URL). Falling back to process memory: sessions will not survive between invocations. Store-shaped env keys present: ${seen.length ? seen.join(", ") : "none"}.`
+    `[mandate] no Upstash credentials (KV_REST_API_URL / UPSTASH_REDIS_REST_URL). Falling back to process memory: sessions will not survive between invocations. Store-shaped env keys present: ${seen.length ? seen.join(", ") : "none"}. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN (or the KV_REST_API_* pair) to persist.`
   );
 }
 var app = new Hono2().route("/api", createApp(store ?? new MemorySessionStore())).notFound(notFoundJson);
@@ -2994,12 +2994,10 @@ var POST = fetchHandler;
 var DELETE = fetchHandler;
 var PATCH = fetchHandler;
 var PUT = fetchHandler;
-var vercel_entry_default = fetchHandler;
 export {
   DELETE,
   GET,
   PATCH,
   POST,
-  PUT,
-  vercel_entry_default as default
+  PUT
 };
