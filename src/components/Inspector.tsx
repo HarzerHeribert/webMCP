@@ -39,9 +39,21 @@ export function Inspector() {
           <div className="callout callout--warn webmcp-callout">
             <div className="callout__body">
               <span className="callout__title">WEBMCP_UNAVAILABLE</span>
-              This browser has no <code>navigator.modelContext</code>, so nothing is
-              registered with a page-level agent. The schedule below is still the real
-              compiled surface — use the simulated caller to exercise it by hand.
+              {webmcp.probe.present ? (
+                <>
+                  A model-context object is here at <code>{webmcp.probe.where}</code>, but
+                  it offers no <code>registerTool</code>, so nothing is registered with a
+                  page-level agent.
+                </>
+              ) : (
+                <>
+                  Nothing was found at <code>document.modelContext</code>,{' '}
+                  <code>navigator.modelContext</code> or <code>window.modelContext</code>, so
+                  nothing is registered with a page-level agent.
+                </>
+              )}{' '}
+              The schedule below is still the real compiled surface — use the simulated
+              caller to exercise it by hand.
             </div>
           </div>
         )}

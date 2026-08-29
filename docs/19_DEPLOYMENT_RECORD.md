@@ -5,14 +5,15 @@
 
 **Repository** — https://github.com/HarzerHeribert/webMCP (public, MIT)
 
-**Commit** — `edba45efb12be9f2718fa6a705df698b464c303b`
+**Commit** — `9d1951c958ad37cf3f284dfe33d0ad8d1881313b`
 
 **Platform** — Vercel, one origin: the Vite build as static assets, the whole
 service as a single bundled Node function under `/api`. Sessions in Redis over
 `REDIS_URL`, thirty-minute TTL.
 
-**Verified with** — Chromium (Playwright bundled build) against the live origin,
-and `node scripts/verify-live.mjs https://webmcp-weld.vercel.app` (12/12).
+**Verified with** — Chromium (Playwright bundled build) and Google Chrome 152
+with `--enable-features=WebMCP`, both against the live origin, and
+`node scripts/verify-live.mjs https://webmcp-weld.vercel.app` (12/12).
 
 ## What was verified on the deployed origin
 
@@ -31,11 +32,38 @@ and `node scripts/verify-live.mjs https://webmcp-weld.vercel.app` (12/12).
   explains `WEBMCP_UNAVAILABLE`, the labelled override runs the demo, delegation
   works, and an undelegated customer is refused in the live UI.
 
+## The flagged path, verified
+
+Google Chrome 152.0.7977.64 launched with `--enable-features=WebMCP`, driving
+the live origin. `docs/20_WEBMCP_FIELD_NOTES.md` records the API as measured;
+the short version is that it is `document.modelContext`, and probing only
+`navigator` — as the spec pack and every write-up say — reports "no WebMCP" in a
+browser that has it.
+
+- registration is real: two read-only tools before delegating, five after;
+- the schema an agent reads is the live scope — `customerId` enum exactly
+  `["c-northwind"]`, `field` enum exactly `["status","nextAction"]`,
+  `mandateVersion` `const 1`;
+- a real `executeTool` staged a change that appeared in the UI;
+- an undelegated customer was refused `OUT_OF_SCOPE` through the browser API;
+- narrowing mid-flight refused a v1 call `POLICY_CHANGED`; revoking refused it
+  `NO_ACTIVE_MANDATE`;
+- a co-edit landed on one change entity, `touchedBy: ["agent","human"]`;
+- a stale apply gave `REVISION_CONFLICT`, rebase returned `{rebased:1}`, and
+  re-validation was clean;
+- the injection prop's requested actions were refused;
+- no horizontal scroll or overlap at any of the four tested widths.
+
 ## What was not verified
 
-**The flagged path.** No browser with `navigator.modelContext` was available
-here, so real registration with a page-level agent is covered by unit-level
-tests and the adapter's feature detection — not by a live run. A judge with the
-flag enabled is exercising a path this record does not cover.
+**A real model driving it.** Every tool call above was issued by the page or by
+hand through `executeTool`, not by an agent choosing to make it. Nothing in this
+repo calls a model, by design (`docs/12_DECISIONS.md`).
+
+**Withdrawal.** This browser offers no way to unregister a tool, so the claim
+that a revoked surface *disappears from the registry* could not be verified —
+because it is not true here. The product does not depend on it; the server
+refuses the call either way, and the inspector says so rather than implying a
+withdrawal it cannot perform.
 
 Everything else in `docs/18_LIMITATIONS.md` still applies.

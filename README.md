@@ -4,8 +4,9 @@
 
 A person says what an agent may touch, on which records, for how long. That
 sentence is compiled into the page's WebMCP capability surface — tool schemas
-derived from the mandate, narrowing when it narrows, gone when it is revoked —
-and the server enforces the same mandate on every call that arrives.
+derived from the mandate, narrowing when it narrows — and the server enforces
+that same mandate on every call that arrives, so a tool that outlives the
+mandate that produced it is refused rather than honoured.
 
 Relay CRM is the host demo. The compiler is the product.
 
@@ -37,7 +38,7 @@ Mandate makes delegation a first-class, visible, temporary act inside the page:
    a docked rail is all that remains. Without WebMCP the layer will not even
    present itself as live — it names what is missing and offers the built-in
    simulated caller as an explicit override, because a capability layer with no
-   `navigator.modelContext` has nothing to compile into.
+   `document.modelContext` has nothing to compile into.
 1. **Selection proposes.** Clicking customers in Relay CRM narrows what you
    *could* delegate. It grants nothing, and the interface says so — a selected
    row and a delegated row never look the same.
@@ -46,8 +47,11 @@ Mandate makes delegation a first-class, visible, temporary act inside the page:
 3. **The capability surface is compiled from that mandate.** The page registers
    WebMCP tools whose schemas are derived from the live scope: the customer id
    enum contains exactly the delegated customers, the field enum exactly the
-   delegated fields. Narrow the mandate and the tools narrow with it. Revoke it
-   and they disappear.
+   delegated fields. Narrow the mandate and the compiled surface narrows with
+   it; revoke it and the surface is empty. Chrome ships no way to *withdraw* a
+   registration, so a stale entry can outlive its mandate in the browser's
+   registry — the inspector says so plainly, and it changes nothing, because a
+   call the mandate no longer covers is refused by the server.
 4. **The agent stages. The human applies.** There is no apply tool, no apply
    route reachable from the tool path, and no `actor: 'agent'` argument that
    could reach the apply method. The most consequential act in the product is
@@ -118,7 +122,7 @@ server/core/     the authoritative domain: sessions, mandates, changes,
   capabilities.ts  the capability compiler: mandate → tool descriptors
   store.ts         the storage port (in-memory adapter for the demo)
 server/app.ts    the Hono service; human routes and tool routes, one service
-src/webmcp/      the only place `navigator.modelContext` is mentioned
+src/webmcp/      the only place the WebMCP API is touched
 src/components/  the workbench
 ```
 
