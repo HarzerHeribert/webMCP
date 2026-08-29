@@ -83,8 +83,12 @@ function deriveStep(session: Session): Step['n'] {
   if (anyApplied) return 8;
   if (allValidated) return 7;
   if (anyStale) return 6;
-  if (hasChanges && refused) return 5;
-  if (hasChanges) return 4;
+  // Steps 3-5 are agent beats and need live authority. Revoking or letting the
+  // mandate expire withdraws them, so the guide walks back to "delegate" rather
+  // than pointing at a beat that can no longer be performed. Validate, rebase
+  // and apply are human actions, so 6-8 above stand without a mandate.
+  if (active && hasChanges && refused) return 5;
+  if (active && hasChanges) return 4;
   if (active) return 3;
   if (session.selectedCustomerIds.length > 0) return 2;
   return 1;

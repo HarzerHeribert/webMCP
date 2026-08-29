@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { customerRow, openMandateLayer, panelByTitle } from './helpers';
+import { customerRow, openMandateLayer, panelByTitle, runSimulatedCaller } from './helpers';
 
 /**
  * The layer is not part of the host, and the interface says so by being able to
@@ -63,4 +63,28 @@ test('a closed layer still declares live authority — it cannot be hidden', asy
   await expect(rail).toContainText('active · v1');
   // And the delegated record still carries its scope marking in the host.
   await expect(customerRow(page, 'Atlas Freight')).toHaveClass(/customer--delegated/);
+});
+
+test('the guide walks back when authority is withdrawn, instead of naming a beat you cannot perform', async ({ page }) => {
+  await page.goto('/');
+  await openMandateLayer(page);
+  await customerRow(page, 'Atlas Freight').locator('.customer__pick input').click();
+  await page.getByRole('button', { name: /^Delegate/ }).click();
+  await expect(page.getByText('active · v1', { exact: true })).toBeVisible();
+
+  // Stage something so the guide is past the delegation beat.
+  await runSimulatedCaller(page, 'mandate_stage_customer_update', {
+    customerId: 'c-atlas', field: 'status', value: 'At risk', mandateVersion: '1',
+  });
+  await expect(page.locator('.change')).toHaveCount(1);
+  const guide = page.locator('.demo-guide');
+  await expect(guide).not.toContainText('1/8');
+
+  await page.getByRole('button', { name: 'Revoke now' }).click();
+  await expect(page.getByText(/Mandate v\d+ was revoked/)).toBeVisible();
+
+  // The agent beats need live authority. With none, the guide must point back
+  // at delegation rather than at a step that can no longer be performed.
+  await expect(guide).toContainText('2/8');
+  await expect(guide).toContainText(/Delegate/i);
 });

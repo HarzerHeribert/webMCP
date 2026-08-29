@@ -665,3 +665,19 @@ h1, h2, h3, p { margin: 0; }
   .demo-guide { flex-wrap: wrap; height: auto; }
   .panel__head { flex-wrap: wrap; }
 }
+
+
+/* ── scroll affordance ────────────────────────────────────────────────────
+   A panel that scrolls internally cut text mid-line at its edge with nothing
+   to say why — in a still frame or a recording that reads as broken rather
+   than as "there is more below". These are the classic local/scroll
+   background-attachment shadows: they appear only when there is actually
+   content past the edge, and vanish at either end. */
+.panel__body--scroll,
+.panel--fill > .panel__body {
+  background:
+    linear-gradient(var(--surface-1) 30%, rgba(255, 255, 255, 0)) top / 100% 16px no-repeat local,
+    linear-gradient(rgba(255, 255, 255, 0), var(--surface-1) 70%) bottom / 100% 16px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, rgba(16, 24, 40, 0.13), rgba(16, 24, 40, 0)) top / 100% 7px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, rgba(16, 24, 40, 0.13), rgba(16, 24, 40, 0)) bottom / 100% 7px no-repeat scroll;
+}

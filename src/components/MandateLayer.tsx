@@ -114,8 +114,8 @@ export function MandateLayer({ children }: { children: ReactNode }) {
             registers.{' '}
             {webmcp.probe.present ? (
               <>
-                <code>navigator.modelContext</code> is here, but it offers neither{' '}
-                <code>provideContext</code> nor <code>registerTool</code>
+                A model-context object is here at <code>{webmcp.probe.where}</code>, but it
+                offers neither <code>provideContext</code> nor <code>registerTool</code>
                 {webmcp.probe.methods.length > 0 && (
                   <> — what it does offer is <code>{webmcp.probe.methods.join(', ')}</code></>
                 )}
@@ -124,16 +124,18 @@ export function MandateLayer({ children }: { children: ReactNode }) {
               </>
             ) : (
               <>
-                With no <code>navigator.modelContext</code> there is nothing to register
-                into, so the layer does not claim to be live.
+                Nothing was found at <code>document.modelContext</code>,{' '}
+                <code>navigator.modelContext</code> or <code>window.modelContext</code>, so
+                there is nothing to register into and the layer does not claim to be live.
               </>
             )}
           </p>
           <p className="gate__body">
-            Enable <code>#web-machine-learning-model-context</code> in{' '}
-            <code>chrome://flags</code> and reload to see the real registration path — or
-            run the demo here with the built-in simulated caller, which invokes the same
-            tool implementations a browser would, with arguments you type.
+            To see the real registration path, launch Chrome with{' '}
+            <code>--enable-features=WebMCP</code> and open this page again — the API only
+            appears on a secure origin. Or run the demo here with the built-in simulated
+            caller, which invokes the same tool implementations a browser would, with
+            arguments you type.
           </p>
           <button className="btn btn--primary gate__go" onClick={() => setOverride(true)}>
             Run the demo with the simulated caller
