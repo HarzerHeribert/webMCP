@@ -8,3 +8,10 @@ playwright-report/
 *.local
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+
+# Demo video pipeline — tooling is tracked, artefacts and models are not.
+.venv-tts/
+.tts-models/
+demo/out/
+demo/audio/
+demo/*.mp4

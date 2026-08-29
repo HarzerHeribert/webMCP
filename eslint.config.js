@@ -2,7 +2,15 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', '.worktrees', 'playwright-report', 'test-results', 'api/index.js'] },
+  {
+    ignores: [
+      'dist', 'node_modules', '.worktrees', 'playwright-report', 'test-results',
+      'api/index.js',
+      // The demo-video pipeline's local Python venv and model files: not our
+      // source, and the venv ships vendored browser JS that trips no-undef.
+      '.venv-tts', '.tts-models', 'demo/out',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

@@ -1,0 +1,71 @@
+{
+  "voice": "af_heart",
+  "speed": 1.05,
+  "beats": [
+    {
+      "id": "host",
+      "caption": "Relay CRM \u2014 the host application",
+      "say": "This is Relay CRM. Ordinary business software. Mandate is not part of it. It's a capability layer installed into it, and right now it is doing nothing."
+    },
+    {
+      "id": "problem",
+      "caption": "The problem: authority today is a key",
+      "say": "An agent that can act in here needs authority. Today that means an API key, scoped to everything, valid until someone remembers to revoke it. Mandate compiles something else: the sentence a human actually means."
+    },
+    {
+      "id": "select",
+      "caption": "Selection proposes. It grants nothing.",
+      "say": "Selecting proposes a scope. It grants nothing. Two accounts picked, and the inspector still shows only the two read-only tools. Nothing appeared."
+    },
+    {
+      "id": "delegate",
+      "caption": "The human delegates: 2 accounts, 2 fields, 10 minutes",
+      "say": "Now the human delegates. These accounts, these two fields, ten minutes."
+    },
+    {
+      "id": "compiled",
+      "caption": "document.modelContext.registerTool(...)",
+      "say": "Three things change together. The rows take the authority ring. The panel states the exact scope, counting down. And the browser registers a tool that did not exist a second ago, whose schema is a readout of what the human just decided."
+    },
+    {
+      "id": "stage",
+      "caption": "executeTool(mandate_stage_customer_update, { c-northwind, status })",
+      "say": "The agent calls it, through the browser's own WebMCP API. The change is staged, marked as the agent's. Nothing is committed."
+    },
+    {
+      "id": "refuse",
+      "caption": "executeTool(... { c-kestrel }) \u2192 OUT_OF_SCOPE",
+      "say": "Now ask that tool for an account that was selected but never delegated. Refused. Out of scope, decided by the server."
+    },
+    {
+      "id": "injection",
+      "caption": "executeTool(... { c-atlas, field: arr }) \u2192 OUT_OF_SCOPE",
+      "say": "These notes contain a pasted email telling the assistant to approve everything. Run exactly the call it asks for. Refused. Authority does not come from text."
+    },
+    {
+      "id": "narrow",
+      "caption": "Narrowed mid-flight \u2192 mandate v2",
+      "say": "Narrow the mandate mid-flight. That publishes version two. The agent still believes in version one. Refused: policy changed. The schema was a courtesy. This is the enforcement."
+    },
+    {
+      "id": "revoke",
+      "caption": "Revoked \u2192 NO_ACTIVE_MANDATE",
+      "say": "Revoke it. The same call gets a different refusal: no active mandate. Two refusals, two reasons, both from the server."
+    },
+    {
+      "id": "noapply",
+      "caption": "There is no apply tool, and no route behind one",
+      "say": "And the most consequential act has no agent path at all. There is no apply tool, and no route behind one."
+    },
+    {
+      "id": "apply",
+      "caption": "Only a human applies",
+      "say": "The human validates, and applies. The values land in the CRM."
+    },
+    {
+      "id": "close",
+      "caption": "Human intent, compiled into a live WebMCP contract",
+      "say": "Shut the layer, and Relay CRM is an ordinary CRM again. Mandate turns explicit, temporary human intent into a live WebMCP capability contract, and the server enforces it on every call."
+    }
+  ]
+}
