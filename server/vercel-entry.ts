@@ -1,10 +1,12 @@
 import { Hono } from 'hono';
-import { createApp, notFoundJson } from '../server/app';
-import { MemorySessionStore } from '../server/core/store';
-import { RedisSessionStore } from '../server/core/redis-store';
+import { createApp, notFoundJson } from './app';
+import { MemorySessionStore } from './core/store';
+import { RedisSessionStore } from './core/redis-store';
 
 /**
- * The Vercel entry (D-011). `vercel.json` rewrites every `/api/*` request here,
+ * The Vercel entry (D-011). **`scripts/build-api.mjs` bundles this file into
+ * `api/index.js`, which is what actually deploys** — see that script for why.
+ * `vercel.json` rewrites every `/api/*` request here,
  * so one function serves the whole service and the static client is served from
  * the same origin by the platform — a page-registered tool still calls exactly
  * the URL a human click does.

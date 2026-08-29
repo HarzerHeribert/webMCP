@@ -1,14 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import handler from '../../api/index';
+import handler from '../../server/vercel-entry';
 
 /**
  * The deployed path, exercised the way the platform calls it.
  *
- * This exists because it did not, and the deploy shipped broken: the function
- * imported `../server/app.ts`, Vercel transpiled the entry without rewriting
- * that specifier, and every request died with ERR_MODULE_NOT_FOUND while the
- * build reported READY and the local suite stayed green. Nothing in the gate
- * had ever imported the production entry point.
+ * This exists because it did not, and the deploy shipped broken twice: Vercel
+ * transpiles `api/*.ts` without bundling it, so the relative imports survived
+ * into the lambda as paths that were never shipped and every request died with
+ * ERR_MODULE_NOT_FOUND — while the build reported READY and the local suite
+ * stayed green, because nothing in the gate had ever imported the production
+ * entry point.
+ *
+ * It imports the entry's *source*. The bundle that actually deploys is checked
+ * for drift by `scripts/check.sh`.
  */
 const BASE = 'https://example.vercel.app';
 const call = async (
