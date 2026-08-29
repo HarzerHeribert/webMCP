@@ -176,16 +176,20 @@ Phase M7B — Submission artifacts
 
 ☑ Publish an OSS licence visible in the repository's About section. (SUBMISSION)
     EVIDENCE: `LICENSE` (MIT) at the repository root.
-☐ Write the README as the submission's text description: why WebMCP fits, what the human and the agent can do together that was not previously feasible, and the implementation approach. (SUBMISSION)
-☐ Write the <3-minute video script, beat by beat, against the running demo. (SUBMISSION)
+☑ Write the README as the submission's text description: why WebMCP fits, what the human and the agent can do together that was not previously feasible, and the implementation approach. (SUBMISSION)
+    EVIDENCE: `README.md` — the problem, why WebMCP specifically, the schema-communicates-authority claim, the implementation, and what this is not.
+☑ Write the <3-minute video script, beat by beat, against the running demo. (SUBMISSION)
+    EVIDENCE: `docs/17_DEMO_SCRIPT.md` — sixteen beats with timings, written against the running app, plus an explicit do-not-claim list.
 ☐ Record the limitations honestly: no identity attestation, no production CRM, no model. (D-009, `docs/09`)
 
 Phase M8 — Deployment
 
 ☑ Choose and record the deployment target and the storage adapter it uses.
     EVIDENCE: D-011 in `docs/12_DECISIONS.md` — Vercel, one origin, Upstash Redis behind `SessionStore`.
-☐ Implement `RedisSessionStore` behind the existing `SessionStore` port, with the in-memory adapter still used for tests and local dev.
-☐ Add the Vercel function entry and build config so `/api/*` and the static client share one origin.
+☑ Implement `RedisSessionStore` behind the existing `SessionStore` port, with the in-memory adapter still used for tests and local dev.
+    EVIDENCE: `server/core/redis-store.ts` — one fetch against Upstash's REST API; the in-memory adapter still backs every test.
+☑ Add the Vercel function entry and build config so `/api/*` and the static client share one origin.
+    EVIDENCE: `api/[[...route]].ts` + `vercel.json` — one function under `/api`, warns loudly if it falls back to process memory.
 ☐ Deploy one HTTPS origin, with a deterministic reset and no credentials in the repo.
 ☐ Verify the live URL works in Chrome with WebMCP enabled **and** degrades correctly where it is not. (SUBMISSION)
 ☐ Verify no cross-session leakage and no internal error text on the deployed origin.

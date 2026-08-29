@@ -1,27 +1,37 @@
 #!/usr/bin/env bash
-# Remove a worker's worktree and branch once its work is in main.
+# Remove a worker's worktree and branch.
 #
-# The guard is deliberately "is this already integrated?", not "is this
-# worktree clean?". An integrated worker's worktree is always dirty — the diff
-# is exactly what was applied — so refusing on dirtiness would refuse every
-# worker that ever finished. It compares content instead.
+#   scripts/close-worker.sh <name>...            report anything not yet in main, then stop
+#   scripts/close-worker.sh --force <name>...     close anyway
+#
+# The check is "is this already in main?", not "is this worktree clean?" — an
+# integrated worker's worktree is always dirty, since the diff is exactly what
+# was applied. A file can also differ legitimately because the integrator edited
+# it afterwards, which is why the script reports rather than decides.
 set -uo pipefail
 ROOT="$(cd "$(git rev-parse --git-common-dir)/.." && pwd)"
+FORCE=0
+[ "${1:-}" = "--force" ] && { FORCE=1; shift; }
+
 for NAME in "$@"; do
   WT="$ROOT/.worktrees/$NAME"
   [ -d "$WT" ] || { echo "  MISSING $NAME"; continue; }
 
-  unmerged=""
+  differ=""
+  files=$( { git -C "$WT" diff --name-only HEAD
+             git -C "$WT" ls-files --others --exclude-standard; } | sort -u )
   while read -r f; do
     [ -n "$f" ] || continue
     case "$f" in *.tsbuildinfo|node_modules|node_modules/*) continue ;; esac
+    [ -d "$WT/$f" ] && continue
     if [ ! -e "$ROOT/$f" ] || ! cmp -s "$WT/$f" "$ROOT/$f"; then
-      unmerged="$unmerged $f"
+      differ="$differ $f"
     fi
-  done < <(git -C "$WT" status --porcelain | awk '{print $NF}')
+  done <<< "$files"
 
-  if [ -n "$unmerged" ]; then
-    echo "  SKIP $NAME — these differ from main, integrate first:$unmerged"
+  if [ -n "$differ" ] && [ "$FORCE" -eq 0 ]; then
+    echo "  HOLD  $NAME — differs from main:$differ"
+    echo "        (integrator edits after integration are a normal cause; --force to close)"
     continue
   fi
 

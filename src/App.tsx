@@ -6,6 +6,7 @@ import { ConflictPanel } from './components/ConflictPanel.tsx';
 import { Inspector } from './components/Inspector.tsx';
 import { Timeline } from './components/Timeline.tsx';
 import { AgentConsole } from './components/AgentConsole.tsx';
+import { DemoGuide } from './components/DemoGuide.tsx';
 import { useStore } from './lib/store.tsx';
 import { WebMcpProvider } from './webmcp/provider.tsx';
 
@@ -30,6 +31,7 @@ export function App() {
     <WebMcpProvider>
       <div className="app">
         <Header />
+        <DemoGuide />
         <main className="workbench">
           <div className="column column--scroll">
             <CustomerTable />
