@@ -41,20 +41,31 @@ export function MinimalLayer() {
        the pill — and it does that on a filtered SVG layer *behind* the real
        DOM, which is why the panel's text stays pixel-crisp and its shadow
        survives the merge.
-       The root is a viewport-sized overlay because both children are
+       The root has to be given a box of its own, because both children are
        `position: fixed` and so contribute nothing to a normal element's box:
        the group has to be told how big the world is, or the filter region
-       collapses to nothing. */
+       collapses to nothing. How big is a performance decision, and it is made
+       in `src/styles/app.css` — see `.mandate-liquid`. */
     <Liquid
       className="mandate-liquid"
-      /* Not in the stylesheet: the group sets `position: relative` as an inline
-         style, which no class can outrank. The overlay has to be declared
-         where it will actually win. */
-      style={{ position: 'fixed', inset: 0 }}
+      /* `position` alone, and only because the group hard-codes
+         `position: relative` as an inline style that no class can outrank.
+         Everything else about the box is in the stylesheet, next to the
+         numbers it is derived from. */
+      style={{ position: 'fixed' }}
       blur={7}
       contrast={22}
       fill="#1b222d"
-      shadow="0 12px 40px rgba(0, 0, 0, .42)"
+      /* One layer, and it must stay one. A shadow with no spread and no `inset`
+         is the only kind this library hands to CSS `drop-shadow`, which is the
+         GPU path; anything else joins the SVG filter chain as extra passes.
+         The rim light on this body was tried here first, as
+         `inset 0 1px 0 rgba(255,255,255,.11)`, and it cost 80ms of the frame
+         the popover opens — a worse stall than the viewport-sized filter this
+         pass was fixing. It lives in `src/styles/app.css` now, as an ordinary
+         inset box-shadow on the real card and the real pill. Measure before
+         adding a second layer here. */
+      shadow="0 14px 44px rgba(0, 0, 0, .46)"
     >
       {/* In product mode this pill is the only surface Mandate owns, so it is
           also the only thing on the screen permitted to glow — and it does so

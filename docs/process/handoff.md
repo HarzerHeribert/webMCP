@@ -117,6 +117,37 @@ content blurred illegible the whole way. And the `.pop` transparency is scoped
 to `.mandate-liquid`, because `.pop` is also the approval popover on a record
 row — not part of this body, and it keeps its own surface.
 
+**The one that will bite again: an SVG filter region is the group's own box.**
+The `Liquid` group was `inset: 0`, a viewport-sized overlay, because both its
+children are `position: fixed` and contribute nothing to a normal element's box.
+That is true and it is also the whole performance story: a Gaussian blur costs a
+pass over every device pixel of the filter region, so at DPR 2 opening the
+popover blurred some seven million pixels in one frame. Measured over 18 opens
+at 4× CPU throttle: worst frames of 125, 117, 100, 92, 92 and 83ms, about one
+open in three dropping a frame past 32ms. The box is now the bottom-right corner
+the liquid actually occupies (`448 × 768`, collapsing to the viewport on small
+screens) — zero frames past 20ms, worst 16.6ms. Same effect, none of the cost.
+
+Two rules fall out of that, and both are written at their sites:
+
+- **Never give the group a box bigger than the liquid needs.** `.mandate-liquid`
+  in `src/styles/app.css` derives its size from `.pop`'s own numbers; if that
+  card's width or max-height changes, change these with it.
+- **One shadow layer, no `inset`.** A shadow with no spread and not inset is the
+  only kind `liquid-gooey` hands to CSS `drop-shadow`, which is the GPU path.
+  Anything else joins the SVG chain as extra passes: a one-pixel `inset` rim
+  light tried on the silhouette cost **80ms of the opening frame**, worse than
+  the viewport-sized region it was sharing a commit with. The rim light lives on
+  the real card and the real pill now, as an ordinary inset `box-shadow`, and
+  costs nothing. Measure before adding a second layer.
+
+The card's interior got the pass the panel form never did — a rule under the
+head and over the actions so it reads as three registers, captions stepped back,
+the expiry drawn as a thin gauge rather than a progress bar, and tabular figures
+so the countdown stops twitching sideways once a second. All of it scoped to
+`.mandate-liquid`, because the same markup is the Authority panel in technical
+mode, where it sits among peers and should keep matching them.
+
 **The video predates all of this.** `demo/mandate-demo.mp4` was recorded against
 the previous visuals, and it closes on the product form, which is exactly what
 changed most. Re-cut it (`docs/21_DEMO_VIDEO.md`) or accept that the film is one

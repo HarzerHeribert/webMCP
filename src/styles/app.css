@@ -768,9 +768,33 @@ h1, h2, h3, p { margin: 0; }
    All of it is scoped to `.mandate-liquid`, because `.pop` is also the
    approval popover on a record row, which is not part of this body and must
    keep its own surface. */
-/* `position: fixed; inset: 0` is set inline in the component, not here — the
-   group hard-codes `position: relative` as an inline style. */
-.mandate-liquid { z-index: 60; pointer-events: none; }
+/* Only `position: fixed` is set inline in the component, because the group
+   hard-codes `position: relative` as an inline style. The box is here.
+
+   THE BOX IS A PERFORMANCE DECISION. An SVG filter region is the group's own
+   rect, and a Gaussian blur costs a pass over every device pixel in it. This
+   started as `inset: 0` — the whole viewport — which on a Retina display meant
+   blurring some seven million device pixels on the frame the popover opened.
+   Measured over 18 opens, throttled 4×: worst frames of 125, 117, 100, 92, 92
+   and 83ms, with roughly one open in three dropping a frame past 32ms. With the
+   box below: zero frames past 20ms, worst 16.6ms. It was the only jank in the
+   product and it was entirely this.
+
+   The liquid never leaves the bottom-right corner, so the box is exactly what
+   can hold it, derived from the numbers below:
+     width  = --s5 dock inset + `.pop` width (380) + slack
+     height = --s5 dock inset + pill + gap + `.pop` max-height (640) + slack
+   `min()` collapses it to the viewport on small screens, where `Popover.place`
+   flips and clamps the card into this same corner anyway. Keep these in step
+   with `.pop` if its size changes — a card wider than this box gets its
+   silhouette clipped, though never its text, which is real DOM above the
+   filter. */
+.mandate-liquid {
+  right: 0; bottom: 0;
+  width: min(100vw, 448px);
+  height: min(100vh, 768px);
+  z-index: 60; pointer-events: none;
+}
 .mandate-liquid .pill-dock,
 .mandate-liquid .pop { pointer-events: auto; }
 
@@ -779,9 +803,23 @@ h1, h2, h3, p { margin: 0; }
    panel used, so this is a change of who paints it, not of what it looks
    like — until the two bodies meet, and then there is a neck between them
    instead of two overlapping rectangles. */
-.mandate-liquid .pop,
 .mandate-liquid .pop .panel { background: transparent; }
-.mandate-liquid .pop { border-color: transparent; box-shadow: none; }
+.mandate-liquid .pop {
+  border-color: transparent;
+  /* Light falls on the body. The liquid paints a flat fill and its drop
+     shadow; what makes that read as a solid rather than a swatch is the
+     one-pixel rim along the lit edge and a gradient that fades out before the
+     card's midpoint. Both are ordinary CSS on the real element, deliberately
+     not `inset` layers on the silhouette — that route is an extra pass through
+     the SVG filter and cost 80ms of the opening frame (see `MinimalLayer`).
+     The gradient composites over the liquid, so the neck below stays the flat
+     fill, which is right: the neck is in shadow. */
+  background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, 0) 44%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11);
+}
+/* The pill is the same body, so it is lit the same way. */
+.mandate-liquid .pill { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); }
+.mandate-liquid .pill--active { box-shadow: inset 0 1px 0 rgba(255, 220, 160, .13); }
 
 /* Opening is an extrusion, not an appearance: the card grows from the pill's
    own corner, and while it is still small and close the goo necks the two
@@ -797,6 +835,45 @@ h1, h2, h3, p { margin: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .mandate-liquid .pop[data-placed] { animation: none; }
+}
+
+/* ── the card's interior ───────────────────────────────────────────────────
+   This is the one surface the product form has, so it is worth the pass the
+   panel form never got. Scoped to `.mandate-liquid` throughout: the same
+   markup is the Authority panel in technical mode, where it sits in a column
+   of peers and should keep matching them. */
+
+/* A rule under the head, and a rule over the actions. The card then reads as
+   three registers — what this is, what it covers, what you can do — instead of
+   one column of evenly spaced things, which is what made it look assembled
+   rather than designed. */
+.mandate-liquid .pop .panel__head {
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+.mandate-liquid .mandate__actions {
+  justify-content: flex-end;
+  border-top: 1px solid rgba(255, 255, 255, .07);
+  padding-top: var(--s4);
+}
+
+/* Section labels step back so the scope chips can step forward. They are
+   captions, and they were competing at the same weight as their contents. */
+.mandate-liquid .composer__legend {
+  font-size: 9.5px; letter-spacing: .11em; color: var(--text-3); font-weight: 650;
+}
+
+/* The expiry is the one live number in the product, and it was drawn as a
+   generic progress bar. Thinner, so it reads as a gauge; the fill carries the
+   authority amber with a little bleed, because this bar draining *is* the
+   mandate ending. */
+.mandate-liquid .meter { height: 3px; background: rgba(255, 255, 255, .07); }
+.mandate-liquid .meter__fill {
+  background: linear-gradient(90deg, var(--authority-dim), var(--authority-fill));
+  box-shadow: 0 0 8px rgba(227, 166, 60, .45);
+}
+/* Proportional digits made the countdown twitch sideways once a second. */
+.mandate-liquid .mandate__expiry {
+  font-variant-numeric: tabular-nums; color: var(--authority); letter-spacing: .01em;
 }
 
 /* `border-beam` puts `overflow: hidden` on its own container. Inside a flex
