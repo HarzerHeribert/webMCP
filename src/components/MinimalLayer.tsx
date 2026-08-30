@@ -1,7 +1,9 @@
 import { useRef, useState, type RefObject } from 'react';
+import { Liquid } from 'liquid-gooey';
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
 import { AuthorityPanel } from './AuthorityPanel';
+import { AuthorityGlow } from './AuthorityGlow';
 import { Popover } from './Popover';
 
 /**
@@ -33,24 +35,76 @@ export function MinimalLayer() {
       : 'not in use';
 
   return (
-    <>
-      <button
-        ref={pill}
-        className={`pill${mandate ? ' pill--active' : ''}`}
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-label="Mandate — delegated authority"
-      >
-        <span className="pill__dot" aria-hidden />
-        <span className="pill__name">Mandate</span>
-        <span className="pill__state">{label}</span>
-        {pending > 0 && <span className="pill__count">{pending}</span>}
-      </button>
+    /* The pill and its popover are one liquid body, not two surfaces that
+       happen to sit near each other. `liquid-gooey` paints a single merged
+       silhouette behind both — so opening does not summon a panel, it opens
+       the pill — and it does that on a filtered SVG layer *behind* the real
+       DOM, which is why the panel's text stays pixel-crisp and its shadow
+       survives the merge.
+       The root is a viewport-sized overlay because both children are
+       `position: fixed` and so contribute nothing to a normal element's box:
+       the group has to be told how big the world is, or the filter region
+       collapses to nothing. */
+    <Liquid
+      className="mandate-liquid"
+      /* Not in the stylesheet: the group sets `position: relative` as an inline
+         style, which no class can outrank. The overlay has to be declared
+         where it will actually win. */
+      style={{ position: 'fixed', inset: 0 }}
+      blur={7}
+      contrast={22}
+      fill="#1b222d"
+      shadow="0 12px 40px rgba(0, 0, 0, .42)"
+    >
+      {/* In product mode this pill is the only surface Mandate owns, so it is
+          also the only thing on the screen permitted to glow — and it does so
+          exactly while the mandate is live. The halo blooms outward here
+          because the pill floats over the host and nothing crops it. */}
+      {/* The dock is the outer element on purpose: `BorderBeam` sets
+          `position: relative` on its own container from an injected stylesheet
+          that loads after ours, so a fixed position put on the beam itself is
+          silently overridden and the pill drops into the document flow. */}
+      {/* `radius` is stated rather than measured: the liquid reads the
+          border-radius off the element it is given, and that element is the
+          dock, which is square. The blob has to be the pill. */}
+      <Liquid.Item observe radius={999}>
+        <div className="pill-dock">
+          <AuthorityGlow active={!!mandate} bloom="outside">
+            <button
+              ref={pill}
+              className={`pill${mandate ? ' pill--active' : ''}`}
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              aria-label="Mandate — delegated authority"
+            >
+              <span className="pill__dot" aria-hidden />
+              <span className="pill__name">Mandate</span>
+              <span className="pill__state">{label}</span>
+              {pending > 0 && <span className="pill__count">{pending}</span>}
+            </button>
+          </AuthorityGlow>
+        </div>
+      </Liquid.Item>
 
-      <Popover anchorRef={pill} open={open} onClose={() => setOpen(false)} label="Delegated authority" side="top">
-        <AuthorityPanel />
-      </Popover>
-    </>
+      {/* `observe`, deliberately not `morph.shape`. The shape springs start
+          from the blob's initial state, which for an item mounted at full size
+          is a zero-rect at the group's origin — the liquid launched from the
+          top-left of the viewport and flew across the page to meet the card,
+          content blurred illegible the whole way. Plain observe tracks the
+          rendered rect, so the growth is the CSS extrusion below and the goo's
+          only job is the neck into the pill, which is the part worth having. */}
+      {/* Mounted with the popover, not around it: the item binds its blob to
+          `firstElementChild` in a layout effect that bails when there is no
+          child and never rebinds, and a closed `Popover` renders nothing. Held
+          open across the toggle, the liquid would stay a 0×0 rect forever. */}
+      {open && (
+        <Liquid.Item observe>
+          <Popover anchorRef={pill} open onClose={() => setOpen(false)} label="Delegated authority" side="top">
+            <AuthorityPanel glow={false} />
+          </Popover>
+        </Liquid.Item>
+      )}
+    </Liquid>
   );
 }
 

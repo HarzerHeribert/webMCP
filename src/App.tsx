@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { ThinkingOrb } from 'thinking-orbs';
 import { AuthorityPanel } from './components/AuthorityPanel';
 import { RecordTable } from './components/RecordTable';
 import { Header } from './components/Header';
@@ -104,7 +105,16 @@ export function App() {
       <div className="app">
         <div className="boot">
           {loading ? (
-            <span className="boot__msg">Opening a session…</span>
+            /* The orb is a wait indicator, not a claim about cognition: it runs
+               while the session request is in flight and stops when it lands.
+               `connecting` is the state that paints a constellation wiring
+               itself, which is literally what is happening — this is the first
+               thing anyone sees, and an empty screen with a line of grey text
+               was the weakest frame in the demo. */
+            <div className="boot__wait">
+              <ThinkingOrb state="connecting" size={64} theme="light" />
+              <span className="boot__msg">Opening a session…</span>
+            </div>
           ) : (
             <div className="boot__fail">
               <span className="chip chip--danger">

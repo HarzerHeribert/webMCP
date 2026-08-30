@@ -69,6 +69,60 @@ Verification tools worth knowing:
 - flagged Chrome: `chromium.launch({ channel: 'chrome', args: ['--enable-features=WebMCP'] })`,
   and for localhost add `--unsafely-treat-insecure-origin-as-secure=http://localhost:5173`
 
+## The most recent pass: three libraries, each bound to a claim
+
+Three MIT component libraries by Jakub Antalik
+(`github.com/Jakubantalik/Libraries`) are dependencies now, taken from npm
+rather than vendored so their licences ship with them. Each is wired to
+something the product already claims; none of it is decoration.
+
+- **`border-beam` is the authority glow.** `src/styles/tokens.css` already
+  stated the rule — *authority is the only thing that glows* — and colour alone
+  could not carry it, because a static amber swatch reads the same whether the
+  mandate is live or died a minute ago. `src/components/AuthorityGlow.tsx` is
+  the **only** caller and hard-codes the palette: `sunset`, `staticColors`,
+  `hueRange={0}`, `saturation={0.7}` (the unmodified family bleeds into red,
+  which is `--danger`, and it sat inches from the red *Revoke now* button),
+  `theme="dark"`. It wraps exactly two things: the Authority panel while ACTIVE,
+  and the Mandate pill in product mode. The panel *inside* the popover is passed
+  `glow={false}` — the pill that opened it is already lit for the same fact.
+- **`thinking-orbs` is waiting on the network**, never cognition: the boot
+  screen (`connecting`, 64) and the in-flight tool call in the simulated caller
+  (`connecting`, 20, the button reads *Calling…*). It marks a server round trip,
+  which is what is actually happening, so D-003 and the *no model · no agent*
+  chip stay honest.
+- **`liquid-gooey` makes the pill and its popover one liquid body** in product
+  mode. A single `Liquid` group paints a merged silhouette behind the real DOM,
+  so opening does not summon a panel — it opens the pill. The text stays crisp
+  because the filter runs on an SVG layer *behind* the content.
+
+Three things in there cost real time. Each is commented at its site; read them
+before moving any of this.
+
+- `.boot` sat in an `auto` grid row, so `height: 100%` resolved against its own
+  content and the wait was pinned to the top of the screen. Pre-existing, and
+  invisible for as long as the wait was one line of grey text.
+- `border-beam` puts `overflow: hidden` on its own container, which also cancels
+  a flex item's automatic minimum size — the Authority panel collapsed to 0px in
+  technical mode. `.authority-glow { flex: none }` is the fix.
+- **Both `border-beam` and `liquid-gooey` set `position` as an inline style**,
+  which no class can outrank. So the pill dock had to become the outer element
+  and carry the fixed position, and the `Liquid` overlay had to be declared
+  inline in the component rather than in the stylesheet.
+
+`Liquid.Item` uses plain `observe`, deliberately not `morph.shape`: the shape
+springs start from a zero-rect at the group's origin, so the liquid launched
+from the top-left of the viewport and flew across the page to meet the card,
+content blurred illegible the whole way. And the `.pop` transparency is scoped
+to `.mandate-liquid`, because `.pop` is also the approval popover on a record
+row — not part of this body, and it keeps its own surface.
+
+**The video predates all of this.** `demo/mandate-demo.mp4` was recorded against
+the previous visuals, and it closes on the product form, which is exactly what
+changed most. Re-cut it (`docs/21_DEMO_VIDEO.md`) or accept that the film is one
+version behind the live URL a judge will open. The same applies to the live
+verifier in item 3 below, which asks to be re-run after any material change.
+
 ## What is left
 
 1. **Upload the video.** It is made: `demo/mandate-demo.mp4`, 2:50, 1600×1000,

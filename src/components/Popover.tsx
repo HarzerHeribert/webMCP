@@ -88,6 +88,11 @@ export function Popover({
       className="pop"
       role="dialog"
       aria-label={label}
+      /* Placement happens in a layout effect after the first paint, so the
+         card renders once at opacity 0 with no position. An entrance
+         animation hung on mount would burn its first frames there; this marks
+         the frame the card actually has somewhere to be. */
+      data-placed={pos ? '' : undefined}
       style={pos ? { left: pos.left, top: pos.top } : { opacity: 0, left: 0, top: 0 }}
     >
       {children}

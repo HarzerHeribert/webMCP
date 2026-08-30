@@ -360,8 +360,12 @@ h1, h2, h3, p { margin: 0; }
 }
 
 /* ── boot ─────────────────────────────────────────────────────────────────── */
+/* `.app` is a four-row grid and the boot state is its only child, so without
+   spanning it lands in the first `auto` row and `height: 100%` resolves against
+   its own content — the wait sat pinned to the top of the screen. It was
+   invisible while the wait was one line of grey text. */
 .boot {
-  display: grid; place-items: center; height: 100%;
+  display: grid; place-items: center; height: 100%; grid-row: 1 / -1;
   color: var(--text-3); font-size: var(--t-sm); letter-spacing: 0.02em;
 }
 
@@ -577,6 +581,11 @@ h1, h2, h3, p { margin: 0; }
 /* ── boot failure ─────────────────────────────────────────────────────────
    A dead service used to look exactly like a slow one: "Opening a session…"
    forever, with nothing to read and nothing to press. */
+/* The wait is the first frame anyone sees, so it is composed rather than
+   merely occupied: the orb sits above its own caption, both centred. */
+.boot__wait {
+  display: flex; flex-direction: column; align-items: center; gap: var(--s4);
+}
 .boot__msg { color: var(--text-3); font-size: var(--t-sm); letter-spacing: 0.02em; }
 .boot__fail {
   display: flex; flex-direction: column; align-items: flex-start; gap: var(--s3);
@@ -751,8 +760,57 @@ h1, h2, h3, p { margin: 0; }
 
 .workbench--minimal { grid-template-columns: minmax(0, 1fr); }
 
+/* ══ THE PILL AND ITS POPOVER, AS ONE LIQUID BODY ══════════════════════════
+   `liquid-gooey` paints the merged silhouette and the shadow on an SVG layer
+   behind the real DOM. Everything below exists to stop the elements painting a
+   second, hard-edged copy of themselves on top of that silhouette.
+
+   All of it is scoped to `.mandate-liquid`, because `.pop` is also the
+   approval popover on a record row, which is not part of this body and must
+   keep its own surface. */
+/* `position: fixed; inset: 0` is set inline in the component, not here — the
+   group hard-codes `position: relative` as an inline style. */
+.mandate-liquid { z-index: 60; pointer-events: none; }
+.mandate-liquid .pill-dock,
+.mandate-liquid .pop { pointer-events: auto; }
+
+/* The liquid layer is the popover's surface now. The card and the panel inside
+   it go transparent so the goo shows through; the fill is the same colour the
+   panel used, so this is a change of who paints it, not of what it looks
+   like — until the two bodies meet, and then there is a neck between them
+   instead of two overlapping rectangles. */
+.mandate-liquid .pop,
+.mandate-liquid .pop .panel { background: transparent; }
+.mandate-liquid .pop { border-color: transparent; box-shadow: none; }
+
+/* Opening is an extrusion, not an appearance: the card grows from the pill's
+   own corner, and while it is still small and close the goo necks the two
+   together. `data-placed` holds it back until the popover knows where it
+   goes — see `src/components/Popover.tsx`. */
+@keyframes pop-extrude {
+  from { opacity: 0; transform: translateY(16px) scale(.84); }
+  to   { opacity: 1; transform: none; }
+}
+.mandate-liquid .pop[data-placed] {
+  transform-origin: bottom right;
+  animation: pop-extrude 260ms cubic-bezier(.2, .8, .2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .mandate-liquid .pop[data-placed] { animation: none; }
+}
+
+/* `border-beam` puts `overflow: hidden` on its own container. Inside a flex
+   column that also cancels the item's automatic minimum size, so the wrapper
+   shrinks to nothing and takes the panel with it. The wrapper is meant to be
+   transparent to layout — it sizes to what it wraps and never absorbs the
+   column's shrinking. */
+.authority-glow { flex: none; }
+
+/* The dock carries the fixed position so the authority beam, which wraps the
+   pill, is the element that is placed — the halo has to travel with it. */
+.pill-dock { position: fixed; right: var(--s5); bottom: var(--s5); z-index: 40; }
+
 .pill {
-  position: fixed; right: var(--s5); bottom: var(--s5); z-index: 40;
   display: inline-flex; align-items: center; gap: var(--s2);
   background: var(--surface-1); border: 1px solid var(--line-strong);
   border-radius: var(--r-pill); padding: 9px 16px 9px 13px; cursor: pointer;

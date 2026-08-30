@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../lib/api';
 import { useSession, useStore } from '../lib/store';
+import { AuthorityGlow } from './AuthorityGlow';
 
 /**
  * The delegation surface. This panel is the product; everything else is the
@@ -20,12 +21,16 @@ const TTLS = [
   { label: '30 min', ms: 30 * 60_000 },
 ];
 
-export function AuthorityPanel() {
+/** `glow` is off in the popover: the pill that opened it is already lit for the
+ *  same fact, and the rule is that live authority glows once, not that glow is
+ *  available to anything holding a mandate. */
+export function AuthorityPanel({ glow = true }: { glow?: boolean } = {}) {
   const { session } = useSession();
   const mandate = session.mandate;
   const active = mandate?.status === 'ACTIVE' ? mandate : null;
 
   return (
+    <AuthorityGlow active={glow && !!active}>
     <section className={`panel${active ? ' panel--authority' : ''}`}>
       <div className="panel__head">
         <h2 className="panel__title">Authority</h2>
@@ -53,6 +58,7 @@ export function AuthorityPanel() {
         )}
       </div>
     </section>
+    </AuthorityGlow>
   );
 }
 

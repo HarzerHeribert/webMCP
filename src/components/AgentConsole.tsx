@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ThinkingOrb } from 'thinking-orbs';
 import { useWebMcp } from '../webmcp/provider';
 import type { ToolResult } from '../webmcp/provider';
 
@@ -151,8 +152,20 @@ export function AgentConsole() {
                     );
                   })
                 )}
+                {/* While a call is in flight the button shows the round trip
+                    rather than a frozen label. The orb marks time spent on the
+                    server — the panel's standing disclaimer above it still
+                    holds, and this changes nothing about it: there is no model
+                    here, and the orb is not pretending one is thinking. */}
                 <button className="btn btn--primary btn--sm webmcp-console__run" type="submit" disabled={running}>
-                  {running ? 'Running…' : `Run ${tool.name}`}
+                  {running ? (
+                    <>
+                      <ThinkingOrb state="connecting" size={20} theme="dark" aria-hidden />
+                      Calling…
+                    </>
+                  ) : (
+                    `Run ${tool.name}`
+                  )}
                 </button>
               </form>
             )}
