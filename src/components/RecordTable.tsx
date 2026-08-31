@@ -174,6 +174,11 @@ function ResourceRow({
   const staged = session.changes.filter(
     (c) => c.resourceId === resource.id && c.state !== 'APPLIED',
   );
+  // One approval, one control. The popover reviews every staged change on the
+  // record, so a chip on each staged field was the same act offered twice —
+  // it anchors on the first staged diff and says how many it covers.
+  const reviewKey = fields.find((spec) => staged.some((c) => c.field === spec.key))?.key;
+  const anyStale = staged.some((c) => c.state === 'STALE');
 
   return (
     <li
@@ -214,9 +219,10 @@ function ResourceRow({
             spec={spec}
             delegated={Boolean(delegatedFields?.includes(spec.key))}
             pending={staged.find((c) => c.field === spec.key)?.after}
-            stale={staged.find((c) => c.field === spec.key)?.state === 'STALE'}
+            stale={anyStale}
+            reviewCount={staged.length}
             onReview={
-              mode === 'minimal'
+              mode === 'minimal' && spec.key === reviewKey
                 ? (el) => {
                     reviewAnchor.current = el;
                     setReviewing(true);
@@ -266,13 +272,16 @@ function EditableField({
   delegated,
   pending,
   stale,
+  reviewCount = 0,
   onReview,
 }: {
   resource: Resource;
   spec: FieldSpec;
   delegated: boolean;
   pending?: string;
+  /** Record-level: any staged change on this record is stale, not just this field's. */
   stale?: boolean;
+  reviewCount?: number;
   onReview?(anchor: HTMLElement): void;
 }) {
   const { run } = useStore();
@@ -352,7 +361,7 @@ function EditableField({
             className={`review${stale ? ' review--stale' : ''}`}
             onClick={(e) => onReview(e.currentTarget)}
           >
-            {stale ? 'Redo' : 'Review'}
+            {stale ? 'Redo' : reviewCount > 1 ? `Review ${reviewCount} changes` : 'Review'}
           </button>
         )}
       </dd>
