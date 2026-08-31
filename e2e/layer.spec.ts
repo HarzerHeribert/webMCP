@@ -46,7 +46,7 @@ test('without WebMCP the demo still runs, and says so without stopping anybody',
 
   // The remedy differs by host, so it is behind a disclosure rather than shouted.
   await expect(banner.getByRole('heading', { name: 'This browser has no WebMCP.' })).toBeHidden();
-  await banner.getByRole('button', { name: 'Why, and how to fix it' }).click();
+  await banner.getByRole('button', { name: 'Run it with a real agent' }).click();
   await expect(banner.getByRole('heading', { name: 'This browser has no WebMCP.' })).toBeVisible();
   await expect(banner).toContainText('enable-webmcp-testing');
 });
@@ -107,7 +107,7 @@ test.describe('inside the ChatGPT app, the gate gives advice that works there', 
   test('the desktop app is told about site tools, not about a Chrome flag', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('.workbench');
-    await page.getByRole('status').getByRole('button', { name: 'Why, and how to fix it' }).click();
+    await page.getByRole('status').getByRole('button', { name: 'Run it with a real agent' }).click();
 
     await expect(
       page.getByRole('heading', { name: 'ChatGPT has not exposed site tools to this page.' }),
@@ -127,7 +127,7 @@ test.describe('the ChatGPT mobile app is told the truth: there is nothing to tur
   test('it names the desktop app rather than a setting that does not exist', async ({ page }) => {
     await page.goto('/');
     await page.waitForSelector('.workbench');
-    await page.getByRole('status').getByRole('button', { name: 'Why, and how to fix it' }).click();
+    await page.getByRole('status').getByRole('button', { name: 'Run it with a real agent' }).click();
 
     await expect(
       page.getByRole('heading', { name: "ChatGPT's site tools are desktop-only." }),

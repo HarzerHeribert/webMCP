@@ -31,16 +31,17 @@ export function WebMcpBanner() {
       <div className="wmbanner__line">
         <span className="wmbanner__code">WEBMCP_UNAVAILABLE</span>
         <span className="wmbanner__text">
-          No WebMCP in this browser, so <strong>no tool is registered with a real agent</strong>.
-          Everything here still runs — the built-in simulated caller invokes the same tool
-          implementations, and the server enforces the same mandate on every call.
+          <strong>You are watching a simulated demo.</strong> This browser has no WebMCP, so
+          no tool is registered with a real agent — the built-in simulated caller drives the
+          same tool implementations, and the server enforces the same mandate on every call.
+          In a WebMCP host, a real agent drives this same page.
         </span>
         <button
           className="wmbanner__why"
           aria-expanded={why}
           onClick={() => setWhy((w) => !w)}
         >
-          {why ? 'Hide details' : 'Why, and how to fix it'}
+          {why ? 'Hide details' : 'Run it with a real agent'}
         </button>
       </div>
       {why && (
