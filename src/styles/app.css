@@ -409,33 +409,47 @@ h1, h2, h3, p { margin: 0; }
 .customer__segment { font-size: var(--t-xs); color: var(--text-3); }
 .customer__head .chip { margin-left: auto; }
 
- /* Two independent columns, not a two-column grid: a grid row is as tall as its
-   tallest cell, so one wrapping value left a dead gap beside it. Columns flow
-   on their own, so a long "next action" pushes nothing sideways. */
+/* A grid, in DOM order: label-over-value cells that line up across the row, so
+   a record reads as a record. CSS `columns` flowed the fields top-to-bottom and
+   rebalanced them per row, which made the same five fields land in a different
+   place on every card. */
 .fields {
   /* Column *width*, not count: with the layer closed the host is twice as wide,
      and a fixed three columns spread five fields across a metre of screen. */
-  columns: 175px; column-gap: var(--s5);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--s3) var(--s4);
   max-width: 1000px;
   margin: 0 0 var(--s3) 29px;
 }
-.field { break-inside: avoid; padding-bottom: var(--s2); }
 .field { min-width: 0; }
 .field__label {
   font-size: var(--t-eyebrow); letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-3); font-weight: 600;
-  display: flex; align-items: center; gap: 4px; margin-bottom: 1px;
+  display: flex; align-items: center; gap: 4px; margin-bottom: 3px;
 }
 .field__scope {
   width: 4px; height: 4px; border-radius: 50%; background: var(--authority-fill); flex: none;
 }
 .field__value { margin: 0; min-width: 0; font-size: var(--t-sm); line-height: 1.4; }
+/* The value is drawn as the field it is: a bordered cell, so "you can change
+   this here" is visible at rest instead of discovered by clicking prose. The
+   pencil appears on hover; readonly values stay plain text, so the two kinds
+   never look the same. */
 .field__edit {
-  display: block; width: 100%; text-align: left; padding: 2px 5px; margin-left: -5px;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s2);
+  flex: 1 1 auto; min-width: 0; text-align: left; padding: 5px 9px; min-height: 30px;
+  background: var(--surface-sunk); border: 1px solid var(--line);
   border-radius: var(--r-sm); color: var(--text); white-space: normal;
-  transition: background var(--transition);
+  transition: background var(--transition), border-color var(--transition);
 }
-.field__edit:hover { background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--line); }
+.field__edit::after {
+  content: ''; width: 12px; height: 12px; flex: none; opacity: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M11.3 1.9a1.9 1.9 0 0 1 2.8 2.8l-8.6 8.6-3.6.8.8-3.6z' fill='none' stroke='%2378859a' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  transition: opacity var(--transition);
+}
+.field__edit:hover { background: var(--surface-1); border-color: var(--line-strong); }
+.field__edit:hover::after { opacity: 1; }
 /* A staged value must never be clipped: the whole point of showing it here is
    that the record and the pending intent are readable together. The record goes
    on top, struck through; the intent goes under it, with the arrow leading. */
@@ -443,9 +457,12 @@ h1, h2, h3, p { margin: 0; }
 .field__edit--staged .delta { display: block; font-family: inherit; font-size: var(--t-sm); }
 .field__edit--staged .delta__before { display: block; line-height: 1.35; }
 .field__edit--staged .delta__arrow { margin-right: 4px; }
-.field--delegated .field__edit:hover { background: #fdf0cf; box-shadow: inset 0 0 0 1px var(--authority-edge); }
+/* A delegated field carries the authority tint on the cell itself, so the
+   mandate's field scope is readable record by record, not only in the panel. */
+.field--delegated .field__edit { border-color: var(--authority-edge); background: var(--authority-wash); }
+.field--delegated .field__edit:hover { background: #fdf0cf; border-color: var(--authority-edge); }
 .field__input {
-  width: 100%; padding: 3px 6px; margin-left: -5px;
+  width: 100%; padding: 5px 9px; min-height: 30px;
   background: var(--surface-1); border: 1px solid var(--primary);
   box-shadow: 0 0 0 3px var(--primary-wash);
   border-radius: var(--r-sm); font-size: var(--t-sm);
@@ -623,7 +640,7 @@ h1, h2, h3, p { margin: 0; }
   .workbench { grid-template-columns: minmax(290px, 0.82fr) minmax(390px, 1.18fr); }
   .layer__grid { grid-template-columns: 1fr; }
   .layer__note { display: none; }
-  .fields { columns: 150px; }
+  .fields { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   .layer .panel--rail { max-height: 148px; }
   .panel--fill { min-height: 108px; }
 }
@@ -856,10 +873,11 @@ h1, h2, h3, p { margin: 0; }
   padding-top: var(--s4);
 }
 
-/* Section labels step back so the scope chips can step forward. They are
-   captions, and they were competing at the same weight as their contents. */
+/* Section labels step back in weight and colour so the scope chips can step
+   forward — but at the shared eyebrow size, not below it: 9.5px on this dark
+   ground was the least legible text in the product. */
 .mandate-liquid .composer__legend {
-  font-size: 9.5px; letter-spacing: .11em; color: var(--text-3); font-weight: 650;
+  font-size: var(--t-eyebrow); letter-spacing: .1em; color: var(--text-3); font-weight: 650;
 }
 
 /* The expiry is the one live number in the product, and it was drawn as a
@@ -941,12 +959,12 @@ h1, h2, h3, p { margin: 0; }
 .review--stale { border-color: var(--authority-edge); background: var(--authority-wash); color: var(--authority); }
 .customer--awaiting { box-shadow: inset 3px 0 0 var(--primary); }
 
-.approve { padding: var(--s4); display: grid; gap: var(--s3); }
+.approve { padding: var(--s5); display: grid; gap: var(--s3); }
 .approve__lead { margin: 0; font-size: var(--t-base); color: var(--text); font-weight: 600; }
 .approve__list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
 .approve__row {
-  display: grid; gap: 3px; padding: var(--s2) var(--s3);
-  background: var(--surface-2); border: 1px solid var(--line-hair); border-radius: var(--r);
+  display: grid; gap: 4px; padding: var(--s3);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r);
 }
 .approve__field { font-size: var(--t-xs); color: var(--text-3); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .approve__warn {
@@ -989,9 +1007,12 @@ h1, h2, h3, p { margin: 0; }
   --line-strong: #3e4b5d;
   --line-hair: #262f3b;
 
-  --text: #eef2f8;
-  --text-2: #a8b5c6;
-  --text-3: #7b8a9d;
+  /* Brighter than the light palette's ratios ask for: this surface is a small
+     dark card over a white page, read at popover sizes, so the secondary and
+     caption text hold ~7:1 against `--surface-1` rather than scraping AA. */
+  --text: #f1f5fa;
+  --text-2: #c3cfdf;
+  --text-3: #95a5ba;
   --text-inverse: #0f141b;
 
   --primary: #62a8f2;
@@ -1031,6 +1052,10 @@ h1, h2, h3, p { margin: 0; }
 }
 .pop { background: var(--surface-1); border-color: var(--line-strong); }
 .pop .panel { background: var(--surface-1); }
+/* The base rule's strike-through colour is a light-palette gray; on the dark
+   ground the line read brighter than the text it crossed out. */
+.layer .delta__before,
+.pop .delta__before { text-decoration-color: var(--text-3); }
 
 /* The pill floats over the host, so it carries the product's material with it
    and is unmistakably not part of Relay CRM. */

@@ -3,9 +3,10 @@ import { useSession, useStore } from '../lib/store';
 import { useWebMcp } from '../webmcp/provider';
 import { useMode } from '../lib/mode';
 
-/** The instrument row. Everything here is something the demo asks the audience
- *  to watch change: the revision, the mandate version, and whether the page's
- *  tool surface is live. */
+/** The instrument row. The readouts — revision, mandate version, whether the
+ *  page's tool surface is live — are what a reviewer watches change, so they
+ *  render only in the technical view; the product form's header carries plain
+ *  words only. */
 /**
  * The audience switch. Two labels, because the honest answer to "why does this
  * take up so much room?" is that most of it is instrumentation for a reviewer,
@@ -69,6 +70,7 @@ export function Header() {
   const { session } = useSession();
   const { run, revisionPulse } = useStore();
   const webmcp = useWebMcp();
+  const { mode } = useMode();
 
   const mandate = session.mandate;
   const authority =
@@ -91,26 +93,35 @@ export function Header() {
       </span>
 
       <div className="header__meta">
-        <Readout label="session" value={session.id} />
-        <Readout label="revision" value={`r${session.revision}`} pulse={revisionPulse} />
-        <Readout
-          label="mandate ver."
-          value={mandate ? `v${mandate.version}` : '—'}
-        />
-        <Readout
-          label="webmcp"
-          value={webmcp.status === 'registered' ? `${webmcp.toolNames.length} tools` : webmcp.statusLabel}
-        />
+        {/* The readouts are instrumentation — the audience of the product form
+            never needs a session id or a revision counter, so they render only
+            for the reviewer who asked for the technical view. */}
+        {mode === 'technical' && (
+          <>
+            <Readout label="session" value={session.id} />
+            <Readout label="revision" value={`r${session.revision}`} pulse={revisionPulse} />
+            <Readout
+              label="mandate ver."
+              value={mandate ? `v${mandate.version}` : '—'}
+            />
+            <Readout
+              label="webmcp"
+              value={webmcp.status === 'registered' ? `${webmcp.toolNames.length} tools` : webmcp.statusLabel}
+            />
+          </>
+        )}
         <HostSwitch />
         <ModeSwitch />
         <div className="header__instruments">
-          <button
-            className="btn btn--sm"
-            title="Deterministically simulate another user writing to this session. Advances the revision behind any staged work."
-            onClick={() => void run(() => api.simulateExternalUpdate())}
-          >
-            Simulate external update
-          </button>
+          {mode === 'technical' && (
+            <button
+              className="btn btn--sm"
+              title="Deterministically simulate another user writing to this session. Advances the revision behind any staged work."
+              onClick={() => void run(() => api.simulateExternalUpdate())}
+            >
+              Simulate external update
+            </button>
+          )}
           <button className="btn btn--quiet btn--sm" onClick={() => void run(() => api.reset())}>
             Reset demo
           </button>
