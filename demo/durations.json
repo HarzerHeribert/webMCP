@@ -1,12 +1,12 @@
 {
-  "host": 16.824,
-  "select": 6.572,
-  "delegate": 4.567,
-  "compiled": 15.124,
-  "stage": 13.027,
-  "noapply": 10.615,
-  "usermode": 9.615,
-  "hosts": 11.813,
-  "chatgpt": 19.556,
-  "close": 10.287
+  "host": 20.34,
+  "select": 9.959,
+  "delegate": 6.442,
+  "compiled": 16.067,
+  "stage": 19.952,
+  "noapply": 12.344,
+  "usermode": 13.868,
+  "hosts": 16.003,
+  "chatgpt": 24.002,
+  "close": 21.383
 }

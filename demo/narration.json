@@ -5,52 +5,52 @@
     {
       "id": "host",
       "caption": "A CRM built for this demo — the host application",
-      "say": "Fine-grained access is already solved. You can scope a token to one project, or make it read-only. What nothing lets you do is grant it at the moment it's asked for, and have it expire on its own — permissions get arranged in advance, by somebody who isn't there when the work happens. This is a CRM, and this is the layer that does the other thing."
+      "say": "Fine-grained access control already exists — a token can be limited to one project, or to read-only. What is harder is temporary delegation at the moment the work happens: a person deciding, right now, that an assistant may touch these records, through these fields, for the next ten minutes. This CRM is the host application; the layer underneath turns that decision into a permission an agent can be held to."
     },
     {
       "id": "select",
-      "caption": "Selection proposes. It grants nothing.",
-      "say": "Selecting rows doesn't delegate them. What happens to be highlighted on your screen has no effect on what an assistant is able to do."
+      "caption": "Selection defines a proposed scope. Nothing is granted yet.",
+      "say": "Here I select two customer records. Nothing has been delegated — selecting something in the interface does not change what an assistant may access. It only defines the scope I am about to offer."
     },
     {
       "id": "delegate",
       "caption": "2 accounts · 2 fields · 10 minutes",
-      "say": "This does. Two accounts, two fields, ten minutes, with a countdown that starts the moment it's granted."
+      "say": "Now I grant it: these two accounts, only these two fields, for ten minutes, with the countdown starting immediately. That is a mandate."
     },
     {
       "id": "compiled",
-      "caption": "document.modelContext.registerTool(...)",
-      "say": "Three things happen at once. The delegated rows are marked, the panel reads the scope back so a person can check what they just granted, and the browser registers a WebMCP tool that didn't exist a second ago — one that accepts only the records and the fields just chosen, and nothing wider."
+      "caption": "Human permission → live WebMCP tool",
+      "say": "The moment I approve it, three things happen. The delegated records are marked. The panel reads the exact scope back to me, so I can check what I allowed. And the permission is compiled into a live WebMCP tool — one that did not exist before the grant, exposing only the records and fields this mandate covers."
     },
     {
       "id": "stage",
-      "caption": "executeTool(...) → staged, then OUT_OF_SCOPE",
-      "say": "The assistant calls that tool and a change appears against the record, staged but not saved. Then it asks for a record the permission never covered, and the call is rejected — not by the schema, by the server, which re-checks the mandate on every single request."
+      "caption": "Allowed → staged · Outside the mandate → rejected",
+      "say": "The assistant can now call it. Its first request is inside the mandate, so the server accepts it and stages a change against the record — visible, but not committed. Then it asks for a record that was never delegated, and the call is rejected. Enforcement does not rest on what the tool advertises: every call reaches the server carrying its mandate, and the scope is checked again before anything happens."
     },
     {
       "id": "noapply",
-      "caption": "No apply tool. A person commits.",
-      "say": "And there is no apply tool. The inspector lists what was deliberately never registered, and applying is first on that list, so nothing on the assistant's side can commit. The person who granted the scope does it themselves."
+      "caption": "The agent can stage. Only the person can apply.",
+      "say": "There is a second boundary. The assistant can prepare a change but cannot commit one — no apply tool is registered for the agent at all, and the inspector makes that absence explicit. The final action stays with the person who granted the permission."
     },
     {
       "id": "usermode",
-      "caption": "The product: no panel, just the pill",
-      "say": "All of that panelling is instrumentation for the explanation. The real product has none of it — a badge that can't be hidden while a permission is live, and the decision shown on the record it affects."
+      "caption": "Production UI: a persistent badge, the decision on the record",
+      "say": "This panel exists only to explain what is happening; a real user needs none of it. The production interface is a persistent badge while a mandate is live, and an indication on each record of what the agent proposed — a running delegation must never become invisible."
     },
     {
       "id": "hosts",
-      "caption": "Same layer, different host → mandate_stage_service_update",
-      "say": "And none of this knows what a CRM is. Same code, same server, a different application: a deployment console, where the records are services, the fields are replicas and feature flags, and the tool has renamed itself to match."
+      "caption": "Same delegation layer · Different application",
+      "say": "The mechanism is not specific to CRM software. This is the same layer inside a deployment console: the resources are services, the permitted properties are replica counts and feature flags. The generated tool changes because it is derived from what the host declares. The delegation model does not."
     },
     {
       "id": "chatgpt",
-      "caption": "ChatGPT desktop · site tools · real executeTool calls",
-      "say": "None of that was staged, and this is not a mock-up: a real agent, in its own browser, working inside a permission granted a minute ago. Which is the shape people actually use. A colleague covering for you doesn't get your login — they get something small, decided on the spot, that lapses when you're back. That answer is already a permission. A mandate is only that answer, made into something software can hold."
+      "caption": "ChatGPT Desktop · real site tools · real executeTool calls",
+      "say": "So far this has been the mechanism from inside the application. Here it is from the agent's side: ChatGPT Desktop, using this site's actual WebMCP tools, making real calls against the permission I granted a minute ago. Which is how delegation works between people too. If a colleague covers for me I don't hand over my account — I tell them what they may handle, how far it goes, and when it ends. The decision already exists. A mandate is what turns it into something a machine can enforce."
     },
     {
       "id": "close",
-      "caption": "Human intent, compiled into a live WebMCP contract",
-      "say": "A person's temporary intent, compiled into a live WebMCP contract and re-checked on every call. Next, that grant belongs in the agent's own chat window, where the asking already happens."
+      "caption": "Human intent → a temporary, enforceable WebMCP capability",
+      "say": "So: a person defines a temporary scope at the moment it is needed, the system compiles that intent into a live WebMCP contract, and re-validates it on every request. Today I granted that from inside the application. The next step is to move the decision into the agent's own conversation — it asks for the access it needs, the person approves a temporary mandate there, and no broader credential ever changes hands."
     }
   ]
 }
