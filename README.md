@@ -10,6 +10,16 @@ mandate that produced it is refused rather than honoured.
 
 Relay CRM is the host demo. The compiler is the product.
 
+![ChatGPT's desktop app, site tools enabled, driving the deployed site: it stages a
+change the mandate allows, then is refused OUT_OF_SCOPE for a record the mandate never
+named.](docs/media/mandate-chatgpt.gif)
+
+*Not a mock-up. That is ChatGPT's desktop app with site tools enabled — chat on the
+left, its own built-in browser on the right — calling the tools this page registered.
+It stages the change it was permitted to stage, and is refused by the server for a
+record the mandate never named. The full run, including the injected note it declines
+and the apply it has no tool for, is in the video.*
+
 ---
 
 ## Opening it
