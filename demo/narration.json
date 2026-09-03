@@ -5,7 +5,7 @@
     {
       "id": "host",
       "caption": "A CRM built for this demo — the host application",
-      "say": "Fine-grained access control already exists — a token can be limited to one project, or to read-only. What is harder is temporary delegation at the moment the work happens: a person deciding, right now, that an assistant may touch these records, through these fields, for the next ten minutes. This CRM is the host application; the layer underneath turns that decision into a permission an agent can be held to."
+      "say": "Fine-grained access control is a solved problem. A token can be limited to one project, or to read-only. What is much harder is temporary delegation at the moment the work happens: a person deciding, right now, that an assistant may touch these records, through these fields, for the next ten minutes. This CRM is the host application. The layer underneath turns that decision into a permission an agent can be held to."
     },
     {
       "id": "select",

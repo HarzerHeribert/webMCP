@@ -25,22 +25,25 @@ for beat in spec["beats"]:
     samples, rate = kokoro.create(beat["say"], voice=spec["voice"], speed=spec["speed"], lang="en-us")
     # Kokoro pads every utterance with silence at both ends. Left in, that pad
     # is heard between beats as a hesitation — the narration stops and starts
-    # rather than running on. Trim to the first and last audible sample and
-    # leave 40ms, which is a breath rather than a gap.
-    loud = np.flatnonzero(np.abs(samples) > 0.004)
+    # rather than running on, so it is trimmed back to the speech itself.
+    #
+    # Fricatives are quiet. The "f" of "fine-grained" sits well under a gate set
+    # for vowels, so a 0.004 threshold trimmed the consonant off the front of the
+    # very first word in the film. This one is low enough to hear them.
+    loud = np.flatnonzero(np.abs(samples) > 0.0012)
     if loud.size:
-        # The pad must outlast the ramp below, or the ramp lands on the first
-        # phoneme instead of on silence and eats it — "So:" came out as "oh".
-        pad = int(rate * 0.09)
+        pad = int(rate * 0.06)
         samples = samples[max(0, loud[0] - pad):min(len(samples), loud[-1] + pad)]
-    # Trimming to an audible sample means the clip now starts and ends on a
-    # non-zero value, which is a click. 50ms of ramp at each end is inaudible as
-    # a fade and removes it.
-    ramp = int(rate * 0.05)
-    if len(samples) > 2 * ramp:
-        samples = samples.astype("float32", copy=True)
-        samples[:ramp] *= np.linspace(0.0, 1.0, ramp, dtype="float32")
-        samples[-ramp:] *= np.linspace(1.0, 0.0, ramp, dtype="float32")
+
+    # Then a lead of real silence at each end, with the anti-click ramp living
+    # entirely inside it. The speech is never faded, so every clip opens at full
+    # volume on its first consonant, and still starts from a zero sample.
+    lead = np.zeros(int(rate * 0.05), dtype="float32")
+    samples = np.concatenate([lead, samples.astype("float32"), lead])
+    ramp = int(rate * 0.08)
+    samples[:ramp] *= np.linspace(0.0, 1.0, ramp, dtype="float32")
+    samples[-ramp:] *= np.linspace(1.0, 0.0, ramp, dtype="float32")
+
     path = out / f"{beat['id']}.wav"
     sf.write(path, samples, rate)
     seconds = len(samples) / rate
