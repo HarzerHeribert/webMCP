@@ -29,7 +29,9 @@ for beat in spec["beats"]:
     # leave 40ms, which is a breath rather than a gap.
     loud = np.flatnonzero(np.abs(samples) > 0.004)
     if loud.size:
-        pad = int(rate * 0.04)
+        # The pad must outlast the ramp below, or the ramp lands on the first
+        # phoneme instead of on silence and eats it — "So:" came out as "oh".
+        pad = int(rate * 0.09)
         samples = samples[max(0, loud[0] - pad):min(len(samples), loud[-1] + pad)]
     # Trimming to an audible sample means the clip now starts and ends on a
     # non-zero value, which is a click. 50ms of ramp at each end is inaudible as
