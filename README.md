@@ -114,6 +114,33 @@ CRM notes are treated as untrusted external content and rendered as such. One
 seeded record contains a prompt-injection attempt; it changes no authority,
 because authority does not come from text.
 
+## The primitive this is missing
+
+Apply is a button on a page, and a browser-driving agent presses a button
+exactly as easily as a person does — `event.isTrusted` is true for both. We
+watched ChatGPT's agent do it, against a page that said *"Apply is a human
+action"* on the button and *"Staging never commits: only the human can apply"*
+in the tool description the page had already handed it. Two statements, in two
+channels, and neither one was a boundary.
+
+No amount of page-side work fixes that, because only the browser or the agent
+host knows which input it synthesised. The confirmation has to be rendered **by
+the host, in the conversation** — where a non-technical person reads it as what
+it is, *the agent is asking you for something*, and where the agent cannot reach
+it to answer on their behalf.
+
+Such a prompt has two answers. *Yes, this once* is an approval. *Yes, and stop
+asking me for ten minutes* is a **mandate** — which is exactly what this project
+compiles. Mandate is not a substitute for that primitive; it is the scope
+descriptor that primitive would consume. We built the half that has to live in
+the page, because a page is the only half a page can build.
+
+This trades one trust boundary for a better one rather than removing it: it asks
+you to trust the agent host's chrome, the way an OS permission dialog is already
+trusted. That is a boundary worth having, and it does not exist in any WebMCP
+host today. The full argument is
+[`docs/20_WEBMCP_FIELD_NOTES.md`](docs/20_WEBMCP_FIELD_NOTES.md) §8.
+
 ## Verified in a real browser
 
 Chrome 152 with `--enable-features=WebMCP` (equivalently

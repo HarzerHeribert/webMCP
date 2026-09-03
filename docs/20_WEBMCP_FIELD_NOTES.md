@@ -108,7 +108,7 @@ So the honest claim, and the one the interface makes, is:
 - and neither fact changes what a caller can actually do, because that was never
   decided on the client.
 
-## 7. Consequences for the code
+### Consequences for the code
 
 - `adapter.ts` prefers `provideContext` when a browser offers it (atomic
   replace, the shape MCP-001 wants) and falls back to `registerTool`.
@@ -150,3 +150,38 @@ they can do. `src/webmcp/host.ts` now picks the remedy from the host, and
 `src/components/MandateLayer.tsx` states it. The detection is a **hint for copy
 only**: `adapter.ts` still decides what is live by asking the browser, so a
 wrong guess costs specificity and nothing else.
+
+## 8. The primitive that is missing
+
+Everything above is something a page can measure. This is the thing a page
+cannot have.
+
+The compiled tool surface has no apply, and the server has no agent route to
+one. Neither fact stops an agent, because the human's Apply button is still a
+button and `event.isTrusted` is true for a synthesised click. Only the browser
+or the agent host knows which input it made up — so only host chrome can tell a
+person's decision from an agent's.
+
+What is missing is **a grant and a confirmation rendered by the host, from scope
+descriptors the page supplies**: the page declares what is being asked for and
+what it would touch, the host draws it in its own chrome — in the conversation,
+where the agent has no reach — and the human answers there. For a non-technical
+person that is also the clearer reading of the event. A button on a page is a
+control they are operating. A request in the conversation is what it actually
+is: *the agent is asking you for something.*
+
+Such a prompt has two answers, and the second is the interesting one:
+
+- *yes, this once* — an approval; one action, spent when it is used;
+- *yes, and stop asking me for the next ten minutes* — a **mandate**: bounded in
+  scope, bounded in time, revocable, and precisely the object this project
+  compiles.
+
+So Mandate is not a stand-in for the missing primitive. It is the descriptor
+that primitive would consume. This repository builds the half that has to live
+in the page, because the page is the only half a page can build.
+
+The trade is one trust boundary for a better one, not the removal of a boundary:
+it asks the human to trust the agent host's chrome, the way an OS permission
+dialog is already trusted. That is a boundary worth having, and no WebMCP host
+offers it yet.

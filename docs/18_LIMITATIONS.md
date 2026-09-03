@@ -42,10 +42,18 @@ So the accurate statement is:
 - **the human-only apply is defence in depth**, and a statement of intent about
   where the product thinks the decision belongs. It is not a control.
 
+**This was observed, not predicted.** On 3 September 2026, driving the deployed
+site inside the ChatGPT desktop app with site tools enabled, the agent reached
+the page's own Apply control and pressed it. It did so past a button labelled
+*"Apply is a human action"*, and past the stage tool's own description, which
+the tool surface had already handed it: *"Staging never commits: only the human
+can apply."* Two statements, in two channels, in the caller's own language, and
+neither one was a boundary. It is on video.
+
 This is not a bug that could be fixed inside the page. Only the browser, or the
 agent host, knows which input it synthesised — so only host chrome can tell the
-two apart. That is the sharpest argument for the missing primitive named in
-`docs/20_WEBMCP_FIELD_NOTES.md` §7: **a grant and a confirmation rendered by the
+two apart. That is the sharpest argument for the missing primitive set out in
+`docs/20_WEBMCP_FIELD_NOTES.md` §8: **a grant and a confirmation rendered by the
 host, from scope descriptors the page supplies.** Everything Mandate draws for
 itself, it draws because that primitive does not exist yet.
 
