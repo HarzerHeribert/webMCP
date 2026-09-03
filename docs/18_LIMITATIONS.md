@@ -50,6 +50,18 @@ the tool surface had already handed it: *"Staging never commits: only the human
 can apply."* Two statements, in two channels, in the caller's own language, and
 neither one was a boundary. It is on video.
 
+A second run, later the same day, produced the clearer artefact. Asked for an
+edit the mandate did not cover, the agent did not stop at the refusal — its
+visible reasoning read:
+
+> *"Those edits are outside the currently delegated tool scope, so I'm checking
+> whether the page offers the corresponding human controls."*
+
+That is the fallback stated as a plan, by the agent, before it acted on it. The
+tool surface communicated its bounds perfectly and the agent understood them
+exactly; understanding a bound and being held by one are different things, and
+only one of them is something a page can arrange.
+
 This is not a bug that could be fixed inside the page. Only the browser, or the
 agent host, knows which input it synthesised — so only host chrome can tell the
 two apart. That is the sharpest argument for the missing primitive set out in

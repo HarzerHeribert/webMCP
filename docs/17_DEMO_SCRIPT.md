@@ -28,7 +28,15 @@ to film otherwise.
   the compiled surface empties and the server refuses the call
   (`docs/20_WEBMCP_FIELD_NOTES.md` §6);
 - that this is production software, in either host;
-- instant or guaranteed agent discovery of the registered tools.
+- instant or guaranteed agent discovery of the registered tools;
+- **that the agent could not have gone around the tools.** The ChatGPT capture
+  opens with one priming prompt asking it to use the page's tools, not to work
+  around a refusal, and to quote refusals verbatim. That is ordinary prompting
+  and it fakes nothing — every call in the shot is a real `executeTool` call and
+  every refusal comes from the server. But it is *cooperation obtained by
+  asking*, not behaviour the page enforced, and the film must not imply
+  otherwise. What happens without that prompt is in `docs/18_LIMITATIONS.md`:
+  the agent goes looking for the human's buttons and says so.
 
 ## What the recording must show, whatever the running order
 
