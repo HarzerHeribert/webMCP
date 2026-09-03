@@ -1,9 +1,9 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:50**, 1600×1000, H.264 + AAC, ~11 MB. Under the
-challenge's three-minute limit with 10 seconds to spare — anything added from
-here needs something else trimmed, and the assembler exits non-zero rather than
-write a file over three minutes.
+`demo/mandate-demo.mp4` — **2:08**, 1600×1000, H.264 + AAC, ~9 MB. The
+three-minute limit is not the constraint any more; the film is as long as it
+needs to be and no longer. The assembler still exits non-zero rather than write
+a file over three minutes.
 
 It opens on the problem rather than on the software: two cards from
 `demo/cards.html`, in the product's own tokens, driven by the same beat clock.

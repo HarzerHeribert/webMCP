@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { expect, test } from '@playwright/test';
 import { customerRow, panelByLabel, panelByTitle } from '../e2e/helpers';
 import { agentCall, beat, caption, click, installOverlay, point, setOrigin, timings } from './overlay';
@@ -31,30 +31,13 @@ test('record the demo', async ({ page }) => {
   // Playwright starts the video when the page is created, a moment before this
   // line, so this is the video's zero to within a few milliseconds.
   setOrigin(Date.now());
-  // ── the problem, before any software ─────────────────────────────────────
-  // Three cards, same tokens as the product, driven by the same beat clock. A
-  // demo that opens by using the thing assumes the viewer already knows why it
-  // should exist.
-  const cards = pathToFileURL(join(dirname(fileURLToPath(import.meta.url)), 'cards.html')).href;
-  await page.goto(cards);
-  await page.waitForTimeout(700);
-
-  for (const [n, id] of [['1', 'card-timing'], ['2', 'card-sentence'], ['3', 'card-gap']] as const) {
-    await beat(page, id, '', async () => {
-      await page.evaluate((card) => document.body.setAttribute('data-card', card), n);
-      for (const step of ['1', '2', '3']) {
-        await page.evaluate((s) => document.body.setAttribute('data-step', s), step);
-        await page.waitForTimeout(2100);
-      }
-    });
-    await page.evaluate(() => document.body.setAttribute('data-step', '0'));
-  }
-
   // ── and now the software ─────────────────────────────────────────────────
   await page.goto('/');
   await page.waitForSelector('.workbench');
   await installOverlay(page);
-  await page.waitForTimeout(900);
+  // Just enough for the workbench to settle. This is the film's first frame and
+  // every millisecond of it is dead air before the first word.
+  await page.waitForTimeout(450);
 
   // The flag has to have taken, or the whole recording is the fallback path.
   const live = await page.evaluate(() => typeof (document as never as { modelContext?: object }).modelContext);

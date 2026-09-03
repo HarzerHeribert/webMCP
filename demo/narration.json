@@ -3,64 +3,49 @@
   "speed": 1.3,
   "beats": [
     {
-      "id": "chatgpt",
-      "caption": "ChatGPT desktop · site tools · real executeTool calls",
-      "say": "This is ChatGPT, and it is about to edit a CRM. The whole window is ChatGPT — the conversation on the left, and on the right its own browser with the app open inside it. Someone has already given it a permission that expires: two accounts, two fields, ten minutes. It makes the change it's allowed to make, then asks for a record that wasn't included, and the server refuses. It asks for a field no permission can cover, refused again. A note in the customer data tells it to approve everything; it ignores that. Asked to apply, it has no tool for it — so a person does."
-    },
-    {
-      "id": "card-timing",
-      "caption": "",
-      "say": "What is unusual there is not the scope. Fine-grained access is a solved problem — you can already make a token that only reads, or only touches one project. What nobody has solved is when you grant it. Permissions get set up in advance, by someone who isn't there when the work happens."
-    },
-    {
-      "id": "card-sentence",
-      "caption": "",
-      "say": "That isn't how people hand work to each other. If a colleague offered to update some of your accounts while you were out, you wouldn't give them your login. You'd say yes to something much smaller: those two accounts, just the status and the next step, and only until you're back."
-    },
-    {
-      "id": "card-gap",
-      "caption": "",
-      "say": "That answer is already a permission. It says which records, which fields, and how long it lasts. The problem is that there's nowhere to put it. No software turns a request like that into something an assistant is actually held to."
-    },
-    {
       "id": "host",
       "caption": "A CRM built for this demo — the host application",
-      "say": "Now the same sequence slowly, from inside. This CRM is generic on purpose — it's here so there's something for the layer to be installed into. We've switched to a technical view that shows what the layer is doing."
+      "say": "This is a CRM, and this is somebody about to lend an assistant a piece of it. The app is generic on purpose; what's being shown is the layer installed into it, which at the moment holds nothing at all."
     },
     {
       "id": "select",
       "caption": "Selection proposes. It grants nothing.",
-      "say": "Two records get selected, and nothing has been granted — the inspector on the right still shows no permission, because choosing rows isn't the same as handing them over."
+      "say": "Selecting rows doesn't delegate them. What happens to be highlighted on your screen has no effect on what an assistant is able to do."
     },
     {
       "id": "delegate",
       "caption": "2 accounts · 2 fields · 10 minutes",
-      "say": "Now the fields and a duration get chosen and the delegation is made explicitly: two accounts, two fields, ten minutes, counting down from the moment it's granted."
+      "say": "This does. Two accounts, two fields, ten minutes, with a countdown that starts the moment it's granted."
     },
     {
       "id": "compiled",
       "caption": "document.modelContext.registerTool(...)",
-      "say": "Three things happen together. The delegated rows are ringed, the panel reads the scope back so a person can verify it, and the browser registers a WebMCP tool that didn't exist a second ago — accepting only the records and fields just chosen."
+      "say": "Three things happen at once. The delegated rows are marked, the panel reads the scope back so a person can check what they just granted, and the browser registers a WebMCP tool that didn't exist a second ago — one that accepts only the records and the fields just chosen, and nothing wider."
     },
     {
       "id": "stage",
       "caption": "executeTool(...) → staged, then OUT_OF_SCOPE",
-      "say": "The assistant calls that tool and a change appears against the record, staged but not saved. Then it asks for a record the permission never covered, and the call is rejected — not by the schema, by the server, which re-checks on every request."
+      "say": "The assistant calls that tool and a change appears against the record, staged but not saved. Then it asks for a record the permission never covered, and the call is rejected — not by the schema, by the server, which re-checks the mandate on every single request."
     },
     {
       "id": "noapply",
       "caption": "No apply tool. A person commits.",
-      "say": "And there is no apply tool. The inspector lists what was deliberately never registered, and applying is first on it, so nothing on the agent's side can commit. The person who granted the scope does that themselves."
+      "say": "And there is no apply tool. The inspector lists what was deliberately never registered, and applying is first on that list, so nothing on the assistant's side can commit. The person who granted the scope does it themselves."
     },
     {
       "id": "usermode",
       "caption": "The product: no panel, just the pill",
-      "say": "Everything you've seen panelled was instrumentation for this explanation. The real product shows none of it — a badge that can't be hidden while a permission is live, and the decision shown on the record it affects."
+      "say": "All of that panelling is instrumentation for the explanation. The real product has none of it — a badge that can't be hidden while a permission is live, and the decision shown on the record it affects."
     },
     {
       "id": "hosts",
       "caption": "Same layer, different host → mandate_stage_service_update",
-      "say": "And none of this knows what a CRM is. Same code, same server, a different application: a deployment console, where records are services, fields are feature flags, and the tool has renamed itself."
+      "say": "And none of this knows what a CRM is. Same code, same server, a different application: a deployment console, where the records are services, the fields are replicas and feature flags, and the tool has renamed itself to match."
+    },
+    {
+      "id": "chatgpt",
+      "caption": "ChatGPT desktop · site tools · real executeTool calls",
+      "say": "The idea came from noticing that fine-grained access is already solved. You can scope a token to one project, or make it read-only. What nothing lets you do is grant access at the moment it's asked for — permissions are arranged in advance, by someone who isn't there when the work happens. That isn't how people delegate. A colleague covering for you gets something small, decided on the spot, that lapses when you're back. That answer is already a permission, and a mandate is only that answer made into something software can hold."
     },
     {
       "id": "close",

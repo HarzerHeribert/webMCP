@@ -41,7 +41,7 @@ filters.append(
 )
 # Broadcast-ish loudness so it is not quiet next to every other submission.
 filters.append("[mix]loudnorm=I=-16:TP=-1.5:LRA=11[a]")
-filters.append(f"[0:v]fade=t=in:st=0:d=0.6,fade=t=out:st={duration - 0.9:.2f}:d=0.8[v]")
+filters.append(f"[0:v]fade=t=in:st=0:d=0.3,fade=t=out:st={duration - 0.9:.2f}:d=0.8[v]")
 
 cmd = [
     "ffmpeg", "-y", *inputs,
