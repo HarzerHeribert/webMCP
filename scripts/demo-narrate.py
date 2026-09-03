@@ -8,6 +8,7 @@ a network service — Kokoro runs on the CPU from a local model file.
 
     .venv-tts/bin/python scripts/demo-narrate.py
 """
+import numpy as np
 import json, pathlib, sys
 from kokoro_onnx import Kokoro
 import soundfile as sf
@@ -22,6 +23,14 @@ kokoro = Kokoro(str(root / ".tts-models/kokoro-v1.0.onnx"), str(root / ".tts-mod
 durations, total = {}, 0.0
 for beat in spec["beats"]:
     samples, rate = kokoro.create(beat["say"], voice=spec["voice"], speed=spec["speed"], lang="en-us")
+    # Kokoro pads every utterance with silence at both ends. Left in, that pad
+    # is heard between beats as a hesitation — the narration stops and starts
+    # rather than running on. Trim to the first and last audible sample and
+    # leave 40ms, which is a breath rather than a gap.
+    loud = np.flatnonzero(np.abs(samples) > 0.004)
+    if loud.size:
+        pad = int(rate * 0.04)
+        samples = samples[max(0, loud[0] - pad):min(len(samples), loud[-1] + pad)]
     path = out / f"{beat['id']}.wav"
     sf.write(path, samples, rate)
     seconds = len(samples) / rate

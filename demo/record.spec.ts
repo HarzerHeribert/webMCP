@@ -39,7 +39,7 @@ test('record the demo', async ({ page }) => {
   await page.goto(cards);
   await page.waitForTimeout(700);
 
-  for (const [n, id] of [['1', 'card-key'], ['2', 'card-sentence'], ['3', 'card-gap']] as const) {
+  for (const [n, id] of [['1', 'card-timing'], ['2', 'card-sentence'], ['3', 'card-gap']] as const) {
     await beat(page, id, '', async () => {
       await page.evaluate((card) => document.body.setAttribute('data-card', card), n);
       for (const step of ['1', '2', '3']) {
@@ -108,9 +108,8 @@ test('record the demo', async ({ page }) => {
       mandateVersion: V1,
     });
     await point(page, panelByTitle(page, 'Staged changes'));
-  });
-
-  await beat(page, 'refuse', line('refuse'), async () => {
+    await page.waitForTimeout(900);
+    // A record the mandate never named. Refused by the server, not the schema.
     await agentCall(page, STAGE, {
       resourceId: 'c-kestrel',
       field: 'status',
@@ -123,6 +122,7 @@ test('record the demo', async ({ page }) => {
 
 
 
+
   await beat(page, 'noapply', line('noapply'), async () => {
     // The claim is that apply is absent at every layer, so the shot has to be
     // the "never registered" fold itself, not the top of the inspector.
@@ -131,14 +131,14 @@ test('record the demo', async ({ page }) => {
     await fold.scrollIntoViewIfNeeded();
     await page.waitForTimeout(500);
     await point(page, fold.locator('summary'));
-  });
-
-  await beat(page, 'apply', line('apply'), async () => {
+    await page.waitForTimeout(900);
+    // And the person does it, which is the other half of the same sentence.
     const staged = panelByTitle(page, 'Staged changes');
     await click(page, staged.getByRole('button', { name: 'Validate', exact: true }));
     await click(page, staged.getByRole('button', { name: /^Apply / }));
     await point(page, customerRow(page, 'Northwind Logistics'));
   });
+
 
   await beat(page, 'usermode', line('usermode'), async () => {
     await click(page, page.getByRole('button', { name: 'Product', exact: true }));

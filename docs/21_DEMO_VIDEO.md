@@ -1,7 +1,7 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:51**, 1600×1000, H.264 + AAC, ~11 MB. Under the
-challenge's three-minute limit with 9 seconds to spare — anything added from
+`demo/mandate-demo.mp4` — **2:53**, 1600×1000, H.264 + AAC, ~11 MB. Under the
+challenge's three-minute limit with 7 seconds to spare — anything added from
 here needs something else trimmed, and the assembler exits non-zero rather than
 write a file over three minutes.
 
@@ -72,7 +72,11 @@ is one command rather than an afternoon.
 ## What is local, and what the repo does not carry
 
 The voice is **Kokoro**, an 82M-parameter model running on the CPU from a local
-file — no network call, no API key, consistent with D-003's "no model calls in
+file, at `speed: 1.3` and with Kokoro's own leading and trailing silence trimmed
+off each clip in `scripts/demo-narrate.py`. Both exist for the same reason: an
+untrimmed clip per beat is heard as a hesitation between every sentence, and the
+narration reads as a list rather than an argument. The speed buys back the words
+that explaining things properly costs — no network call, no API key, consistent with D-003's "no model calls in
 this project" (that decision governs the *product*; this is build tooling, and
 it never runs in the app).
 

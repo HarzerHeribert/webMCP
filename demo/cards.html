@@ -40,7 +40,19 @@
   body[data-step="2"] .s2, body[data-step="3"] .s2,
   body[data-step="3"] .s3 { opacity: 1; transform: none; }
 
-  /* ── card 1 — the key ───────────────────────────────────────────── */
+  /* ── card 1 — when, not how finely ──────────────────────────────── */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 34px; }
+  .col { border: 1px solid var(--line); border-radius: 12px; padding: 26px 28px; background: var(--surface-1); }
+  .col--bad { border-color: var(--danger-edge); background: var(--danger-wash); }
+  .col__label { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; color: var(--text-3); }
+  .col ul { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 13px; }
+  .col li { font-size: 21px; display: flex; align-items: center; gap: 12px; }
+  .mark { font-family: var(--mono); font-size: 15px; font-weight: 700; width: 20px; }
+  .mark--ok { color: var(--ok); }
+  .mark--bad { color: var(--danger); }
+  .col__note { margin: 16px 0 0; font-size: 16px; color: var(--danger); font-style: italic; }
+
+  /* ── the old card 1 diagram, kept for the tokens it defines ─────── */
   .flow { display: grid; grid-template-columns: 230px 168px 1fr; align-items: center; gap: 0; }
   .actor {
     background: var(--agent-wash); border: 1px solid #d9cdf5; border-radius: 12px;
@@ -110,58 +122,61 @@
 
 <body data-card="1" data-step="0">
   <section class="card card--1">
-    <div class="eyebrow reveal s1">How an agent gets authority today</div>
-    <h1 class="reveal s1">An API key is the only unit of trust on offer.</h1>
-    <div class="flow reveal s2">
-      <div class="actor">
-        <div class="actor__name">agent</div>
-        <div class="actor__sub">any agent, any session</div>
+    <div class="eyebrow reveal s1">How access is granted today</div>
+    <h1 class="reveal s1">Permission is always arranged in advance.</h1>
+    <div class="cols reveal s2">
+      <div class="col">
+        <div class="col__label">What you can already scope</div>
+        <ul>
+          <li><span class="mark mark--ok">✓</span> one project</li>
+          <li><span class="mark mark--ok">✓</span> one resource type</li>
+          <li><span class="mark mark--ok">✓</span> read-only</li>
+        </ul>
       </div>
-      <div class="arrow"><div class="arrow__key">API key</div></div>
-      <div class="grid">
-        <div class="rec"><div class="rec__name">Northwind</div><div class="rec__fields">all fields</div></div>
-        <div class="rec"><div class="rec__name">Meridian</div><div class="rec__fields">all fields</div></div>
-        <div class="rec"><div class="rec__name">Atlas</div><div class="rec__fields">all fields</div></div>
-        <div class="rec"><div class="rec__name">Kestrel</div><div class="rec__fields">all fields</div></div>
-        <div class="rec"><div class="rec__name">Halcyon</div><div class="rec__fields">all fields</div></div>
-        <div class="rec"><div class="rec__name">Ridgeline</div><div class="rec__fields">all fields</div></div>
+      <div class="col col--bad">
+        <div class="col__label">When you can grant it</div>
+        <ul>
+          <li><span class="mark mark--bad">→</span> ahead of time</li>
+        </ul>
+        <p class="col__note">That is the entire list.</p>
       </div>
     </div>
     <p class="foot reveal s3">
-      Every record. Every field. <b>Until somebody remembers to revoke it.</b>
+      Set up by somebody <b>before anyone knows what will be asked for</b> — and still
+      in place long after it was needed.
     </p>
   </section>
 
   <section class="card card--2">
-    <div class="eyebrow reveal s1">What the person actually meant</div>
-    <h1 class="reveal s1">Nobody means “forever, everything”.</h1>
+    <div class="eyebrow reveal s1">What a person actually says</div>
+    <h1 class="reveal s1">People delegate by request, and it lapses.</h1>
     <p class="sentence reveal s2">
-      Let it update <span class="span span--who">Northwind and Atlas</span>’s
-      <span class="span span--what">status and next action</span> for the
-      <span class="span span--when">next ten minutes</span>.
+      Yes — <span class="span span--who">those two accounts</span>, just the
+      <span class="span span--what">status and the next step</span>, and only
+      <span class="span span--when">until I&rsquo;m back</span>.
     </p>
     <div class="legend reveal s3">
-      <div><div class="legend__k">Who</div><div class="legend__v">two accounts, not six</div></div>
+      <div><div class="legend__k">Who</div><div class="legend__v">two records, not the database</div></div>
       <div><div class="legend__k">What</div><div class="legend__v">two fields, not the record</div></div>
-      <div><div class="legend__k">How long</div><div class="legend__v">ten minutes, then gone</div></div>
+      <div><div class="legend__k">How long</div><div class="legend__v">an afternoon, not forever</div></div>
     </div>
   </section>
 
   <section class="card card--3">
     <div class="eyebrow reveal s1">The gap</div>
-    <h1 class="reveal s1">Nothing turns the sentence into the grant.</h1>
+    <h1 class="reveal s1">Nothing turns the request into the grant.</h1>
     <div class="pipe">
       <div class="box reveal s1">
         <div class="box__label">What a human decided</div>
-        <p>Northwind and Atlas · status and next action · ten minutes</p>
+        <p>Those two accounts · status and next step · ten minutes</p>
       </div>
       <div class="compile reveal s2">
         <div class="compile__chip">compile</div>
       </div>
       <div class="box box--out reveal s3">
         <div class="box__label">What the agent is handed</div>
-<pre>customerId: enum ["c-northwind","c-atlas"]
-field:      enum ["status","nextAction"]
+<pre>resourceId:     enum ["acct_4471","acct_5290"]
+field:          enum ["status","nextAction"]
 mandateVersion: const 1</pre>
       </div>
     </div>

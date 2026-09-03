@@ -1,62 +1,54 @@
 [
  {
-  "id": "card-key",
-  "at": 0.711
+  "id": "card-timing",
+  "at": 0.721
  },
  {
   "id": "card-sentence",
-  "at": 17.168
+  "at": 17.259
  },
  {
   "id": "card-gap",
-  "at": 31.343
+  "at": 30.585
  },
  {
   "id": "chatgpt",
-  "at": 45.059
+  "at": 43.966
  },
  {
   "id": "host",
-  "at": 70.059
+  "at": 72.466
  },
  {
   "id": "select",
-  "at": 81.585
+  "at": 83.995
  },
  {
   "id": "delegate",
-  "at": 90.211
+  "at": 93.154
  },
  {
   "id": "compiled",
-  "at": 96.233
+  "at": 102.268
  },
  {
   "id": "stage",
-  "at": 111.198
- },
- {
-  "id": "refuse",
-  "at": 118.053
+  "at": 117.434
  },
  {
   "id": "noapply",
-  "at": 127.445
- },
- {
-  "id": "apply",
-  "at": 133.894
+  "at": 130.567
  },
  {
   "id": "usermode",
-  "at": 137.549
+  "at": 142.827
  },
  {
   "id": "hosts",
-  "at": 148.308
+  "at": 153.821
  },
  {
   "id": "close",
-  "at": 161.242
+  "at": 165.318
  }
 ]
