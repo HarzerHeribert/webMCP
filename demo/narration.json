@@ -5,7 +5,7 @@
     {
       "id": "host",
       "caption": "A CRM built for this demo — the host application",
-      "say": "This is a CRM, and this is somebody about to lend an assistant a piece of it. The app is generic on purpose; what's being shown is the layer installed into it, which at the moment holds nothing at all."
+      "say": "Fine-grained access is already solved. You can scope a token to one project, or make it read-only. What nothing lets you do is grant it at the moment it's asked for, and have it expire on its own — permissions get arranged in advance, by somebody who isn't there when the work happens. This is a CRM, and this is the layer that does the other thing."
     },
     {
       "id": "select",
@@ -45,7 +45,7 @@
     {
       "id": "chatgpt",
       "caption": "ChatGPT desktop · site tools · real executeTool calls",
-      "say": "The idea came from noticing that fine-grained access is already solved. You can scope a token to one project, or make it read-only. What nothing lets you do is grant access at the moment it's asked for — permissions are arranged in advance, by someone who isn't there when the work happens. That isn't how people delegate. A colleague covering for you gets something small, decided on the spot, that lapses when you're back. That answer is already a permission, and a mandate is only that answer made into something software can hold."
+      "say": "None of that was staged, and this is not a mock-up: a real agent, in its own browser, working inside a permission granted a minute ago. Which is the shape people actually use. A colleague covering for you doesn't get your login — they get something small, decided on the spot, that lapses when you're back. That answer is already a permission. A mandate is only that answer, made into something software can hold."
     },
     {
       "id": "close",

@@ -31,6 +31,14 @@ for beat in spec["beats"]:
     if loud.size:
         pad = int(rate * 0.04)
         samples = samples[max(0, loud[0] - pad):min(len(samples), loud[-1] + pad)]
+    # Trimming to an audible sample means the clip now starts and ends on a
+    # non-zero value, which is a click. 50ms of ramp at each end is inaudible as
+    # a fade and removes it.
+    ramp = int(rate * 0.05)
+    if len(samples) > 2 * ramp:
+        samples = samples.astype("float32", copy=True)
+        samples[:ramp] *= np.linspace(0.0, 1.0, ramp, dtype="float32")
+        samples[-ramp:] *= np.linspace(1.0, 0.0, ramp, dtype="float32")
     path = out / f"{beat['id']}.wav"
     sf.write(path, samples, rate)
     seconds = len(samples) / rate
