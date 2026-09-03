@@ -38,6 +38,11 @@ const OVERLAY = `
     0%   { opacity: .9; transform: scale(.35); }
     100% { opacity: 0;  transform: scale(1.5); }
   }
+  /* The guided walkthrough is for a human exploring the live site alone. On
+     camera the voice is already doing that job, and even dismissed it leaves a
+     "Guide 1/8" rail across the top of the frame. Hidden for the recording
+     only — nothing here is in \`src/\`. */
+  .demo-guide { display: none !important; }
   #__demo-caption {
     position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px);
     z-index: 2147483647; pointer-events: none; max-width: 78%;

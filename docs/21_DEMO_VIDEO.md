@@ -40,7 +40,16 @@ npm run demo:voice    # narration → demo/audio/*.wav + demo/durations.json
 npm run demo:record   # picture   → demo/out/**/video.webm + demo/timings.json
 python3 scripts/demo-splice.py demo/captures/chatgpt-segment.mp4 chatgpt card-timing
 npm run demo:cut      # both      → demo/mandate-demo.mp4
+npm run demo:subs     # captions  → demo/mandate-demo.srt
 ```
+
+The subtitles are generated rather than transcribed, because the timings are
+already known exactly — `timings.json` says when each beat starts and
+`durations.json` how long its line runs, so the only estimate is where to break
+a beat into readable cues. Left to YouTube's auto-captioning, the words that
+would be mangled are precisely the ones the film cannot afford to lose: WebMCP,
+executeTool, mandate, OUT_OF_SCOPE. Upload the file as a caption track rather
+than letting the machine guess.
 
 The third is optional and only exists because of what it splices. Playwright
 cannot drive ChatGPT's desktop app, so the one shot proving a *real* agent calls

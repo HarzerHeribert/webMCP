@@ -14,7 +14,8 @@
     "build:api": "node scripts/build-api.mjs",
     "demo:voice": ".venv-tts/bin/python scripts/demo-narrate.py",
     "demo:record": "playwright test -c playwright.demo.config.ts",
-    "demo:cut": "python3 scripts/demo-assemble.py"
+    "demo:cut": "python3 scripts/demo-assemble.py",
+    "demo:subs": "python3 scripts/demo-subtitles.py"
   },
   "dependencies": {
     "border-beam": "^1.3.0",

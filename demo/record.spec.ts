@@ -31,7 +31,15 @@ test('record the demo', async ({ page }) => {
   // Playwright starts the video when the page is created, a moment before this
   // line, so this is the video's zero to within a few milliseconds.
   setOrigin(Date.now());
-  // ── and now the software ─────────────────────────────────────────────────
+  // The guide is for a human exploring the live site on their own. On camera it
+  // is a blue box narrating steps the voice is already narrating, and it sat over
+  // the first third of the film. Dismissed before the page renders, so it never
+  // appears rather than being clicked away a minute in.
+  await page.addInitScript(() => {
+    try { localStorage.setItem('mandate.demoGuideDismissed', '1'); } catch { /* private mode */ }
+  });
+
+  // The film opens here, on the product working.
   await page.goto('/');
   await page.waitForSelector('.workbench');
   await installOverlay(page);
@@ -81,7 +89,6 @@ test('record the demo', async ({ page }) => {
     await point(page, row);
   });
 
-  await click(page, page.getByRole('button', { name: 'Dismiss' }));
 
   await beat(page, 'stage', line('stage'), async () => {
     await agentCall(page, STAGE, {

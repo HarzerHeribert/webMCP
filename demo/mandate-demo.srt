@@ -1,0 +1,239 @@
+1
+00:00:00,577 --> 00:00:03,020
+Fine-grained access control is a solved problem.
+
+2
+00:00:03,020 --> 00:00:05,820
+A token can be limited to one project, or to read-only.
+
+3
+00:00:05,820 --> 00:00:09,638
+What is much harder is temporary delegation at the moment the work happens:
+
+4
+00:00:09,638 --> 00:00:13,303
+a person deciding, right now, that an assistant may touch these records,
+
+5
+00:00:13,303 --> 00:00:15,695
+through these fields, for the next ten minutes.
+
+6
+00:00:15,695 --> 00:00:17,375
+This CRM is the host application.
+
+7
+00:00:17,375 --> 00:00:21,600
+The layer underneath turns that decision into a permission an agent can be held to.
+
+8
+00:00:22,052 --> 00:00:23,900
+Here I select two customer records.
+
+9
+00:00:23,900 --> 00:00:28,176
+Nothing has been delegated — selecting something in the interface does not change
+
+10
+00:00:28,176 --> 00:00:29,707
+what an assistant may access.
+
+11
+00:00:29,707 --> 00:00:32,136
+It only defines the scope I am about to offer.
+
+12
+00:00:32,588 --> 00:00:33,341
+Now I grant it:
+
+13
+00:00:33,341 --> 00:00:36,303
+these two accounts, only these two fields, for ten minutes,
+
+14
+00:00:36,303 --> 00:00:38,310
+with the countdown starting immediately.
+
+15
+00:00:38,310 --> 00:00:39,214
+That is a mandate.
+
+16
+00:00:39,665 --> 00:00:42,053
+The moment I approve it, three things happen.
+
+17
+00:00:42,053 --> 00:00:43,804
+The delegated records are marked.
+
+18
+00:00:43,804 --> 00:00:47,731
+The panel reads the exact scope back to me, so I can check what I allowed.
+
+19
+00:00:47,731 --> 00:00:50,597
+And the permission is compiled into a live WebMCP tool
+
+20
+00:00:50,597 --> 00:00:54,789
+— one that did not exist before the grant, exposing only the records and fields
+
+21
+00:00:54,789 --> 00:00:55,850
+this mandate covers.
+
+22
+00:00:56,302 --> 00:00:57,807
+The assistant can now call it.
+
+23
+00:00:57,807 --> 00:01:01,720
+Its first request is inside the mandate, so the server accepts it and stages a
+
+24
+00:01:01,720 --> 00:01:04,480
+change against the record — visible, but not committed.
+
+25
+00:01:04,480 --> 00:01:08,343
+Then it asks for a record that was never delegated, and the call is rejected.
+
+26
+00:01:08,343 --> 00:01:11,052
+Enforcement does not rest on what the tool advertises:
+
+27
+00:01:11,052 --> 00:01:13,611
+every call reaches the server carrying its mandate,
+
+28
+00:01:13,611 --> 00:01:16,370
+and the scope is checked again before anything happens.
+
+29
+00:01:16,822 --> 00:01:18,191
+There is a second boundary.
+
+30
+00:01:18,191 --> 00:01:21,030
+The assistant can prepare a change but cannot commit one
+
+31
+00:01:21,030 --> 00:01:23,616
+— no apply tool is registered for the agent at all,
+
+32
+00:01:23,616 --> 00:01:25,949
+and the inspector makes that absence explicit.
+
+33
+00:01:25,949 --> 00:01:29,295
+The final action stays with the person who granted the permission.
+
+34
+00:01:29,747 --> 00:01:34,108
+This panel exists only to explain what is happening; a real user needs none of it.
+
+35
+00:01:34,108 --> 00:01:37,885
+The production interface is a persistent badge while a mandate is live,
+
+36
+00:01:37,885 --> 00:01:41,022
+and an indication on each record of what the agent proposed
+
+37
+00:01:41,022 --> 00:01:43,735
+— a running delegation must never become invisible.
+
+38
+00:01:44,187 --> 00:01:46,720
+The mechanism is not specific to CRM software.
+
+39
+00:01:46,720 --> 00:01:49,527
+This is the same layer inside a deployment console:
+
+40
+00:01:49,527 --> 00:01:54,097
+the resources are services, the permitted properties are replica counts and feature
+
+41
+00:01:54,097 --> 00:01:54,427
+flags.
+
+42
+00:01:54,427 --> 00:01:58,666
+The generated tool changes because it is derived from what the host declares.
+
+43
+00:01:58,666 --> 00:02:00,318
+The delegation model does not.
+
+44
+00:02:00,771 --> 00:02:03,920
+So far this has been the mechanism from inside the application.
+
+45
+00:02:03,920 --> 00:02:05,570
+Here it is from the agent's side:
+
+46
+00:02:05,570 --> 00:02:08,319
+ChatGPT Desktop, using this site's actual WebMCP tools,
+
+47
+00:02:08,319 --> 00:02:11,518
+making real calls against the permission I granted a minute ago.
+
+48
+00:02:11,518 --> 00:02:13,967
+Which is how delegation works between people too.
+
+49
+00:02:13,967 --> 00:02:16,816
+If a colleague covers for me I don't hand over my account
+
+50
+00:02:16,816 --> 00:02:20,315
+— I tell them what they may handle, how far it goes, and when it ends.
+
+51
+00:02:20,315 --> 00:02:21,715
+The decision already exists.
+
+52
+00:02:21,715 --> 00:02:24,914
+A mandate is what turns it into something a machine can enforce.
+
+53
+00:02:25,271 --> 00:02:25,429
+So:
+
+54
+00:02:25,429 --> 00:02:28,699
+a person defines a temporary scope at the moment it is needed,
+
+55
+00:02:28,699 --> 00:02:31,864
+the system compiles that intent into a live WebMCP contract,
+
+56
+00:02:31,864 --> 00:02:33,815
+and re-validates it on every request.
+
+57
+00:02:33,815 --> 00:02:36,400
+Today I granted that from inside the application.
+
+58
+00:02:36,400 --> 00:02:40,144
+The next step is to move the decision into the agent's own conversation
+
+59
+00:02:40,144 --> 00:02:44,417
+— it asks for the access it needs, the person approves a temporary mandate there,
+
+60
+00:02:44,417 --> 00:02:46,790
+and no broader credential ever changes hands.
