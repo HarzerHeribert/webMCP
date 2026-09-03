@@ -595,6 +595,42 @@ h1, h2, h3, p { margin: 0; }
 .commit--blocked { border-top-color: var(--warn); }
 .commit__ready { margin-left: var(--s2); vertical-align: middle; }
 
+/* ── commit, docked to the authority ──────────────────────────────────────
+   The same bar as `.commit`, sized for a 380px popover and pinned to the foot
+   of it. It is the only apply in the product form, so it is allowed to be the
+   heaviest thing in the card — but it never glows: authority glows, and a
+   button is not authority (`src/styles/tokens.css`). */
+.commit-dock {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s3) var(--s5) var(--s4);
+  border-top: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+.commit-dock__copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.commit-dock__title {
+  font-size: var(--t-sm); font-weight: 620; letter-spacing: -.005em;
+}
+.commit-dock__sub {
+  font-size: var(--t-xs); color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.commit-dock__go { margin-left: auto; flex: none; }
+
+/* Staged work waiting on a person is a state, so it looks like one. */
+.commit-dock--ready { border-top-color: #a7e4c4; background: var(--ok-wash); }
+.commit-dock--blocked { border-top-color: var(--warn); background: var(--warn-wash); }
+
+/* On the liquid body the card is painted behind the DOM, so the dock cannot
+   carry an opaque fill of its own — it would read as a slab dropped on the
+   popover. Same treatment `.panel` already gets two rules above. */
+.mandate-liquid .pop .commit-dock { background: transparent; }
+.mandate-liquid .pop .commit-dock--ready { background: rgba(167, 228, 196, .12); }
+.mandate-liquid .pop .commit-dock--blocked { background: rgba(196, 50, 10, .12); }
+
+/* Where commit went, said once, in the place it used to be. */
+.approve__where { color: var(--text); font-weight: 620; }
+
 /* ── boot failure ─────────────────────────────────────────────────────────
    A dead service used to look exactly like a slow one: "Opening a session…"
    forever, with nothing to read and nothing to press. */

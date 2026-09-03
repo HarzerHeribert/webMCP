@@ -112,10 +112,69 @@ export function MinimalLayer() {
         <Liquid.Item observe>
           <Popover anchorRef={pill} open onClose={() => setOpen(false)} label="Delegated authority" side="top">
             <AuthorityPanel glow={false} />
+            <CommitDock onDone={() => setOpen(false)} />
           </Popover>
         </Liquid.Item>
       )}
     </Liquid>
+  );
+}
+
+/**
+ * Commit, moved to the authority that permitted it.
+ *
+ * It used to live in the approval popover anchored to the record, which put the
+ * one irreversible act on every row carrying staged work — several doors into
+ * the same decision, each of them one click from whatever was on screen. Here
+ * there is one, behind a deliberate press on the pill, beside the mandate whose
+ * scope decided what could be staged in the first place.
+ *
+ * This is not a control. A browser-driving agent presses it exactly as easily
+ * as a person does, and `docs/18_LIMITATIONS.md` says so plainly: a page cannot
+ * tell a synthesised click from a human one. What moving it buys is coherence —
+ * the product now says in one place where it thinks the decision belongs.
+ */
+function CommitDock({ onDone }: { onDone(): void }) {
+  const { session } = useSession();
+  const { run } = useStore();
+
+  const pending = session.changes.filter((c) => c.state !== 'APPLIED');
+  const stale = pending.some((c) => c.state === 'STALE');
+  const ready = pending.length > 0 && !stale;
+
+  return (
+    <div
+      className={`commit-dock${ready ? ' commit-dock--ready' : ''}${stale ? ' commit-dock--blocked' : ''}`}
+    >
+      <div className="commit-dock__copy">
+        <span className="commit-dock__title">Apply is a human action</span>
+        <span className="commit-dock__sub">
+          {stale
+            ? 'Stale work must be redone first.'
+            : pending.length === 0
+              ? 'Nothing staged to commit.'
+              : `${pending.length} change${pending.length === 1 ? '' : 's'} staged.`}
+        </span>
+      </div>
+      <button
+        className="btn btn--primary btn--sm commit-dock__go"
+        disabled={!ready}
+        onClick={() =>
+          void run(async () => {
+            const checked = await api.validate();
+            const blocked = checked.session.changes.some(
+              (c) => c.state !== 'APPLIED' && c.state !== 'VALIDATED',
+            );
+            if (blocked) return checked;
+            const done = await api.apply(session.revision);
+            onDone();
+            return done;
+          })
+        }
+      >
+        Apply{pending.length > 0 ? ` ${pending.length}` : ''}
+      </button>
+    </div>
   );
 }
 
@@ -189,26 +248,13 @@ export function ApprovalPopover({
             >
               Discard
             </button>
-            <button
-              className="btn btn--primary btn--sm"
-              disabled={stale}
-              onClick={() =>
-                void run(async () => {
-                  const checked = await api.validate();
-                  const blocked = checked.session.changes.some(
-                    (c) => c.state !== 'APPLIED' && c.state !== 'VALIDATED',
-                  );
-                  if (blocked) return checked;
-                  const done = await api.apply(session.revision);
-                  onClose();
-                  return done;
-                })
-              }
-            >
-              Apply
-            </button>
           </div>
-          <p className="approve__foot">Applying checks these against the record first.</p>
+          {/* Review is anchored to the record; commit is not. The one
+              irreversible act does not get an entry point on every row that
+              happens to have staged work — it has exactly one, at the pill. */}
+          <p className="approve__foot">
+            Reviewing here. Commit at the <span className="approve__where">Mandate</span> pill.
+          </p>
         </div>
       </Popover>
     </>

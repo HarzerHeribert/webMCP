@@ -204,12 +204,19 @@ test('the approval appears on the record, reads as a sentence, and commits in on
   await expect(pop).not.toContainText('base r');
   await expect(pop).not.toContainText('mandate v');
 
-  await pop.getByRole('button', { name: 'Apply', exact: true }).click();
+  // Commit is not here. Review is anchored to the record; the one irreversible
+  // act has a single home, docked to the authority that permitted it.
+  await expect(pop.getByRole('button', { name: 'Apply', exact: true })).toBeHidden();
+  await page.keyboard.press('Escape');
 
-  // The popover put itself away, the record carries the value, and there is
+  await page.getByRole('button', { name: 'Mandate — delegated authority' }).click();
+  const authority = page.getByRole('dialog', { name: 'Delegated authority' });
+  await authority.getByRole('button', { name: /^Apply/ }).click();
+
+  // The dock put itself away, the record carries the value, and there is
   // nothing left to review — one press, no separate validate step.
+  await expect(authority).toBeHidden();
   await expect(row.getByRole('button', { name: 'Review', exact: true })).toBeHidden();
-  await expect(pop).toBeHidden();
   await expect(row.locator('.fields').getByText('Book the exec sync')).toBeVisible();
 });
 
@@ -234,8 +241,15 @@ test('a stale approval refuses to commit and says why', async ({ page }) => {
   const field = row.locator('.field').filter({ hasText: 'Status' });
   await field.getByRole('button', { name: 'Review', exact: true }).click();
   const pop = page.getByRole('dialog', { name: 'Review staged changes' });
-  await pop.getByRole('button', { name: 'Apply', exact: true }).click();
-  await expect(pop.getByText(/record changed underneath|blocked/i)).toBeVisible();
+  await expect(pop).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  // Staleness is what validation *discovers*, and validation runs from the
+  // dock now — so the dock is where the discovery has to be legible.
+  await page.getByRole('button', { name: 'Mandate — delegated authority' }).click();
+  const authority = page.getByRole('dialog', { name: 'Delegated authority' });
+  await authority.getByRole('button', { name: /^Apply/ }).click();
+  await expect(authority.getByText(/stale work must be redone/i)).toBeVisible();
 
   // And now it asks to be redone rather than reviewed again.
   await page.keyboard.press('Escape');
