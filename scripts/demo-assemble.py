@@ -10,7 +10,12 @@ operation because the timings come back out of the run that produced the video.
 import json, pathlib, shutil, subprocess, sys
 
 root = pathlib.Path(__file__).resolve().parent.parent
-video = next(root.glob("demo/out/**/*.webm"), None)
+# `demo-splice.py` writes `spliced.mp4` when hand-captured footage has been
+# dropped into the recording; it is the picture then, and `timings.json` was
+# rewritten to match it. Without it the raw Playwright recording is the picture.
+video = root / "demo/out/spliced.mp4"
+if not video.exists():
+    video = next(root.glob("demo/out/**/*.webm"), None)
 if video is None:
     sys.exit("no recording found — run: npx playwright test -c playwright.demo.config.ts")
 

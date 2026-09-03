@@ -5,16 +5,16 @@
     {
       "id": "card-key",
       "caption": "",
-      "say": "An agent that can act in your web app needs authority. Today that means an API key: every record, every field, until somebody remembers to revoke it."
+      "say": "An agent that acts inside your web app needs authority. Today that means an API key: every record, every field, until someone remembers to revoke it."
     },
     {
       "id": "card-sentence",
       "caption": "",
-      "say": "Nobody means forever, everything. Let it update Northwind and Atlas's status and next action for the next ten minutes. Two accounts, not six. Two fields, not the record. Nothing today turns that sentence into that grant."
+      "say": "Nobody means forever, everything. They mean: these two accounts, these two fields, the next ten minutes. Nothing today turns that sentence into that grant."
     },
     {
       "id": "host",
-      "caption": "Relay CRM \u2014 the host application",
+      "caption": "Relay CRM — the host application",
       "say": "This is Relay CRM. Ordinary business software. Mandate is not part of it. It's a capability layer installed into it, and right now it is doing nothing."
     },
     {
@@ -30,7 +30,7 @@
     {
       "id": "compiled",
       "caption": "document.modelContext.registerTool(...)",
-      "say": "Three things change together. The rows take the authority ring. The panel states the exact scope, counting down. And the browser registers a tool that did not exist a second ago, whose schema is a readout of what the human just decided."
+      "say": "Three things change at once. The rows take the authority ring, the panel states the exact scope, and the browser registers a tool that did not exist a second ago — its schema a readout of what the human just decided."
     },
     {
       "id": "stage",
@@ -39,22 +39,22 @@
     },
     {
       "id": "refuse",
-      "caption": "executeTool(... { c-kestrel }) \u2192 OUT_OF_SCOPE",
+      "caption": "executeTool(... { c-kestrel }) → OUT_OF_SCOPE",
       "say": "Now ask that tool for an account that was selected but never delegated. Refused. Out of scope, decided by the server."
     },
     {
       "id": "injection",
-      "caption": "executeTool(... { c-atlas, field: arr }) \u2192 OUT_OF_SCOPE",
+      "caption": "executeTool(... { c-atlas, field: arr }) → OUT_OF_SCOPE",
       "say": "These notes contain a pasted email telling the assistant to approve everything. Run the call it asks for. Refused. Authority does not come from text."
     },
     {
       "id": "narrow",
-      "caption": "Narrowed mid-flight \u2192 mandate v2",
-      "say": "Narrow the mandate mid-flight. That publishes version two, and the agent still believes in version one. Refused: policy changed. The schema was a courtesy. This is the enforcement."
+      "caption": "Narrowed mid-flight → mandate v2",
+      "say": "Narrow the mandate mid-flight. Version two publishes; the agent still believes in version one. Refused — policy changed. The schema was a courtesy. This is enforcement."
     },
     {
       "id": "revoke",
-      "caption": "Revoked \u2192 NO_ACTIVE_MANDATE",
+      "caption": "Revoked → NO_ACTIVE_MANDATE",
       "say": "Revoke it. The same call gets a different refusal: no active mandate. Two refusals, two reasons, both from the server."
     },
     {
@@ -70,12 +70,17 @@
     {
       "id": "usermode",
       "caption": "The product: no panel, just the pill",
-      "say": "Everything you have seen \u2014 the inspector, the caller, the audit \u2014 is instrumentation for this explanation. The product underneath has no panel: a pill that cannot be hidden, and a popover where the decision is."
+      "say": "Everything you have seen is instrumentation for this explanation. The product underneath has no panel: a pill that cannot be hidden, and a popover where the decision is."
     },
     {
       "id": "hosts",
-      "caption": "Same layer, different host \u2192 mandate_stage_service_update",
-      "say": "And none of this knows what a CRM is. Same session, a different host application: a deployment console. The records change, the fields change, and the tool the agent is offered renames itself. Not one line of the server changed."
+      "caption": "Same layer, different host → mandate_stage_service_update",
+      "say": "And none of this knows what a CRM is. Same session, a different host: a deployment console. The records change, the fields change, and the tool renames itself. Not one line of the server changed."
+    },
+    {
+      "id": "chatgpt",
+      "caption": "ChatGPT desktop — site tools — real executeTool calls",
+      "say": "Not simulated. That is ChatGPT's own browser, calling the tools this page registered. It stages what the mandate allows. The server refuses a record outside the scope, then a field no mandate can cover. Asked to commit, it answers that there is no apply tool. A human presses the button."
     },
     {
       "id": "close",
