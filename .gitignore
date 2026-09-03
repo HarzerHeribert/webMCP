@@ -15,3 +15,7 @@ tsconfig.tsbuildinfo
 demo/out/
 demo/audio/
 demo/*.mp4
+# Hand-made screen captures. The Playwright beats in demo/out/ are reproducible
+# from three commands; these are not — they are a person driving a desktop app
+# once — so they are kept in the tree and out of the history.
+demo/captures/
