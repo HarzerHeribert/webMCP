@@ -151,7 +151,12 @@ export async function beat(
   await caption(page, text);
   await body();
   const spoken = (durations[id] ?? 4) * 1000;
-  const remaining = spoken + 900 - (Date.now() - started);
+  // The tail is a breath between beats, not a pause. It used to be 900ms, which
+  // across a dozen beats is eleven seconds of the film spent in silence — and
+  // it read as the narration stopping and restarting rather than running on.
+  // `demo-narrate.py` also trims Kokoro's own padding off each clip now, so the
+  // gap the viewer actually hears is this number and nothing else.
+  const remaining = spoken + 450 - (Date.now() - started);
   if (remaining > 0) await page.waitForTimeout(remaining);
 }
 

@@ -50,7 +50,7 @@
     {
       "id": "noapply",
       "caption": "No apply tool. A person commits.",
-      "say": "There's also no way for the assistant to finish the job. The inspector lists the tools that were deliberately never registered, and applying is the first of them, so committing stays with the person who granted the scope. They click it themselves."
+      "say": "And there is no apply tool. The inspector lists what was deliberately never registered, and applying is first on it, so nothing on the agent's side can commit. The person who granted the scope does that themselves."
     },
     {
       "id": "usermode",
@@ -65,7 +65,7 @@
     {
       "id": "close",
       "caption": "Human intent, compiled into a live WebMCP contract",
-      "say": "A person's temporary intent, compiled into a live WebMCP contract, and re-checked on every call."
+      "say": "A person's temporary intent, compiled into a live WebMCP contract and re-checked on every call. Next, that grant belongs in the agent's own chat window, where the asking already happens."
     }
   ]
 }

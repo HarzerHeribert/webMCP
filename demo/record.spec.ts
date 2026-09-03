@@ -179,7 +179,10 @@ test('record the demo', async ({ page }) => {
     await page.waitForTimeout(1400);
     await point(page, page.locator('.customers li').filter({ hasText: 'event-ingest' }));
     await page.waitForTimeout(900);
-    await caption(page, 'Mandate — human intent, compiled into a live WebMCP contract');
+    // The last frame states the next step rather than the thesis, because the
+    // narration's last sentence does too — and the thesis is the caption this
+    // beat opened on ten seconds earlier.
+    await caption(page, "Next — the grant, rendered in the agent's own window");
   });
 
   await page.waitForTimeout(1600);
