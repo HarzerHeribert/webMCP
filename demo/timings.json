@@ -1,70 +1,62 @@
 [
  {
   "id": "card-key",
-  "at": 0.723
+  "at": 0.711
  },
  {
   "id": "card-sentence",
-  "at": 11.123
+  "at": 17.168
  },
  {
-  "id": "host",
-  "at": 22.083
- },
- {
-  "id": "select",
-  "at": 32.735
- },
- {
-  "id": "delegate",
-  "at": 42.597
- },
- {
-  "id": "compiled",
-  "at": 47.551
- },
- {
-  "id": "stage",
-  "at": 62.548
- },
- {
-  "id": "refuse",
-  "at": 71.899
- },
- {
-  "id": "injection",
-  "at": 79.777
- },
- {
-  "id": "narrow",
-  "at": 89.874
- },
- {
-  "id": "revoke",
-  "at": 101.719
- },
- {
-  "id": "noapply",
-  "at": 110.065
- },
- {
-  "id": "apply",
-  "at": 116.961
- },
- {
-  "id": "usermode",
-  "at": 121.83
- },
- {
-  "id": "hosts",
-  "at": 132.715
+  "id": "card-gap",
+  "at": 31.343
  },
  {
   "id": "chatgpt",
-  "at": 145.861
+  "at": 45.059
+ },
+ {
+  "id": "host",
+  "at": 70.059
+ },
+ {
+  "id": "select",
+  "at": 81.585
+ },
+ {
+  "id": "delegate",
+  "at": 90.211
+ },
+ {
+  "id": "compiled",
+  "at": 96.233
+ },
+ {
+  "id": "stage",
+  "at": 111.198
+ },
+ {
+  "id": "refuse",
+  "at": 118.053
+ },
+ {
+  "id": "noapply",
+  "at": 127.445
+ },
+ {
+  "id": "apply",
+  "at": 133.894
+ },
+ {
+  "id": "usermode",
+  "at": 137.549
+ },
+ {
+  "id": "hosts",
+  "at": 148.308
  },
  {
   "id": "close",
-  "at": 164.861
+  "at": 161.242
  }
 ]

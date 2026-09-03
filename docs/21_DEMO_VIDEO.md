@@ -1,7 +1,7 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:55**, 1600×1000, H.264 + AAC, ~12 MB. Under the
-challenge's three-minute limit with 4 seconds to spare — anything added from
+`demo/mandate-demo.mp4` — **2:51**, 1600×1000, H.264 + AAC, ~11 MB. Under the
+challenge's three-minute limit with 9 seconds to spare — anything added from
 here needs something else trimmed, and the assembler exits non-zero rather than
 write a file over three minutes.
 
@@ -14,9 +14,9 @@ It closes on a *second* host application — the same layer installed into a
 deployment console, where the compiled tool has renamed itself — in the product
 form, which is the shortest way to say that none of this was ever about CRMs.
 
-Between that and the last beat sits 19 seconds of **ChatGPT's desktop app**
-driving the deployed site through site tools: a change staged inside the
-mandate, two refusals with different reasons, and the model answering that it
+The ChatGPT act shows a change staged inside the mandate, a refusal for a record
+outside it, a refusal for a field no mandate can cover, an injected note in the
+data asking for approval and being declined, and the model answering that it
 cannot commit because no apply tool is registered — then a human pressing the
 button. The spinners are jump-cut; nothing else is. `docs/17_DEMO_SCRIPT.md`
 records the one priming prompt that shot opens with, and what it therefore does
@@ -38,7 +38,7 @@ expect(live, 'flagged Chrome must expose document.modelContext').toBe('object');
 ```sh
 npm run demo:voice    # narration → demo/audio/*.wav + demo/durations.json
 npm run demo:record   # picture   → demo/out/**/video.webm + demo/timings.json
-python3 scripts/demo-splice.py demo/captures/chatgpt-segment.mp4 chatgpt close
+python3 scripts/demo-splice.py demo/captures/chatgpt-segment.mp4 chatgpt host
 npm run demo:cut      # both      → demo/mandate-demo.mp4
 ```
 

@@ -5,87 +5,77 @@
     {
       "id": "card-key",
       "caption": "",
-      "say": "An agent that acts inside your web app needs authority. Today that means an API key: every record, every field, until someone remembers to revoke it."
+      "say": "This is how an agent gets permission to act in your software today: an API key. On the left, the agent. On the right, every record it now reaches — every field, for as long as the key exists. Nobody chose that shape. It is the only one on offer."
     },
     {
       "id": "card-sentence",
       "caption": "",
-      "say": "Nobody means forever, everything. They mean: these two accounts, these two fields, the next ten minutes. Nothing today turns that sentence into that grant."
+      "say": "But listen to what a person actually says when they delegate. Let it update Northwind and Atlas's status and next action for the next ten minutes. Two accounts, not six. Two fields, not the record. Ten minutes, not forever."
+    },
+    {
+      "id": "card-gap",
+      "caption": "",
+      "say": "And nothing turns it into one. On the left, what the human decided. On the right, what the agent should have been handed: the same names, the same limits, nothing wider. Mandate is the compiler between them."
+    },
+    {
+      "id": "chatgpt",
+      "caption": "ChatGPT desktop · site tools · real executeTool calls",
+      "say": "So here it is working, before any explanation. On the left, ChatGPT's own browser; on the right, a CRM built for this demo, with a mandate already live. It stages a change it was allowed to make. It is refused for a record outside the scope, then for a field no mandate can cover. Told by a note in the data to approve everything, it declines. Asked to commit, it says there is no tool for that — so a human presses the button."
     },
     {
       "id": "host",
-      "caption": "Relay CRM — the host application",
-      "say": "This is Relay CRM. Ordinary business software. Mandate is not part of it. It's a capability layer installed into it, and right now it is doing nothing."
+      "caption": "A CRM built for this demo — the host application",
+      "say": "Now the same thing slowly, from inside. This CRM is generic on purpose. Mandate is not part of it — it is a layer installed into it, and right now it holds nothing."
     },
     {
       "id": "select",
       "caption": "Selection proposes. It grants nothing.",
-      "say": "Selecting proposes a scope. It grants nothing. Two accounts picked, and the inspector still shows only the two read-only tools. Nothing appeared."
+      "say": "Clicking rows changes nothing about what an agent may do. A selection is not an intent; it is only what happens to be highlighted."
     },
     {
       "id": "delegate",
-      "caption": "The human delegates: 2 accounts, 2 fields, 10 minutes",
-      "say": "Now the human delegates. These accounts, these two fields, ten minutes."
+      "caption": "2 accounts · 2 fields · 10 minutes",
+      "say": "This is the intent. The sentence from a moment ago, now an object the software holds."
     },
     {
       "id": "compiled",
       "caption": "document.modelContext.registerTool(...)",
-      "say": "Three things change at once. The rows take the authority ring, the panel states the exact scope, and the browser registers a tool that did not exist a second ago — its schema a readout of what the human just decided."
+      "say": "And three things move together. The rows take the authority ring. The panel states the scope and counts it down. And the browser gains a tool that did not exist a second ago, whose schema is a readout of what was just decided."
     },
     {
       "id": "stage",
-      "caption": "executeTool(mandate_stage_account_update, { c-northwind, status })",
-      "say": "The agent calls it through the browser's own WebMCP API. The change is staged, marked as the agent's. Nothing is committed."
+      "caption": "executeTool(mandate_stage_account_update) → staged",
+      "say": "The agent calls that tool and stages a change. Staged, not saved — the record has not moved."
     },
     {
       "id": "refuse",
-      "caption": "executeTool(... { c-kestrel }) → OUT_OF_SCOPE",
-      "say": "Now ask that tool for an account that was selected but never delegated. Refused. Out of scope, decided by the server."
-    },
-    {
-      "id": "injection",
-      "caption": "executeTool(... { c-atlas, field: arr }) → OUT_OF_SCOPE",
-      "say": "These notes contain a pasted email telling the assistant to approve everything. Run the call it asks for. Refused. Authority does not come from text."
-    },
-    {
-      "id": "narrow",
-      "caption": "Narrowed mid-flight → mandate v2",
-      "say": "Narrow the mandate mid-flight. Version two publishes; the agent still believes in version one. Refused — policy changed. The schema was a courtesy. This is enforcement."
-    },
-    {
-      "id": "revoke",
-      "caption": "Revoked → NO_ACTIVE_MANDATE",
-      "say": "Revoke it. The same call gets a different refusal: no active mandate. Two refusals, two reasons, both from the server."
+      "caption": "executeTool(... c-kestrel) → OUT_OF_SCOPE",
+      "say": "Ask for a record the mandate never covered and the server refuses. The schema was a courtesy; this is the part that does not depend on manners."
     },
     {
       "id": "noapply",
-      "caption": "There is no apply tool, and no route behind one",
-      "say": "And the most consequential act has no agent path at all. No apply tool, and no route behind one."
+      "caption": "No apply tool. No route behind one.",
+      "say": "Look for a way to commit and there is nothing to find. No apply tool, and no route behind one."
     },
     {
       "id": "apply",
       "caption": "Only a human applies",
-      "say": "The human validates, and applies. The values land in the CRM."
+      "say": "Committing is a person's job, and it stays one."
     },
     {
       "id": "usermode",
       "caption": "The product: no panel, just the pill",
-      "say": "Everything you have seen is instrumentation for this explanation. The product underneath has no panel: a pill that cannot be hidden, and a popover where the decision is."
+      "say": "Everything so far is instrumentation for the explanation. The product underneath has no panel: a pill that cannot be hidden, and a popover where the decision is."
     },
     {
       "id": "hosts",
       "caption": "Same layer, different host → mandate_stage_service_update",
-      "say": "And none of this knows what a CRM is. Same session, a different host: a deployment console. The records change, the fields change, and the tool renames itself. Not one line of the server changed."
-    },
-    {
-      "id": "chatgpt",
-      "caption": "ChatGPT desktop — site tools — real executeTool calls",
-      "say": "Not simulated. That is ChatGPT's own browser, calling the tools this page registered. It stages what the mandate allows. The server refuses a record outside the scope, then a field no mandate can cover. Asked to commit, it answers that there is no apply tool. A human presses the button."
+      "say": "And none of this knows what a CRM is. Same session, a different host: a deployment console. The records change, the fields change, the tool renames itself, and not one line of the server moved."
     },
     {
       "id": "close",
       "caption": "Human intent, compiled into a live WebMCP contract",
-      "say": "Mandate turns explicit, temporary human intent into a live WebMCP contract that the server enforces on every call."
+      "say": "A human's temporary intent, compiled into a live WebMCP contract, and re-checked on every single call."
     }
   ]
 }

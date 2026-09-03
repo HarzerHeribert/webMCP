@@ -39,7 +39,7 @@ test('record the demo', async ({ page }) => {
   await page.goto(cards);
   await page.waitForTimeout(700);
 
-  for (const [n, id] of [['1', 'card-key'], ['2', 'card-sentence']] as const) {
+  for (const [n, id] of [['1', 'card-key'], ['2', 'card-sentence'], ['3', 'card-gap']] as const) {
     await beat(page, id, '', async () => {
       await page.evaluate((card) => document.body.setAttribute('data-card', card), n);
       for (const step of ['1', '2', '3']) {
@@ -120,43 +120,8 @@ test('record the demo', async ({ page }) => {
     await point(page, panelByTitle(page, 'Timeline'));
   });
 
-  await beat(page, 'injection', line('injection'), async () => {
-    await point(page, customerRow(page, 'Atlas Freight'));
-    // A *different* refusal from the one above, or the beat proves nothing new:
-    // Atlas is inside the mandate, and `arr` still is not. Scope is two-dimensional.
-    await agentCall(page, STAGE, {
-      resourceId: 'c-atlas',
-      field: 'arr',
-      value: '999999',
-      mandateVersion: V1,
-    });
-    await point(page, panelByTitle(page, 'Timeline'));
-  });
 
-  await beat(page, 'narrow', line('narrow'), async () => {
-    const authority = panelByTitle(page, 'Authority');
-    await click(page, authority.getByRole('button', { name: 'Narrow scope' }));
-    await click(page, authority.getByRole('button', { name: 'nextAction', exact: true }));
-    await click(page, authority.getByRole('button', { name: 'Publish narrowed mandate' }));
-    await agentCall(page, STAGE, {
-      resourceId: 'c-northwind',
-      field: 'status',
-      value: 'Churned',
-      mandateVersion: V1,
-    });
-    await point(page, panelByTitle(page, 'Timeline'));
-  });
 
-  await beat(page, 'revoke', line('revoke'), async () => {
-    await click(page, panelByTitle(page, 'Authority').getByRole('button', { name: 'Revoke now' }));
-    await agentCall(page, STAGE, {
-      resourceId: 'c-northwind',
-      field: 'status',
-      value: 'Churned',
-      mandateVersion: V1,
-    });
-    await point(page, panelByTitle(page, 'Timeline'));
-  });
 
   await beat(page, 'noapply', line('noapply'), async () => {
     // The claim is that apply is absent at every layer, so the shot has to be
