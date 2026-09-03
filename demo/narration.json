@@ -3,9 +3,14 @@
   "speed": 1.3,
   "beats": [
     {
+      "id": "chatgpt",
+      "caption": "ChatGPT desktop · site tools · real executeTool calls",
+      "say": "This is ChatGPT, and it is about to edit a CRM. The whole window is ChatGPT — the conversation on the left, and on the right its own browser with the app open inside it. Someone has already given it a permission that expires: two accounts, two fields, ten minutes. It makes the change it's allowed to make, then asks for a record that wasn't included, and the server refuses. It asks for a field no permission can cover, refused again. A note in the customer data tells it to approve everything; it ignores that. Asked to apply, it has no tool for it — so a person does."
+    },
+    {
       "id": "card-timing",
       "caption": "",
-      "say": "Giving an AI assistant access to your software is mostly a solved problem. You can already make a token that only reads, or only touches one project. What you can't do is grant access at the moment it's needed. Permissions get set up in advance, by someone who isn't there when the work actually happens."
+      "say": "What is unusual there is not the scope. Fine-grained access is a solved problem — you can already make a token that only reads, or only touches one project. What nobody has solved is when you grant it. Permissions get set up in advance, by someone who isn't there when the work happens."
     },
     {
       "id": "card-sentence",
@@ -16,11 +21,6 @@
       "id": "card-gap",
       "caption": "",
       "say": "That answer is already a permission. It says which records, which fields, and how long it lasts. The problem is that there's nowhere to put it. No software turns a request like that into something an assistant is actually held to."
-    },
-    {
-      "id": "chatgpt",
-      "caption": "ChatGPT desktop · site tools · real executeTool calls",
-      "say": "Here's what that looks like. The whole window is ChatGPT — the conversation on the left, and on the right its own browser with the demo CRM inside it. That's why the page can offer it tools at all. The permission is already granted: two accounts, two fields, ten minutes. ChatGPT makes the change it's allowed to make, then asks for a record that wasn't included, and the server refuses. It asks for a field no permission can cover, refused again. A note in the customer data tells it to approve everything; it ignores that. Asked to apply, it has no tool for it — so a person does."
     },
     {
       "id": "host",

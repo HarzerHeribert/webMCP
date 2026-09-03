@@ -1,7 +1,7 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:53**, 1600×1000, H.264 + AAC, ~11 MB. Under the
-challenge's three-minute limit with 7 seconds to spare — anything added from
+`demo/mandate-demo.mp4` — **2:50**, 1600×1000, H.264 + AAC, ~11 MB. Under the
+challenge's three-minute limit with 10 seconds to spare — anything added from
 here needs something else trimmed, and the assembler exits non-zero rather than
 write a file over three minutes.
 
@@ -38,7 +38,7 @@ expect(live, 'flagged Chrome must expose document.modelContext').toBe('object');
 ```sh
 npm run demo:voice    # narration → demo/audio/*.wav + demo/durations.json
 npm run demo:record   # picture   → demo/out/**/video.webm + demo/timings.json
-python3 scripts/demo-splice.py demo/captures/chatgpt-segment.mp4 chatgpt host
+python3 scripts/demo-splice.py demo/captures/chatgpt-segment.mp4 chatgpt card-timing
 npm run demo:cut      # both      → demo/mandate-demo.mp4
 ```
 

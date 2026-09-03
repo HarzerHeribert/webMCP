@@ -44,14 +44,20 @@ tmp.mkdir(exist_ok=True)
 # and `demo:cut` re-encodes to 30fps H.264 regardless.
 enc = ["-c:v", "libx264", "-crf", "18", "-preset", "veryfast",
        "-pix_fmt", "yuv420p", "-r", "30", "-vf", "scale=1600:1000,setsar=1", "-an"]
+# Splicing before the first beat means there is no head: the clip opens the
+# film. Half a second of the page loading in front of it would be worse than
+# nothing, so that case cuts one part rather than two.
+cuts = [("tail", ["-ss", f"{at:.3f}"])] if at < 1.0 else [
+    ("head", ["-to", f"{at:.3f}"]), ("tail", ["-ss", f"{at:.3f}"])]
 parts = []
-for name, args in (("head", ["-to", f"{at:.3f}"]), ("tail", ["-ss", f"{at:.3f}"])):
+for name, args in cuts:
     out = tmp / f"{name}.mp4"
     subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(video), *args, *enc, str(out)], check=True)
     parts.append(out)
 
+order = (clip, parts[0]) if at < 1.0 else (parts[0], clip, parts[1])
 listing = tmp / "list.txt"
-listing.write_text("".join(f"file '{p}'\n" for p in (parts[0], clip, parts[1])))
+listing.write_text("".join(f"file '{p}'\n" for p in order))
 spliced = root / "demo/out/spliced.mp4"
 subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0",
                 "-i", str(listing), "-c", "copy", str(spliced)], check=True)
