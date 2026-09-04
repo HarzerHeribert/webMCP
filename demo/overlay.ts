@@ -49,11 +49,11 @@ const OVERLAY = `
      only — nothing here is in \`src/\`. */
   .demo-guide { display: none !important; }
   #__demo-caption {
-    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px);
+    position: fixed; left: 50%; bottom: 31px; transform: translateX(-50%) translateY(8px);
     z-index: 2147483647; pointer-events: none; max-width: 78%;
     background: rgba(12,18,28,.93); color: #f4f7fb; border: 1px solid rgba(255,255,255,.10);
-    border-radius: 9px; padding: 12px 20px; box-shadow: 0 8px 28px rgba(8,15,26,.35);
-    font: 480 19px/1.42 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
+    border-radius: 10px; padding: 14px 24px; box-shadow: 0 8px 28px rgba(8,15,26,.35);
+    font: 480 23px/1.42 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
     letter-spacing: .1px; text-align: center; opacity: 0;
     transition: opacity 260ms linear, transform 260ms cubic-bezier(.33,.02,.2,1);
   }

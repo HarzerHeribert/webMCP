@@ -37,16 +37,16 @@ for (let part of beat.say.trim().split(/(?<=[.:?])\s+/)) {
 
 const dir = mkdtempSync(join(tmpdir(), 'segsubs-'));
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1400, height: 260 }, deviceScaleFactor: 1 });
+const page = await browser.newPage({ viewport: { width: 1720, height: 300 }, deviceScaleFactor: 1 });
 const files = [];
 for (const [i, text] of cues.entries()) {
   await page.setContent(`<body style="margin:0;background:transparent">
     <div id="c" style="
-      display:inline-block; max-width:1240px;
+      display:inline-block; max-width:1490px;
       background:rgba(12,18,28,.93); color:#f4f7fb;
-      border:1px solid rgba(255,255,255,.10); border-radius:9px;
-      padding:12px 20px; box-shadow:0 8px 28px rgba(8,15,26,.35);
-      font:480 19px/1.42 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,sans-serif;
+      border:1px solid rgba(255,255,255,.10); border-radius:10px;
+      padding:14px 24px; box-shadow:0 8px 28px rgba(8,15,26,.35);
+      font:480 23px/1.42 -apple-system,BlinkMacSystemFont,'SF Pro Text',Inter,system-ui,sans-serif;
       letter-spacing:.1px; text-align:center;">${text.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</div></body>`);
   const file = join(dir, `c${i}.png`);
   await page.locator('#c').screenshot({ path: file, omitBackground: true });
@@ -69,7 +69,7 @@ const chain = spans
   .map(([a, b], i) => {
     const src = i === 0 ? '[0:v]' : `[v${i - 1}]`;
     const dst = i === spans.length - 1 ? '[v]' : `[v${i}]`;
-    return `${src}[${i + 1}:v]overlay=x=(W-w)/2:y=H-h-26:format=auto:enable='between(t,${a.toFixed(3)},${b.toFixed(3)})'${dst}`;
+    return `${src}[${i + 1}:v]overlay=x=(W-w)/2:y=H-h-31:format=auto:enable='between(t,${a.toFixed(3)},${b.toFixed(3)})'${dst}`;
   })
   .join(';');
 

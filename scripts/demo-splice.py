@@ -43,7 +43,7 @@ tmp.mkdir(exist_ok=True)
 # 25fps VP8 and the clip is 30fps H.264; the concat demuxer needs one format,
 # and `demo:cut` re-encodes to 30fps H.264 regardless.
 enc = ["-c:v", "libx264", "-crf", "18", "-preset", "veryfast",
-       "-pix_fmt", "yuv420p", "-r", "30", "-vf", "scale=1600:1000,setsar=1", "-an"]
+       "-pix_fmt", "yuv420p", "-r", "30", "-vf", "scale=1920:1200,setsar=1", "-an"]
 # Splicing before the first beat means there is no head: the clip opens the
 # film. Half a second of the page loading in front of it would be worse than
 # nothing, so that case cuts one part rather than two.

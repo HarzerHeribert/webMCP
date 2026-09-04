@@ -1,6 +1,6 @@
 # The demo video, and how to make another one
 
-`demo/mandate-demo.mp4` — **2:08**, 1600×1000, H.264 + AAC, ~9 MB. The
+`demo/mandate-demo.mp4` — **2:49**, 1920×1200, H.264 + AAC, ~16 MB. The
 three-minute limit is not the constraint any more; the film is as long as it
 needs to be and no longer. The assembler still exits non-zero rather than write
 a file over three minutes.
@@ -32,6 +32,13 @@ recorder asserts that before it films anything:
 ```ts
 expect(live, 'flagged Chrome must expose document.modelContext').toBe('object');
 ```
+
+The frame is 1920×1200 rather than 1600×1000 for one reason: YouTube's quality
+tiers key off height, so anything under 1080 tall tops out at a 720p rendition
+no matter how clean the source is. This film asks a viewer to read
+`OUT_OF_SCOPE` strings and a compiled tool schema, and at 720p those are grey
+smudges. The overlay type and offsets scale with the frame, and the ChatGPT
+capture is 2560×1440, so it downscales into it rather than up.
 
 ## Four commands
 

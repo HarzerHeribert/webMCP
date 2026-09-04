@@ -19,10 +19,14 @@ export default defineConfig({
   outputDir: './demo/out',
   use: {
     baseURL: 'http://localhost:5176',
-    viewport: { width: 1600, height: 1000 },
+    // 16:10, and tall enough to matter: YouTube's quality tiers key off height,
+    // so a 1000px-tall upload tops out at 720p no matter how clean the source
+    // is. At 1200 it produces a 1080p rendition, which is the difference between
+    // a legible OUT_OF_SCOPE string and a grey smudge.
+    viewport: { width: 1920, height: 1200 },
     channel: 'chrome',
     launchOptions: { args: ['--enable-features=WebMCP', '--hide-scrollbars'] },
-    video: { mode: 'on', size: { width: 1600, height: 1000 } },
+    video: { mode: 'on', size: { width: 1920, height: 1200 } },
   },
   webServer: {
     command: 'npm run dev -- --port 5176',
