@@ -3,9 +3,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Locator, Page } from '@playwright/test';
 
+const here = dirname(fileURLToPath(import.meta.url));
 const durations: Record<string, number> = JSON.parse(
-  readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'durations.json'), 'utf8'),
+  readFileSync(join(here, 'durations.json'), 'utf8'),
 );
+const script: { beats: { id: string; say: string }[] } = JSON.parse(
+  readFileSync(join(here, 'narration.json'), 'utf8'),
+);
+const said = (id: string) => script.beats.find((b) => b.id === id)?.say ?? '';
 
 /**
  * The two things a screen recording of a web app is always missing.
@@ -47,8 +52,8 @@ const OVERLAY = `
     position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(8px);
     z-index: 2147483647; pointer-events: none; max-width: 78%;
     background: rgba(12,18,28,.93); color: #f4f7fb; border: 1px solid rgba(255,255,255,.10);
-    border-radius: 9px; padding: 11px 18px; box-shadow: 0 8px 28px rgba(8,15,26,.35);
-    font: 500 15px/1.35 ui-monospace, "SF Mono", Menlo, monospace;
+    border-radius: 9px; padding: 12px 20px; box-shadow: 0 8px 28px rgba(8,15,26,.35);
+    font: 480 19px/1.42 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, sans-serif;
     letter-spacing: .1px; text-align: center; opacity: 0;
     transition: opacity 260ms linear, transform 260ms cubic-bezier(.33,.02,.2,1);
   }
@@ -115,6 +120,40 @@ export async function click(page: Page, target: Locator): Promise<void> {
   await page.waitForTimeout(240);
 }
 
+/** Sentence-ish cues, then anything still too long broken at a clause. Mirrors
+ *  `scripts/demo-subtitles.py` so the picture and the .srt say the same thing. */
+function cues(text: string): string[] {
+  const MAX = 84;
+  const out: string[] = [];
+  for (let part of text.trim().split(/(?<=[.:?])\s+/)) {
+    while (part.length > MAX) {
+      let cut = part.lastIndexOf(' ', MAX);
+      for (const mark of [' — ', ', ']) {
+        const at = part.lastIndexOf(mark, MAX);
+        if (at > MAX / 2) { cut = at + (mark === ', ' ? 2 : 1); break; }
+      }
+      out.push(part.slice(0, cut).trim());
+      part = part.slice(cut).trim();
+    }
+    if (part) out.push(part);
+  }
+  return out;
+}
+
+/** Walks the beat's own narration across the beat, weighted by cue length, so
+ *  the words on screen are the words being spoken. */
+async function subtitle(page: Page, id: string): Promise<void> {
+  const text = said(id);
+  if (!text) return;
+  const parts = cues(text);
+  const spoken = (durations[id] ?? 4) * 1000;
+  const chars = parts.reduce((n, c) => n + c.length, 0);
+  for (const c of parts) {
+    await caption(page, c);
+    await page.waitForTimeout(Math.max(0, (spoken * c.length) / chars - 320));
+  }
+}
+
 export async function caption(page: Page, text: string): Promise<void> {
   await page.evaluate((t) => {
     const el = document.getElementById('__demo-caption');
@@ -153,8 +192,12 @@ export async function beat(
 ): Promise<void> {
   const started = Date.now();
   timings.push({ id, at: (started - origin) / 1000 });
-  await caption(page, text);
-  await body();
+  // The lower third used to name the call being made — a label to be scanned.
+  // It is the narration itself now, cued to the line being spoken, because a
+  // viewer reading along with the voice takes the point far better than one
+  // decoding `executeTool(...)` in a box. `text` is kept for the sign-off.
+  void text;
+  await Promise.all([subtitle(page, id), body()]);
   const spoken = (durations[id] ?? 4) * 1000;
   // The tail is a breath between beats, not a pause. It used to be 900ms, which
   // across a dozen beats is eleven seconds of the film spent in silence — and
