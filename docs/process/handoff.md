@@ -9,7 +9,7 @@ one link away. Read this, then `CLAUDE.md`, then stop reading and work.
 compiled into a live, bounded WebMCP tool contract. Relay CRM is the host demo;
 the compiler is the product. Built for `https://webmcp.devpost.com/` (deadline
 2026-09-03 13:00 PDT) and **won**: one of the ten winning projects announced
-2026-09-23.
+2026-09-28.
 
 - Devpost: **https://devpost.com/software/mandate-ix29ek**
 - Live: **https://webmcp-weld.vercel.app**
@@ -161,7 +161,7 @@ verifier in item 3 below, which asks to be re-run after any material change.
 1. **Submitted, and won.** The Devpost entry — live URL, repo, video, and the
    README as its text description — is
    https://devpost.com/software/mandate-ix29ek, and it was named one of the
-   challenge's ten winners on 2026-09-23. Nothing here is on a deadline any
+   challenge's ten winners on 2026-09-28. Nothing here is on a deadline any
    more. The video is `demo/mandate-demo.mp4`, recorded in flagged Chrome so
    every agent action on camera is a real `document.modelContext.executeTool`
    call; `docs/21_DEMO_VIDEO.md` describes the current cut and how to make
