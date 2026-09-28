@@ -179,6 +179,8 @@ Phase M7B — Submission artifacts
 
 > `https://webmcp.devpost.com/` — deadline 2026-09-03 13:00 PDT. Judged on WebMCP
 > leverage, execution as a coherent product, potential impact, and ambition.
+> **Result: winner** — one of ten winning projects, announced 2026-09-23
+> (`https://devpost.com/software/mandate-ix29ek`).
 
 ☑ Publish an OSS licence visible in the repository's About section. (SUBMISSION)
     EVIDENCE: `LICENSE` (MIT) at the repository root.

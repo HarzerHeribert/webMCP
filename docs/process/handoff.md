@@ -7,15 +7,17 @@ one link away. Read this, then `CLAUDE.md`, then stop reading and work.
 
 **WebMCP Mandate Compiler.** A human's explicit, temporary delegation is
 compiled into a live, bounded WebMCP tool contract. Relay CRM is the host demo;
-the compiler is the product. Submission for
-`https://webmcp.devpost.com/` — **deadline 2026-09-03 13:00 PDT**.
+the compiler is the product. Built for `https://webmcp.devpost.com/` (deadline
+2026-09-03 13:00 PDT) and **won**: one of the ten winning projects announced
+2026-09-23.
 
+- Devpost: **https://devpost.com/software/mandate-ix29ek**
 - Live: **https://webmcp-weld.vercel.app**
 - Repo: **https://github.com/HarzerHeribert/webMCP** (public, MIT)
 - Vercel project `webmcp`, team `holdpoint-deployment`. **Pushing to `main` is
   the deploy.**
 
-`docs/product/capability-map.md` is authoritative and reads 66/66. That number
+`docs/product/capability-map.md` is authoritative and reads 73/73. That number
 means "every line has evidence recorded", not "nothing is left" — see below.
 
 ## The five things that cost the most time
@@ -156,22 +158,15 @@ verifier in item 3 below, which asks to be re-run after any material change.
 
 ## What is left
 
-1. **Upload the video.** It is made: `demo/mandate-demo.mp4`, 2:50, 1600×1000,
-   recorded in flagged Chrome so every agent action on camera is a real
-   `document.modelContext.executeTool` call. `docs/21_DEMO_VIDEO.md` explains
-   the three-command pipeline and how to re-cut it after a UI change. What is
-   left is human: watch it with sound (the narration is synthesised locally and
-   nobody has listened to it yet), then put it on public YouTube.
-
-   It opens with three problem cards (`demo/cards.html`) and closes by flipping
-   to **Product** mode, which is the answer to "why does this take two-thirds of
-   a screen?" — most of the layer is instrumentation for the argument, and the
-   product underneath has no panel at all: a pill that cannot be hidden, and a
-   popover anchored to whatever the decision is about. The panel form that
-   existed in between was removed; the last commit carrying it is `0a66a7f`.
-2. **Submit on Devpost**: live URL, repo, video, description (the README is
-   written to be that text).
-3. An independent Fable verifier drove the live origin in flagged Chrome and
+1. **Submitted, and won.** The Devpost entry — live URL, repo, video, and the
+   README as its text description — is
+   https://devpost.com/software/mandate-ix29ek, and it was named one of the
+   challenge's ten winners on 2026-09-23. Nothing here is on a deadline any
+   more. The video is `demo/mandate-demo.mp4`, recorded in flagged Chrome so
+   every agent action on camera is a real `document.modelContext.executeTool`
+   call; `docs/21_DEMO_VIDEO.md` describes the current cut and how to make
+   another after a UI change.
+2. An independent Fable verifier drove the live origin in flagged Chrome and
    returned **submittable**: every demo beat and every claimed enforcement
    behaviour works there. Its three findings (gate copy naming the wrong API
    location, the guide claiming the conflict beat after a revoke, and panels

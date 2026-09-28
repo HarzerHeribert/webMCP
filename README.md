@@ -1,6 +1,12 @@
 # WebMCP Mandate Compiler
 
+[![Winner — The WebMCP Challenge](https://img.shields.io/badge/Winner-The_WebMCP_Challenge_2026-d99a1b?style=for-the-badge&logo=devpost&logoColor=white)](https://devpost.com/software/mandate-ix29ek)
+
 **A compiler from human intent to a live, bounded WebMCP tool contract.**
+
+> 🏆 **Winner of [The WebMCP Challenge](https://webmcp.devpost.com/)**, OpenAI's
+> 2026 WebMCP hackathon, where it was one of ten winning projects.
+> [See it on Devpost →](https://devpost.com/software/mandate-ix29ek)
 
 A person says what an agent may touch, on which records, for how long. That
 sentence is compiled into the page's WebMCP capability surface — tool schemas
